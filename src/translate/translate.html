@@ -17,31 +17,36 @@
   <p><em>Below is an working HTMX example client interacting with the service
   at <a href="http://localhost:8000">http://localhost:8000</a> launched by
   running <code>translate www</code>.</em></p>
+  <p><em>To use this demo, you must first have downloaded and installed a
+  Postgres database and restored the sample `dvdrental` database following
+  <a href=
+  "https://www.postgresqltutorial.com/postgresql-getting-started/postgresql-sample-database/">
+  these instructions</a>.</em></p>
   <div class="row mt-4 g-4">
-    <div class="col-8">
-      <h1 class="mb-4">Film List</h1>
-      <ul class="list-group fs-5 me-5" id="film-list">
-        {{ range .Films }} {{ block "film-list-element" .}}
-        <li class="list-group-item bg-primary text-white">{{ .Title }} - {{
-        .Director }}</li>{{ end }} {{ end }}
-      </ul>
-    </div>
-    <div class="col-4">
-      <h1 class="mb-4">Add Film</h1>
-      <form hx-post="/add-film/" hx-target="#film-list" hx-swap="beforeend"
-      hx-indicator="#spinner">
-        <div class="mb-2">
-          <label for="film-title">Title</label> <input type="text" name="title"
-          id="film-title" class="form-control">
-        </div>
-        <div class="mb-3">
-          <label for="film-director">Director</label> <input type="text" name=
-          "director" id="film-director" class="form-control">
-        </div><button type="submit" class="btn btn-primary"><span class=
-        "spinner-border spinner-border-sm htmx-indicator" id="spinner"></span>
-        Submit</button>
-      </form>
-    </div>
+    <h1 class="mb-4">Fetch Actors</h1>
+    <form hx-post="/fetch-actors/" hx-target="#actor-list" hx-swap="innerHTML"
+    hx-indicator="#spinner">
+      <div class="mb-2">
+        <label for="actor-firstName">FirstName filter (partial regexp)</label>
+        <input type="text" name="firstName" id="actor-firstName" class=
+        "form-control">
+      </div>
+      <div class="mb-3">
+        <label for="actor-lastName">LastName filter (partial regexp)</label>
+        <input type="text" name="lastName" id="actor-lastName" class=
+        "form-control">
+      </div><button type="submit" class="btn btn-primary"><span class=
+      "spinner-border spinner-border-sm htmx-indicator" id="spinner"></span>
+      Submit</button>
+    </form>
+  </div>
+  <div class="col-8">
+    <h1 class="mb-4">Actor List</h1>
+    <ul class="list-group fs-5 me-5" id="actor-list">
+      {{ block "actor-list-elements" .}} {{ range .Actors }}
+      <li class="list-group-item bg-primary text-white">{{ .FirstName }} {{
+      .LastName }}</li>{{ end }} {{ end }}
+    </ul>
   </div>
 </body>
 </html>
