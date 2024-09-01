@@ -11,8 +11,12 @@
   "sha384-Y7hw+L/jvKeWIRRkqWYfPcvVxHzVzn5REgzbawhxAuQGwX1XWe70vji+VSeHOThJ"
   crossorigin="anonymous"></script>
   <title>Sango Phrase Translation</title>
+	<style>
+		h1 { text-align: center; }
+	</style>
 </head>
 <body>
+  <h1>Sango Phrase Translation</h1>
   <p><strong>UNDER CONSTRUCTION</strong></p>
   <p><em>Below is an working HTMX example client interacting with the service
   at <a href="http://localhost:8000">http://localhost:8000</a> launched by
@@ -23,8 +27,8 @@
   "https://www.postgresqltutorial.com/postgresql-getting-started/postgresql-sample-database/">
   these instructions</a>.</em></p>
   <div class="row mt-4 g-4">
-    <h1 class="mb-4">Fetch Actors</h1>
-    <form hx-post="/fetch-actors/" hx-target="#actor-list" hx-swap="innerHTML"
+    <h2 class="mb-4">Fetch Actors</h2>
+    <form hx-post="/fetch-actors/" hx-target="#actor-table" hx-swap="innerHTML"
     hx-indicator="#spinner">
       <div class="mb-2">
         <label for="actor-firstName">FirstName filter (partial regexp)</label>
@@ -41,12 +45,25 @@
     </form>
   </div>
   <div class="col-8">
-    <h1 class="mb-4">Actor List</h1>
-    <ul class="list-group fs-5 me-5" id="actor-list">
-      {{ block "actor-list-elements" .}} {{ range .Actors }}
-      <li class="list-group-item bg-primary text-white">{{ .FirstName }} {{
-      .LastName }}</li>{{ end }} {{ end }}
-    </ul>
+    <h2 class="mb-4">Actors</h2>
+    <table>
+			<thead>
+      <tr>
+				<th>FirstName</th>
+				<th>LastName</th>
+      </tr>
+			</thead>
+			<tbody class="actor-table-group fs-5 me-5" id="actor-table">
+      {{ block "actor-table-elements" .}}
+			  {{ range .Actors }}
+        <tr class="actor-table-item">
+	  			<td>{{ .FirstName }}</td>
+		  		<td>{{ .LastName  }}</td>
+        </tr>
+			  {{ end }}
+			{{ end }}
+			</tbody>
+    </table>
   </div>
 </body>
 </html>

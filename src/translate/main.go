@@ -55,7 +55,7 @@ func fetchActorsHandler(w http.ResponseWriter, r *http.Request) {
 	firstNameToMatch := r.PostFormValue("firstName")
 	lastNameToMatch := r.PostFormValue("lastName")
 	actorsMap := GetActorsMapFromDatabase(dbDvdRental, firstNameToMatch, lastNameToMatch)
-	err := tmpl.ExecuteTemplate(w, "actor-list-elements", actorsMap)
+	err := tmpl.ExecuteTemplate(w, "actor-table-elements", actorsMap)
 	if err != nil {
 		log.Fatal(err)
 	}
