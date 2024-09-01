@@ -1,10 +1,155 @@
+// Sango dictionary, stored in row-major and column-major order as Go global variables.
+// All exported symbols should be treated as constant and must not be mutated by clients.
+
 package lexicon
 
 import (
-	"fmt"
-	"log"
 	"unicode/utf8"
 )
+
+// Sango affixes and lexicon in row-major order.
+var AffixesRows DictRows = affixesRows[:]
+var LexiconRows DictRows = lexiconRows[:]
+
+// Sango affixes and lexicon in column-major order.
+var Affixes DictCols = convertToColumnMajorOrder(AffixesRows)
+var Lexicon DictCols = convertToColumnMajorOrder(LexiconRows)
+
+type DictRows []DictRow
+
+type DictRow struct {
+	Toneless  string
+	Sango     string
+	LexPos    string
+	UDPos     string
+	Level     int
+	UDFeature string
+	Category  string
+	English   string
+}
+
+type DictCols struct {
+	Bytes     []byte
+	Runes     []rune
+	Toneless  [][]byte
+	Sango     [][]rune
+	SangoUTF8 [][]byte
+	LexPos    [][]byte
+	UDPos     [][]byte
+	Level     []int
+	UDFeature [][]byte
+	Category  [][]byte
+	English   [][]byte
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// IMPLEMENTATION
+
+func convertToColumnMajorOrder(rows DictRows) DictCols {
+	var d DictCols
+
+	// Preallocate memory to save space.
+	numRows := len(rows)
+	d.Toneless = make([][]byte, numRows)
+	d.Sango = make([][]rune, numRows)
+	d.SangoUTF8 = make([][]byte, numRows)
+	d.LexPos = make([][]byte, numRows)
+	d.UDPos = make([][]byte, numRows)
+	d.Level = make([]int, numRows)
+	d.UDFeature = make([][]byte, numRows)
+	d.Category = make([][]byte, numRows)
+	d.English = make([][]byte, numRows)
+
+	// Count the total number of bytes and runes.
+	numRunes := 0
+	numBytes := 0
+	for _, r := range rows {
+		lenToneless := len(r.Toneless)
+		lenSango := utf8.RuneCountInString(r.Sango)
+		lenSangoUTF8 := len(r.Sango)
+		lenLexPos := len(r.LexPos)
+		lenUDPos := len(r.UDPos)
+		lenUDFeature := len(r.UDFeature)
+		lenCategory := len(r.Category)
+		lenEnglish := len(r.English)
+
+		numBytes += lenToneless
+		numRunes += lenSango
+		numBytes += lenSangoUTF8
+		numBytes += lenLexPos
+		numBytes += lenUDPos
+		numBytes += lenUDFeature
+		numBytes += lenCategory
+		numBytes += lenEnglish
+	}
+
+	// Copy over the data into backing arrays for maximum locality.
+	d.Bytes = make([]byte, numBytes)
+	d.Runes = make([]rune, numRunes)
+	endRune := 0
+	endByte := 0
+	for k, r := range rows {
+		d.Level[k] = r.Level
+
+		startByte := endByte
+		endByte += copy(d.Bytes[startByte:], []byte(r.Toneless))
+		d.Toneless[k] = d.Bytes[startByte:endByte]
+
+		startRune := endRune
+		endRune += copy(d.Runes[startRune:], []rune(r.Sango))
+		d.Sango[k] = d.Runes[startRune:endRune]
+
+		startByte = endByte
+		endByte += copy(d.Bytes[startByte:], []byte(r.Sango))
+		d.SangoUTF8[k] = d.Bytes[startByte:endByte]
+
+		startByte = endByte
+		endByte += copy(d.Bytes[startByte:], []byte(r.LexPos))
+		d.LexPos[k] = d.Bytes[startByte:endByte]
+
+		startByte = endByte
+		endByte += copy(d.Bytes[startByte:], []byte(r.UDPos))
+		d.UDPos[k] = d.Bytes[startByte:endByte]
+
+		startByte = endByte
+		endByte += copy(d.Bytes[startByte:], []byte(r.UDFeature))
+		d.UDFeature[k] = d.Bytes[startByte:endByte]
+
+		startByte = endByte
+		endByte += copy(d.Bytes[startByte:], []byte(r.Category))
+		d.Category[k] = d.Bytes[startByte:endByte]
+
+		startByte = endByte
+		endByte += copy(d.Bytes[startByte:], []byte(r.English))
+		d.English[k] = d.Bytes[startByte:endByte]
+	}
+	if len(d.Level) != numRows {
+		panic("Bad len(d.Level)")
+	}
+	if cap(d.Level) != numRows {
+		panic("Bad cap(d.Level)")
+	}
+	if endByte != numBytes {
+		panic("Bad endByte")
+	}
+	if len(d.Bytes) != numBytes {
+		panic("Bad len(d.Bytes)")
+	}
+	if cap(d.Bytes) != numBytes {
+		panic("Bad cap(d.Bytes)")
+	}
+	if endRune != numRunes {
+		panic("Bad endRune")
+	}
+	if len(d.Runes) != numRunes {
+		panic("Bad len(d.Runes)")
+	}
+	if cap(d.Runes) != numRunes {
+		panic("Bad cap(d.Runes)")
+	}
+
+	return d
+}
 
 var affixesRows = [...]DictRow{
 	{"nga", "-nga", "SUFFIX", "VERB", 1, "Aspect=Iter|Suffix=Yes", "HOW", "[periodic]"},
@@ -14,7 +159,6 @@ var affixesRows = [...]DictRow{
 	{"a", "â", "PREFIX", "VERB", 1, "Mood=Sub|Prefix=Yes", "NUM", "[rare] [irrealis] if (one were to)"},
 	{"a", "â", "PREFIX", "NOUN", 1, "Prefix=Yes", "NUM", "(+ Noun) [plural]"},
 }
-var AffixesRows = affixesRows[:]
 
 var lexiconRows = [...]DictRow{
 	{"ababaa", "ababâa", "N", "NOUN", 5, "", "FOOD", "soybean"},
@@ -2342,140 +2486,4 @@ var lexiconRows = [...]DictRow{
 	{"zungo", "züngɔ̈", "G", "VERB", 2, "VerbForm=Vnoun", "MOVE", "descendant"},
 	{"zu", "zûu", "VI", "VERB", 2, "Subcat=Intr", "MOVE", "descend"},
 	{"zu", "zûu", "VT", "VERB", 2, "Subcat=Tran", "MOVE", "lower, bow"},
-}
-var LexiconRows = lexiconRows[:]
-
-type DictRow struct {
-	Toneless  string
-	Sango     string
-	LexPos    string
-	UDPos     string
-	Level     int
-	UDFeature string
-	Category  string
-	English   string
-}
-
-type Dict struct {
-	Bytes     []byte
-	Runes     []rune
-	Toneless  [][]byte
-	Sango     [][]rune
-	SangoUTF8 [][]byte
-	LexPos    [][]byte
-	UDPos     [][]byte
-	Level     []int
-	UDFeature [][]byte
-	Category  [][]byte
-	English   [][]byte
-}
-
-var Affixes Dict
-var Lexicon Dict
-
-// Unpack row-major LexiconRows into column-major order for greater efficiency.
-func unpackLexicon(rows []DictRow) Dict {
-	var d Dict
-
-	// Preallocate memory to save space.
-	numRows := len(rows)
-	d.Toneless = make([][]byte, numRows)
-	d.Sango = make([][]rune, numRows)
-	d.SangoUTF8 = make([][]byte, numRows)
-	d.LexPos = make([][]byte, numRows)
-	d.UDPos = make([][]byte, numRows)
-	d.Level = make([]int, numRows)
-	d.UDFeature = make([][]byte, numRows)
-	d.Category = make([][]byte, numRows)
-	d.English = make([][]byte, numRows)
-
-	// Count the total number of bytes and runes.
-	numRunes := 0
-	numBytes := 0
-	for _, r := range rows {
-		lenToneless := len(r.Toneless)
-		lenSango := utf8.RuneCountInString(r.Sango)
-		lenSangoUTF8 := len(r.Sango)
-		lenLexPos := len(r.LexPos)
-		lenUDPos := len(r.UDPos)
-		lenUDFeature := len(r.UDFeature)
-		lenCategory := len(r.Category)
-		lenEnglish := len(r.English)
-
-		numBytes += lenToneless
-		numRunes += lenSango
-		numBytes += lenSangoUTF8
-		numBytes += lenLexPos
-		numBytes += lenUDPos
-		numBytes += lenUDFeature
-		numBytes += lenCategory
-		numBytes += lenEnglish
-	}
-
-	// Copy over the data into backing arrays for maximum locality.
-	d.Bytes = make([]byte, numBytes)
-	d.Runes = make([]rune, numRunes)
-	endRune := 0
-	endByte := 0
-	for k, r := range rows {
-		d.Level[k] = r.Level
-
-		startByte := endByte
-		endByte += copy(d.Bytes[startByte:], []byte(r.Toneless))
-		d.Toneless[k] = d.Bytes[startByte:endByte]
-
-		startRune := endRune
-		endRune += copy(d.Runes[startRune:], []rune(r.Sango))
-		d.Sango[k] = d.Runes[startRune:endRune]
-
-		startByte = endByte
-		endByte += copy(d.Bytes[startByte:], []byte(r.Sango))
-		d.SangoUTF8[k] = d.Bytes[startByte:endByte]
-
-		startByte = endByte
-		endByte += copy(d.Bytes[startByte:], []byte(r.LexPos))
-		d.LexPos[k] = d.Bytes[startByte:endByte]
-
-		startByte = endByte
-		endByte += copy(d.Bytes[startByte:], []byte(r.UDPos))
-		d.UDPos[k] = d.Bytes[startByte:endByte]
-
-		startByte = endByte
-		endByte += copy(d.Bytes[startByte:], []byte(r.UDFeature))
-		d.UDFeature[k] = d.Bytes[startByte:endByte]
-
-		startByte = endByte
-		endByte += copy(d.Bytes[startByte:], []byte(r.Category))
-		d.Category[k] = d.Bytes[startByte:endByte]
-
-		startByte = endByte
-		endByte += copy(d.Bytes[startByte:], []byte(r.English))
-		d.English[k] = d.Bytes[startByte:endByte]
-	}
-	if len(d.Level) != numRows {
-		panic("Bad len(d.Level)")
-	}
-	if cap(d.Level) != numRows {
-		panic("Bad cap(d.Level)")
-	}
-	if endByte != numBytes {
-		panic("Bad endByte")
-	}
-	if len(d.Bytes) != numBytes {
-		panic("Bad len(d.Bytes)")
-	}
-	if cap(d.Bytes) != numBytes {
-		panic("Bad cap(d.Bytes)")
-	}
-	if endRune != numRunes {
-		panic("Bad endRune")
-	}
-	if len(d.Runes) != numRunes {
-		panic("Bad len(d.Runes)")
-	}
-	if cap(d.Runes) != numRunes {
-		panic("Bad cap(d.Runes)")
-	}
-
-	return d
 }
