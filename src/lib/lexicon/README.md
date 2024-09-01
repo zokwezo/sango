@@ -1,12 +1,14 @@
 # Sango lexicon
 
 This module contains an open-source Sango-English lexicon, available to Go code in both row-major and column-major order
-and as a static tab-separated file [lexicon.tsv](lexicon.tsv).
+and as static comma-separated files [affixes.csv](affixes.csv) and [lexicon.csv](lexicon.csv).
 
 # License
 
 The code and data are released under [Apache License Version 2.0, January 2004](https://www.apache.org/licenses/LICENSE-2.0)
 in order to facilitate and encourage development of Sango language understanding tools.
+
+# Acknowledgements
 
 This lexicon is only best effort and does not purport to meet the excellent quality of the two extant professional
 Sango-French dictionaries:
@@ -30,7 +32,7 @@ In publications, this work can be cited as:
 
 - Weston, D. D. (2024). _Sango-English lexicon_. https://github.com/zokwezo/sango/tree/main/src/lib/lexicon.
 
-# Structure
+# Data Structure
 
 Each lexicon row contains the following columns:
 
@@ -48,44 +50,45 @@ Each lexicon row contains the following columns:
 Note the following:
 
 1. All columns have a non-empty value except UDFeature and Category which are empty if unclassified.
-2. The affixes are productive morphemes (whose LexPos is PREFIX or SUFFIX) that apply productively to any
-   lexeme with matching UDPos (e.g. NOUN or VERB).
-3. The -ngɔ̈ suffix enforces vowel harmony by changing all preceding pitch accents in the root lexeme
-   (but not any other prefix or suffix) to circumflex (medium pitch), e.g.
-   - **wa-** (one who) + **manda** (learn) + **-ngɔ̈** (-ing) + **kua** (work) = **wa-mändängɔ̈-kua** (apprentice).
-4. **Pitch accent is always indicated in the official orthography**
+2. The first 6 columns (Toneless, Sango, LexPos, UDPos, UDFeature, Category) form a unique 6-tuple primary key, and rows
+   are in strict ascending lexical key order to enable binary search and [lower, upper) bound interval lookups in the tables.
+3. Hyphenation is used for clarity in separating Sango morphemes and is suitable for generation, but parsing
+   should not depend on its presence as there is free variation in the use of punctuation in corpora.
+4. The 6 productive affixes are separated out in their own table, being morphemes that can be prefixed or suffixed
+   (depending on whether the LexPos is PREFIX or SUFFIX) via inner join on matching UDPos (e.g. NOUN or VERB)
+	 to any non-affix hyphenless Sango lexeme.
+   - Note that the ngɔ̈ suffix enforces vowel harmony by changing all preceding pitch accents in the root lexeme
+     (but not any other prefix or suffix) to circumflex (medium pitch), e.g.
+     - **wa-** (one who) + **manda** (learn) + **-ngɔ̈** (-ing) + **kua** (work) = **wa-mändängɔ̈-kua** (apprentice).
+6. **Pitch accent is always indicated in the official orthography**
    and is important to distinguish meanings and/or parts of speech, e.g.
 
-   | Toneless | Sango | LexPos | UDPos | Frequency | UDFeature   | Category | English                         |
-   | -------- | ----- | ------ | ----- | :-------: | ----------- | -------- | ------------------------------- |
-   | iri      | ïrï   | N      | NOUN  |     1     |             | INTERACT | name                            |
-   | iri      | îri   | VT     | VERB  |     1     | Subcat=Tran | INTERACT | call, name                      |
-   | kua      | kua   | N      | NOUN  |     2     |             | CIVIL    | work, job, duty                 |
-   | kua      | kûâ   | N      | NOUN  |     2     |             | STATE    | death                           |
-   | kua      | küä   | N      | NOUN  |     3     |             | BODY     | hair, fur, pelt, feathers, down |
-   | tene     | tɛ̈nɛ̈  | N      | NOUN  |     1     |             | INTERACT | problem, quarrel                |
-   | tene     | tɛ̈nɛ̈  | N      | NOUN  |     1     |             | INTERACT | speech, talk, words, tale       |
-   | tene     | tɛ̂nɛ̈  | N      | NOUN  |     3     |             | NATURE   | rock, stone, gravel, pebble     |
-   | tene     | tɛnɛ  | VT     | VERB  |     1     | Subcat=Tran | INTERACT | say, tell                       |
+   | Toneless | Sango | LexPos | UDPos | UDFeature   | Category | Frequency | English                                     |
+   | -------- | ----- | ------ | ----- | ----------- | -------- |:---------:| ------------------------------------------- |
+   | iri      | îri   | VT     | VERB  | Subcat=Tran | INTERACT |     1     | call, name                                  |
+   | iri      | ïrï   | N      | NOUN  |             | INTERACT |     1     | name                                        |
+   | kua      | kua   | N      | NOUN  |             | CIVIL    |     2     | work, job, duty                             |
+   | kua      | küä   | N      | NOUN  |             | BODY     |     3     | hair, fur, pelt, feathers, down             |
+   | kua      | kûâ   | N      | NOUN  |             | STATE    |     2     | death                                       |
 
-5. **Vowel height is not indicated in the official orthography** but is nonetheless important in aural understanding.
-   Although easily restored in real time by native speakers when speaking or reading, the open vowels Ɛ and Ɔ are contrasted
-   with closed vowels E and O and are used explicitly in the Sango column to aid nonnative speakers and text-to-speech applications.
-   Consider the following distinctions in vowel height and pitch:
+7. **Vowel height is not indicated in the official orthography** but is nonetheless important in aural understanding.
+   Although easily restored from context in real time by native speakers when reading aloud, the open vowels Ɛ and Ɔ are used
+   (leaving E and O to represent closed vowels) in the Sango column to aid nonnative speakers and text-to-speech applications.
+   Consider the following distinctions in vowel height (which may be present in any pitch accent):
 
-   | Toneless | Sango | LexPos | UDPos | Frequency | UDFeature   | Category | English         |
-   | -------- | ----- | ------ | ----- | :-------: | ----------- | -------- | --------------- |
-   | de       | dê    | N      | NOUN  |     3     |             | HOW      | coldness, shade |
-   | de       | de    | VI     | VERB  |     3     | Subcat=Intr | BODY     | vomit           |
-   | de       | dë    | VI     | VERB  |     3     | Subcat=Intr | HOW      | be cold         |
-   | de       | dɛ̈    | VT     | VERB  |     2     | Subcat=Tran | ACT      | cut, slice      |
-   | de       | dɛ̈    | VT     | VERB  |     2     | Subcat=Tran | ACT      | grow, cultivate |
-   | de       | dɛ̈    | VT     | VERB  |     2     | Subcat=Tran | INTERACT | emit            |
-   | de       | dɛ    | V      | VERB  |     2     |             | STATE    | remain          |
+   | Toneless | Sango | LexPos | UDPos | UDFeature   | Category | Frequency | English                                     |
+   | -------- | ----- | ------ | ----- | ----------- | -------- |:---------:| ------------------------------------------- |
+   | de       | de    | VI     | VERB  | Subcat=Intr | BODY     |     3     | vomit                                       |
+   | de       | dɛ    | V      | VERB  |             | STATE    |     2     | remain                                      |
+   | de       | dë    | VI     | VERB  | Subcat=Intr | HOW      |     3     | be cold                                     |
+   | de       | dɛ̈    | VT     | VERB  | Subcat=Tran | ACT      |     2     | cut, slice; grow, cultivate                 |
+   | de       | dê    | N      | NOUN  |             | HOW      |     3     | coldness, shade                             |
+   | de       | dɛ̈    | VT     | VERB  | Subcat=Tran | INTERACT |     2     | emit                                        |
 
 # Usage
 
-The data is provided both as a static tab-separated file [lexicon.tsv](lexicon.tsv) and also available to Go applications as a library, e.g.:
+The data is provided both as static comma-separated files [affixes.csv](affixes.csv) and
+[lexicon.csv](lexicon.csv), as well as available to Go applications as a library, e.g.:
 
 ```go
 package main
