@@ -34,14 +34,14 @@ func TestConsistencyBetweenRowAndColMajorOrder(t *testing.T) {
 		if nc := len(rc.cols.UDPos); nc != nr {
 			t.Error(rc.name, ": UDPos cols has ", nc, " entries, but rows has ", nr, " entries")
 		}
-		if nc := len(rc.cols.Level); nc != nr {
-			t.Error(rc.name, ": Level cols has ", nc, " entries, but rows has ", nr, " entries")
-		}
 		if nc := len(rc.cols.UDFeature); nc != nr {
 			t.Error(rc.name, ": UDFeature cols has ", nc, " entries, but rows has ", nr, " entries")
 		}
 		if nc := len(rc.cols.Category); nc != nr {
 			t.Error(rc.name, ": Category cols has ", nc, " entries, but rows has ", nr, " entries")
+		}
+		if nc := len(rc.cols.Frequency); nc != nr {
+			t.Error(rc.name, ": Frequency cols has ", nc, " entries, but rows has ", nr, " entries")
 		}
 		if nc := len(rc.cols.English); nc != nr {
 			t.Error(rc.name, ": English cols has ", nc, " entries, but rows has ", nr, " entries")
@@ -87,19 +87,19 @@ func TestConsistencyBetweenRowAndColMajorOrder(t *testing.T) {
 				t.Error(rc.name, ": UDPos[", k, "] col (", s, ") != row (", row.UDPos, ")")
 			}
 
-			if row.Level < 1 || row.Level > 9 {
-				t.Error(rc.name, ": Invalid Level[", k, "] (", row.Level, ")")
-			}
-			if s := rc.cols.Level[k]; s != row.Level {
-				t.Error(rc.name, ": Level[", k, "] col (", s, ") != row (", row.Level, ")")
-			}
-
 			if s := string(rc.cols.UDFeature[k]); s != row.UDFeature {
 				t.Error(rc.name, ": UDFeature[", k, "] col (", s, ") != row (", row.UDFeature, ")")
 			}
 
 			if s := string(rc.cols.Category[k]); s != row.Category {
 				t.Error(rc.name, ": Category[", k, "] col (", s, ") != row (", row.Category, ")")
+			}
+
+			if row.Frequency < 1 || row.Frequency > 9 {
+				t.Error(rc.name, ": Invalid Frequency[", k, "] (", row.Frequency, ")")
+			}
+			if s := rc.cols.Frequency[k]; s != row.Frequency {
+				t.Error(rc.name, ": Frequency[", k, "] col (", s, ") != row (", row.Frequency, ")")
 			}
 
 			if len(row.English) == 0 {

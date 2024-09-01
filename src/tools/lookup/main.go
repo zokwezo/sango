@@ -6,62 +6,59 @@ import (
 	l "github.com/zokwezo/sango/src/lib/lexicon"
 )
 
-type BytesField struct {
-	name  string
-	field *[][]byte
-}
-
-type RunesField struct {
-	name  string
-	field *[][]rune
-}
-
-func GetBytesFields(d l.Dict) []BytesField {
-	return []BytesField{
-		BytesField{"Toneless  ", &d.Toneless},
-		BytesField{"SangoUTF8 ", &d.SangoUTF8},
-		BytesField{"LexPos    ", &d.LexPos},
-		BytesField{"UDPos     ", &d.UDPos},
-		BytesField{"UDFeature ", &d.UDFeature},
-		BytesField{"Category  ", &d.Category},
-		BytesField{"English   ", &d.English},
-	}
-}
-
-func GetRunesFields(d l.Dict) []RunesField {
-	return []RunesField{
-		RunesField{"Sango     ", &d.Sango},
-	}
-}
-
 func main() {
-	fmt.Printf("\n\nAFFIXES:\n")
-	for k, v := range Affixes.Level {
-		fmt.Printf("AffixesLevel[%v] = {%v}\n", k, v)
+	type bytesField struct {
+		name  string
+		field *[][]byte
 	}
-	for _, bf := range GetBytesFields(Affixes) {
-		for i, b := range *bf.field {
-			fmt.Printf("AffixesBytes[%v][%v] = {%s}\n", bf.name, i, string(b))
-		}
+
+	type runesField struct {
+		name  string
+		field *[][]rune
 	}
-	for _, bf := range GetRunesFields(Affixes) {
-		for i, b := range *bf.field {
-			fmt.Printf("AffixesRunes[%v][%v] = {%s}\n", bf.name, i, string(b))
+
+	getBytesFields := func(d l.DictCols) []bytesField {
+		return []bytesField{
+			bytesField{"Toneless  ", &d.Toneless},
+			bytesField{"SangoUTF8 ", &d.SangoUTF8},
+			bytesField{"LexPos    ", &d.LexPos},
+			bytesField{"UDPos     ", &d.UDPos},
+			bytesField{"UDFeature ", &d.UDFeature},
+			bytesField{"Category  ", &d.Category},
+			bytesField{"English   ", &d.English},
 		}
 	}
 
-	fmt.Printf("\n\nLEXICON:\n")
-	for k, v := range Lexicon.Level {
-		fmt.Printf("LexiconLevel[%v] = {%v}\n", k, v)
-	}
-	for _, bf := range GetBytesFields(Lexicon) {
-		for i, b := range *bf.field {
-			fmt.Printf("LexiconBytes[%v][%v] = {%s}\n", bf.name, i, string(b))
+	getRunesFields := func(d l.DictCols) []runesField {
+		return []runesField{
+			runesField{"Sango     ", &d.Sango},
 		}
 	}
-	for _, bf := range GetRunesFields(Lexicon) {
-		for i, b := range *bf.field {
-			fmt.Printf("LexiconRunes[%v][%v] = {%s}\n", bf.name, i, string(b))
+
+	type Dict struct {
+		name string
+		rows l.DictRows
+		cols l.DictCols
+	}
+
+	dicts := []Dict{
+		{"AFFIXES", l.AffixesRows(), l.AffixesCols()},
+		{"LEXICON", l.LexiconRows(), l.LexiconCols()},
+	}
+
+	for _, dict := range dicts {
+		fmt.Printf("\n\n%v ROWS:\n%v\n", dict.name, dict.rows)
+		fmt.Printf("\n\n%v COLS AS STRINGS:\n", dict.name)
+		fmt.Printf("%v Cols[Frequency ] = %v\n", dict.name, dict.cols.Frequency)
+		for _, bf := range getBytesFields(dict.cols) {
+			for i, b := range *bf.field {
+				fmt.Printf("%v Cols[%v][%v] = {%s}\n", dict.name, bf.name, i, string(b))
+			}
+		}
+		for _, bf := range getRunesFields(dict.cols) {
+			for i, b := range *bf.field {
+				fmt.Printf("%v Cols[%v][%v] = {%s}\n", dict.name, bf.name, i, string(b))
+			}
 		}
 	}
 }
