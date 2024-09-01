@@ -1,5 +1,8 @@
 // Sango dictionary, stored in row-major and column-major order as Go global variables.
-// All exported symbols should be treated as constant and must not be mutated by clients.
+//
+// Copyright 2024 Daniel D. Weston
+// Use of this source code and data is governed by http://www.apache.org/licenses/LICENSE-2.0
+// a copy of which can be found in the LICENSE file.
 
 package lexicon
 
@@ -7,13 +10,11 @@ import (
 	"unicode/utf8"
 )
 
-// Sango affixes and lexicon in row-major order.
-var AffixesRows DictRows = affixesRows[:]
-var LexiconRows DictRows = lexiconRows[:]
-
-// Sango affixes and lexicon in column-major order.
-var AffixesCols DictCols = convertToColumnMajorOrder(AffixesRows)
-var LexiconCols DictCols = convertToColumnMajorOrder(LexiconRows)
+// Sango affixes and lexicon in row-major and column-major order.
+func AffixesRows() DictRows { return affixesRows }
+func AffixesCols() DictCols { return affixesCols }
+func LexiconRows() DictRows { return lexiconRows }
+func LexiconCols() DictCols { return lexiconCols }
 
 type DictRows []DictRow
 
@@ -44,6 +45,12 @@ type DictCols struct {
 
 //////////////////////////////////////////////////////////////////////////////
 // IMPLEMENTATION
+
+var affixesRows DictRows = affixesRowsArray[:]
+var lexiconRows DictRows = lexiconRowsArray[:]
+
+var affixesCols DictCols = convertToColumnMajorOrder(affixesRows)
+var lexiconCols DictCols = convertToColumnMajorOrder(lexiconRows)
 
 func convertToColumnMajorOrder(rows DictRows) DictCols {
 	var d DictCols
@@ -151,7 +158,7 @@ func convertToColumnMajorOrder(rows DictRows) DictCols {
 	return d
 }
 
-var affixesRows = [...]DictRow{
+var affixesRowsArray = [...]DictRow{
 	{"nga", "-nga", "SUFFIX", "VERB", 1, "Aspect=Iter|Suffix=Yes", "HOW", "[periodic]"},
 	{"ngbi", "-ngbi", "SUFFIX", "VERB", 1, "Reflex=Yes|Suffix=Yes", "HOW", "[synchronically]"},
 	{"ngo", "-ngɔ̈", "SUFFIX", "VERB", 1, "Suffix=Yes|VerbForm=Vnoun", "HOW", "[gerund]"},
@@ -160,7 +167,7 @@ var affixesRows = [...]DictRow{
 	{"a", "â", "PREFIX", "NOUN", 1, "Prefix=Yes", "NUM", "(+ Noun) [plural]"},
 }
 
-var lexiconRows = [...]DictRow{
+var lexiconRowsArray = [...]DictRow{
 	{"ababaa", "ababâa", "N", "NOUN", 5, "", "FOOD", "soybean"},
 	{"ade", "âdɛ", "ADV", "ADV", 1, "", "WHEN", "still"},
 	{"adu", "âdu", "CONJ", "SCONJ", 1, "", "HOW", "[lit: if|exist] if"},
@@ -193,7 +200,7 @@ var lexiconRows = [...]DictRow{
 	{"ani", "ânî", "PRON", "PRON", 1, "Animacy=Inan|Num=Plur|Person=3|PronType=Det|Case=Abs,Acc", "WHICH", "[neuter]: they, them"},
 	{"ani", "ânï", "PRON", "PRON", 2, "Num=Plur|Person=3|PronType=Rel", "WHICH", "[indirect style]: they"},
 	{"aparandee", "aparandëe", "N", "NOUN", 7, "", "WHO", "[Fr: apprenti]: apprentice"},
-	{"aparandee", "aparandëe", "N", "NOUN", 8, "", "PREFER", "wa-mändängɔ̈-kûâ"},
+	{"aparandee", "aparandëe", "N", "NOUN", 8, "", "PREFER", "wa-mändängɔ̈-kua"},
 	{"ape", "äpɛ", "CS", "PART", 1, "Polarity=Neg", "HOW", "not"},
 	{"ara", "ara", "V", "VERB", 4, "", "MOVE", "crawl"},
 	{"arabu", "arâbu", "N", "NOUN", 1, "", "COUNTRY", "Arab"},
@@ -2298,7 +2305,7 @@ var lexiconRows = [...]DictRow{
 	{"waawa", "waäwa", "ADV", "ADV", 5, "", "STATE", "pell-mell"},
 	{"wabe", "wa-bɛ̂", "VI", "VERB", 3, "Subcat=Intr", "INTERACT", "have regrets"},
 	{"wabindi", "wa-bindi", "N", "NOUN", 5, "", "STATE", "[lit: one who|magic]: magician, sorcerer, mage"},
-	{"wafangokua", "wa-fängɔ̈-kûâ", "N", "NOUN", 3, "", "WHO", "[lit: one who|teaching|work]: trainer"},
+	{"wafangokua", "wa-fängɔ̈-kua", "N", "NOUN", 3, "", "WHO", "[lit: one who|teaching|work]: trainer"},
 	{"wafangombeti", "wa-fängɔ̈-mbɛ̈tï", "N", "NOUN", 3, "", "WHO", "[lit: one who|teaching|writing]: primary school teacher"},
 	{"wafangoye", "wa-fängɔ̈-yê", "N", "NOUN", 3, "", "WHO", "[lit: one who|teaching|thing]: teacher"},
 	{"wahanda", "wa-hânda", "N", "NOUN", 4, "", "GOD", "trickster, devil, demon, Satan (Protestant)"},
@@ -2310,7 +2317,7 @@ var lexiconRows = [...]DictRow{
 	{"wali", "wâlï-", "PREFIX", "NOUN", 4, "Gender=Fem|Prefix=Yes", "WHO", "female animal"},
 	{"waliwali", "wâlï-wâlï", "N", "NOUN", 6, "Gender=Fem", "WHO", "[lit: woman|woman]: 'lipstick' lesbian"},
 	{"wamabe", "wa-mä-bɛ̂", "N", "NOUN", 1, "", "GOD", "believer, one who has faith"},
-	{"wamandangokua", "wa-mändängɔ̈-kûâ", "N", "NOUN", 3, "", "WHO", "[lit: one who|learning|work]: apprentice"},
+	{"wamandangokua", "wa-mändängɔ̈-kua", "N", "NOUN", 3, "", "WHO", "[lit: one who|learning|work]: apprentice"},
 	{"wamandangombeti", "wa-mändängɔ̈-mbɛ̈tï", "N", "NOUN", 3, "", "WHO", "[lit: one who|learning|writing]: pupil"},
 	{"wamandangoye", "wa-mändängɔ̈-yê", "N", "NOUN", 3, "", "WHO", "[lit: one who|learning|thing]: student"},
 	{"wande", "wa-ndê", "N", "NOUN", 3, "", "WHO", "[lit: one who|different]: foreigner"},
