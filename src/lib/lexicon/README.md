@@ -56,7 +56,7 @@ Note the following:
    should not depend on its presence as there is free variation in the use of punctuation in corpora.
 4. The 6 productive affixes are separated out in their own table, being morphemes that can be prefixed or suffixed
    (depending on whether the LexPos is PREFIX or SUFFIX) via inner join on matching UDPos (e.g. NOUN or VERB)
-	 to any non-affix hyphenless Sango lexeme.
+   to any non-affix hyphenless Sango lexeme.
    - Note that the ngɔ̈ suffix enforces vowel harmony by changing all preceding pitch accents in the root lexeme
      (but not any other prefix or suffix) to circumflex (medium pitch), e.g.
      - **wa-** (one who) + **manda** (learn) + **-ngɔ̈** (-ing) + **kua** (work) = **wa-mändängɔ̈-kua** (apprentice).
@@ -95,6 +95,8 @@ package main
 
 import (
   "fmt"
+  "slices"
+  "strings"
 
   l "github.com/zokwezo/sango/src/lib/lexicon"
 )
@@ -153,6 +155,22 @@ func main() {
         fmt.Printf("%v Cols[%v][%v] = {%s}\n", dict.name, bf.name, i, string(b))
       }
     }
+  }
+
+  // Look for first entry <= {Toneless: "butuma" Sango: "butuma"}
+  cmpFunc := func(lhs, rhs l.DictRow) int {
+    if cmp := strings.Compare(lhs.Toneless, rhs.Toneless); cmp != 0 {
+      return cmp
+    }
+    return strings.Compare(lhs.Sango, rhs.Sango)
+  }
+  entry := l.DictRow{Toneless: "butuma", Sango: "butuma"}
+  nBegin, found := slices.BinarySearchFunc(l.LexiconRows(), entry, cmpFunc)
+  fmt.Printf("Looking for %v at entry[%v] (found = %v)\n", entry, nBegin, found)
+  entry = l.DictRow{Toneless: "butuma", Sango: "butumb"}
+  nEnd, _ := slices.BinarySearchFunc(l.LexiconRows(), entry, cmpFunc)
+  for n := nBegin; n < nEnd; n++ {
+    fmt.Printf("entry[%v] = %v\n", n, l.LexiconRows()[n])
   }
 }
 ```

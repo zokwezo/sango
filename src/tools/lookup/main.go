@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"slices"
+	"strings"
 
 	l "github.com/zokwezo/sango/src/lib/lexicon"
 )
@@ -60,5 +62,21 @@ func main() {
 				fmt.Printf("%v Cols[%v][%v] = {%s}\n", dict.name, bf.name, i, string(b))
 			}
 		}
+	}
+
+	// Look for first entry <= {Toneless: "butuma" Sango: "butuma"}
+	cmpFunc := func(lhs, rhs l.DictRow) int {
+		if cmp := strings.Compare(lhs.Toneless, rhs.Toneless); cmp != 0 {
+			return cmp
+		}
+		return strings.Compare(lhs.Sango, rhs.Sango)
+	}
+	entry := l.DictRow{Toneless: "butuma", Sango: "butuma"}
+	nBegin, found := slices.BinarySearchFunc(l.LexiconRows(), entry, cmpFunc)
+	fmt.Printf("Looking for %v at entry[%v] (found = %v)\n", entry, nBegin, found)
+	entry = l.DictRow{Toneless: "butuma", Sango: "butumb"}
+	nEnd, _ := slices.BinarySearchFunc(l.LexiconRows(), entry, cmpFunc)
+	for n := nBegin; n < nEnd; n++ {
+		fmt.Printf("entry[%v] = %v\n", n, l.LexiconRows()[n])
 	}
 }
