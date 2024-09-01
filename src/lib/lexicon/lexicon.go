@@ -12,8 +12,8 @@ var AffixesRows DictRows = affixesRows[:]
 var LexiconRows DictRows = lexiconRows[:]
 
 // Sango affixes and lexicon in column-major order.
-var Affixes DictCols = convertToColumnMajorOrder(AffixesRows)
-var Lexicon DictCols = convertToColumnMajorOrder(LexiconRows)
+var AffixesCols DictCols = convertToColumnMajorOrder(AffixesRows)
+var LexiconCols DictCols = convertToColumnMajorOrder(LexiconRows)
 
 type DictRows []DictRow
 
