@@ -71,9 +71,9 @@ Each lexicon row contains the following columns, intended i.a. to establish a re
 | Sango     | string | Lexeme with accents and close/open vowel distinctions                                     |
 | LexPos    | string | Lexical part-of-speech                                                                    |
 | UDPos     | string | [Universal Dependency Part-of-speech](https://universaldependencies.org/u/pos/index.html) |
-| Frequency | int    | Relative frequency (1=most common, 9=rare)                                                |
 | UDFeature | string | [Universal Dependency Feature](https://universaldependencies.org/u/feat/)                 |
 | Category  | string | Semantic cluster label                                                                    |
+| Frequency | int    | Relative frequency (1=most common, 9=rare)                                                |
 | English   | string | Brief English translation. Unrelated meanings are separated by semicolon                  |
 
 Please note the following:
