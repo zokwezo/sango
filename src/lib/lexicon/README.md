@@ -130,13 +130,15 @@ Please note the following:
    |  ɛ̈ ɛ̂ ɔ̈ ɔ̂  |    2    |    4    |
 
    The two implications of this to be aware of (especially in legacy code) are that **the number of graphemes in a Sango phrase cannot be
-   immediately calculated from its UTF8/16/32 array representation** and therefore:
+   immediately calculated from its UTF8 or UTF16 array representation** and therefore:
 
    - cannot be easily aligned (e.g. into columns) interlinearly with an English (or French) phrase simply by aligning their representations
    - must be counted by iterating linearly through the array
      - The Go standard library (surprisingly) does not provide this functionality
      - GitHub has a [Unicode Text Segmentation library](https://github.com/rivo/uniseg/blob/master/README.md) for this,
        released under the MIT license which is more permissive than the Apache 2.0 license of this package and can therefore be freely used herein.
+     - The problem could be solved using UTF32 arrays, but (unlike UTF8 and UTF16)
+       this is not supported in the standard [unicode](https://pkg.go.dev/unicode) package and not used in this library.
 
 8. Sometimes an ASCII-only representation is needed. Because written Sango uses only 24 letters, allowing for a human-readable lossless bijective mapping:
    - The letters **x** and **c** are not found in Sango lexemes (nor even in French loan words used in
