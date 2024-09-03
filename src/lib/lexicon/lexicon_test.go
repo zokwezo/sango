@@ -57,6 +57,10 @@ func TestConsistencyBetweenRowAndColMajorOrder(t *testing.T) {
 
 		for k, row := range rc.rows {
 			if len(row.Toneless) == 0 {
+				if len(row.Sango) == 0 {
+					// Skip metadata header row
+					continue
+				}
 				t.Error(rc.name, ": Toneless row is empty")
 			}
 			if s := string(rc.cols.Toneless[k]); s != row.Toneless {

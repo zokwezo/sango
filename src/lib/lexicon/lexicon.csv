@@ -1,4 +1,5 @@
 "Toneless","Sango","LexPos","UDPos","UDFeature","Category","Frequency","English"
+"","","","DO NOT REMOVE THIS ROW","Copyright=DanielDWeston2024","http://www.apache.org/licenses/LICENSE-2.0",0,"https://github.com/zokwezo/sango/blob/main/src/lib/lexicon/lexicon.csv"
 "ababaa","ababâa","N","NOUN","","FOOD",5,"soybean"
 "ade","âdɛ","ADV","ADV","","WHEN",1,"still"
 "adu","âdu","CONJ","SCONJ","","HOW",1,"[lit: if|exist] if"

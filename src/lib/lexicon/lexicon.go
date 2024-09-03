@@ -160,6 +160,8 @@ func convertToColumnMajorOrder(rows DictRows) DictCols {
 
 // Keep in sorted order.
 var affixesRowsArray = [...]DictRow{
+	{"", "", "", "DO NOT REMOVE THIS ROW", "Copyright=DanielDWeston2024", "http://www.apache.org/licenses/LICENSE-2.0",
+		0, "https://github.com/zokwezo/sango/blob/main/src/lib/lexicon/lexicon.csv"},
 	{"a", "a", "PREFIX", "VERB", "Person=3|Prefix=Yes", "WHO", 1, "(+ Verb) Generic subject pronoun"},
 	{"a", "â", "PREFIX", "NOUN", "Prefix=Yes", "NUM", 1, "(+ Noun) [plural]"},
 	{"a", "â", "PREFIX", "VERB", "Mood=Sub|Prefix=Yes", "NUM", 1, "[rare] [irrealis] if (one were to)"},
@@ -170,6 +172,8 @@ var affixesRowsArray = [...]DictRow{
 
 // Keep in sorted order.
 var lexiconRowsArray = [...]DictRow{
+	{"", "", "", "DO NOT REMOVE THIS ROW", "Copyright=DanielDWeston2024", "http://www.apache.org/licenses/LICENSE-2.0",
+		0, "https://github.com/zokwezo/sango/blob/main/src/lib/lexicon/lexicon.csv"},
 	{"ababaa", "ababâa", "N", "NOUN", "", "FOOD", 5, "soybean"},
 	{"ade", "âdɛ", "ADV", "ADV", "", "WHEN", 1, "still"},
 	{"adu", "âdu", "CONJ", "SCONJ", "", "HOW", 1, "[lit: if|exist] if"},
