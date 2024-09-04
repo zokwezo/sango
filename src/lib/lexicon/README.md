@@ -88,7 +88,7 @@ Please note the following:
    to any non-affix hyphenless Sango lexeme.
    - Note that the ngɔ̈ suffix enforces vowel harmony by changing all preceding pitch accents in the root lexeme
      (but not any other prefix or suffix) to circumflex (medium pitch), e.g.
-     - **wa-** (one who) + **manda** (learn) + **-ngɔ̈** (-ing) + **kua** (work) = **wa-mändängɔ̈-kua** (apprentice).
+     - **wa-** (one who) + **manda** (learn) + **-ngɔ̈** (-ing) + **kua** (work) = **wa-mändängɔ̈-kua** (apprentice).
 5. **Pitch accent is always indicated in the official orthography**
    and is important to distinguish meanings and/or parts of speech, e.g.
 
@@ -97,7 +97,7 @@ Please note the following:
    | iri      | îri   | VT     | VERB  | Subcat=Tran | INTERACT |     1     | call, name                      |
    | iri      | ïrï   | N      | NOUN  |             | INTERACT |     1     | name                            |
    | kua      | kua   | N      | NOUN  |             | CIVIL    |     2     | work, job, duty                 |
-   | kua      | küä   | N      | NOUN  |             | BODY     |     3     | hair, fur, pelt, feathers, down |
+   | kua      | küä   | N      | NOUN  |             | BODY     |     3     | hair, fur, pelt, feathers, down |
    | kua      | kûâ   | N      | NOUN  |             | STATE    |     2     | death                           |
 
 6. **Vowel height is not indicated in the official orthography** but is nonetheless important in aural understanding and therefore
@@ -114,7 +114,7 @@ Please note the following:
    | -------- | ----- | ------ | ----- | ----------- | -------- | :-------: | --------------------------- |
    | de       | de    | VI     | VERB  | Subcat=Intr | BODY     |     3     | vomit                       |
    | de       | dɛ    | V      | VERB  |             | STATE    |     2     | remain                      |
-   | de       | dë    | VI     | VERB  | Subcat=Intr | HOW      |     3     | be cold                     |
+   | de       | dë    | VI     | VERB  | Subcat=Intr | HOW      |     3     | be cold                     |
    | de       | dɛ̈    | VT     | VERB  | Subcat=Tran | ACT      |     2     | cut, slice; grow, cultivate |
    | de       | dê    | N      | NOUN  |             | HOW      |     3     | coldness, shade             |
    | de       | dɛ̈    | VT     | VERB  | Subcat=Tran | INTERACT |     2     | emit                        |
@@ -125,7 +125,7 @@ Please note the following:
    | Graphemes | # Runes | # Bytes |
    | :-------: | :-----: | :-----: |
    |    e o    |    1    |    1    |
-   |  ë ê ö ô  |    1    |    2    |
+   |  ë ê ö ô  |    1    |    2    |
    |    ɛ ɔ    |    1    |    2    |
    |  ɛ̈ ɛ̂ ɔ̈ ɔ̂  |    2    |    4    |
 
@@ -139,13 +139,6 @@ Please note the following:
        released under the MIT license which is more permissive than the Apache 2.0 license of this package and can therefore be freely used herein.
      - The problem could be solved using UTF32 arrays, but (unlike UTF8 and UTF16)
        this is not supported in the standard [unicode](https://pkg.go.dev/unicode) package and not used in this library.
-
-8. Sometimes an ASCII-only representation is needed. Because written Sango uses only 24 letters, allowing for a human-readable lossless bijective mapping:
-   - The letters **x** and **c** are not found in Sango lexemes (nor even in French loan words used in
-     vernacular Sango) and can be conveniently repurposed to represent **ɛ** and **ɔ**, respectively, in any ASCII-only
-     encoding, so long as the word is known to be Sango (and not English or French, which do use these letters).
-   - Pitch accent can similarly be expressed via ASCII suffixes **^** and **~**
-     following a vowel (after escaping any affected prior punctuation: **\\^**, **\\~**, and **\\\\**).
 
 ### Code Structure
 
