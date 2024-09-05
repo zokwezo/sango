@@ -17,7 +17,7 @@ Most of this source material was not in digital form and dates to before the ort
 high and mid vowel pitch were represented in writing with circumflex and diaeresis, respectively). Also, in retrospect,
 it is important to distinguishing between open (Ɛ and Ɔ) and close (E and O) vowel height, and to encode these in writing
 to assist nonnative speakers and to support text-to-speech. Consequently, I have since manually restored these
-in consultation with the two published references below, but responsibility for any errata rests entirely with me.
+in consultation with the three published references below, but responsibility for any errata rests entirely with me.
 
 Please email me (Dan Weston <westondan@zokwezo.net>) if you:
 
@@ -32,14 +32,16 @@ In publications, this work can be cited as:
 ### External Resources
 
 This lexicon is only best effort and does not purport to meet the excellent quality of the (only) two published professional
-Sango-French dictionaries:
+Sango-French dictionaries and orthography manual:
 
 - Koyt-Deballé, G. F. (2013). _Lexique illustré sängö-français - français-sängö_, Éditions universitaires européennes. 476 p. ISBN 978-6131592690.
-- Bouquiaux, L. et al (1978). _Dictionnaire sango-français = Kété bàkàrī sāngō-fàránzì_, Société d'études linguistiques et anthropologiques de France. 663 p. ISBN : 2-85297-016-3.
+- Bouquiaux, L. et al (1978). _Dictionnaire sango-français = Kété bàkàrī sāngō-fàránzì_, Société d'études linguistiques et anthropologiques de France. 663 p. ISBN 2-85297-016-3.
+- Diki-Dikiri, M. (1977). _Le Sango s'écrit aussi… Esquisse Linguistique du Sango, Langue Nationale de l'Empire Centrafricain_, Selaf-Paris. 187 p. ISBN 2-85297-057-0.
 
-I strongly encourage users of this project to also acquire a personal copy of the first (or both) of these to serve as source of truth
-(and of course to support the authors and publishers!). In particular, _Lexique illustré sängö-français - français-sängö_ exhaustively
-catalogs the Sango words (along with the scientific names) of indigenous Central African flora and fauna, of which only the most basic are found herein.
+I strongly encourage users of this project to also acquire a personal copy of the first (or better, all three!) of these to serve as source of truth
+(and of course to support the authors and publishers!). In particular, _Lexique illustré sängö-français - français-sängö_, which reflects changes to the
+language in the subsequent 35 years (including computer terms) and exhaustively catalogs the Sango words (along with the scientific names) of
+indigenous Central African flora and fauna, of which only the most basic are found therein.
 
 ### Copyright and License
 
