@@ -123,36 +123,36 @@ func TestConsistencyBetweenRowAndColMajorOrder(t *testing.T) {
 				continue
 			}
 			if prevRow.Toneless > currRow.Toneless {
-				t.Error(rc.name, "[", k, "]: Bad Toneless order")
+				t.Error(rc.name, "[", k, "]: Bad Toneless order, prev={", prevRow, "}, curr={", currRow, "}")
 			}
 			if prevRow.Sango < currRow.Sango {
 				continue
 			}
 			if prevRow.Sango > currRow.Sango {
-				t.Error(rc.name, "[", k, "]: Bad Sango order")
+				t.Error(rc.name, "[", k, "]: Bad Sango order, prev={", prevRow, "}, curr={", currRow, "}")
 			}
 			if prevRow.LexPos < currRow.LexPos {
 				continue
 			}
 			if prevRow.LexPos > currRow.LexPos {
-				t.Error(rc.name, "[", k, "]: Bad LexPos order")
+				t.Error(rc.name, "[", k, "]: Bad LexPos order, prev={", prevRow, "}, curr={", currRow, "}")
 			}
 			if prevRow.UDPos < currRow.UDPos {
 				continue
 			}
 			if prevRow.UDPos > currRow.UDPos {
-				t.Error(rc.name, "[", k, "]: Bad UDPos order")
+				t.Error(rc.name, "[", k, "]: Bad UDPos order, prev={", prevRow, "}, curr={", currRow, "}")
 			}
 			if prevRow.UDFeature < currRow.UDFeature {
 				continue
 			}
 			if prevRow.UDFeature > currRow.UDFeature {
-				t.Error(rc.name, "[", k, "]: Bad UDFeature order")
+				t.Error(rc.name, "[", k, "]: Bad UDFeature order, prev={", prevRow, "}, curr={", currRow, "}")
 			}
 			if prevRow.Category < currRow.Category {
 				continue
 			}
-			t.Error(rc.name, "[", k, "]: Bad Category order")
+			t.Error(rc.name, "[", k, "]: Bad Category order, prev={", prevRow, "}, curr={", currRow, "}")
 		}
 	}
 }
