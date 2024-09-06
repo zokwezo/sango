@@ -16,7 +16,7 @@ func check(e error) {
 }
 
 func main() {
-	r := norm.NFC.Reader(bufio.NewReader(os.Stdin))
+	r := norm.NFKC.Reader(bufio.NewReader(os.Stdin))
 	w := bufio.NewWriter(os.Stdout)
 	dat, err := io.ReadAll(r)
 	s := string(dat)

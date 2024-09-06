@@ -60,7 +60,7 @@ There is no universally agreed-upon lexical ordering of Sango words.
 Different references have adopted different systems.
 
 The most intuitive, simple, and still efficient scheme (in the world of computers) is the one adopted in this project,
-namely the lexical UTF byte ordering (after NFC normalization) of the space-separated ordered pair
+namely the lexical UTF byte ordering (after NFKC normalization) of the space-separated ordered pair
 (without, with) vowel height and pitch, e.g. **hɔ̂ndɛ < hôntï** because **"honde hɔ̂ndɛ" < "honti hôntï"**.
 This is the ordering of the rows in the [lexicon](../lexicon/lexicon.csv).
 

@@ -121,27 +121,6 @@ Please note the following:
    | de       | dê    | N      | NOUN  |             | HOW      |     3     | coldness, shade             |
    | de       | dɛ̈    | VT     | VERB  | Subcat=Tran | INTERACT |     2     | emit                        |
 
-7. All UTF8 is encoded as [NFC](https://unicode.org/reports/tr15/#Norm_Forms), so the number of bytes and runes varies with vowel.
-   In the following front vowels, half can be represented in one rune, the other half require a follow-on combining diacritical mark:
-
-   | Graphemes | # Runes | # Bytes |
-   | :-------: | :-----: | :-----: |
-   |    e o    |    1    |    1    |
-   |  ë ê ö ô  |    1    |    2    |
-   |    ɛ ɔ    |    1    |    2    |
-   |  ɛ̈ ɛ̂ ɔ̈ ɔ̂  |    2    |    4    |
-
-   The two implications of this to be aware of (especially in legacy code) are that **the number of graphemes in a Sango phrase cannot be
-   immediately calculated from its UTF8 or UTF16 array representation** and therefore:
-
-   - cannot be easily aligned (e.g. into columns) interlinearly with an English (or French) phrase simply by aligning their representations
-   - must be counted by iterating linearly through the array
-     - The Go standard library (surprisingly) does not provide this functionality
-     - GitHub has a [Unicode Text Segmentation library](https://github.com/rivo/uniseg/blob/master/README.md) for this,
-       released under the MIT license which is more permissive than the Apache 2.0 license of this package and can therefore be freely used herein.
-     - The problem could be solved using UTF32 arrays, but (unlike UTF8 and UTF16)
-       this is not supported in the standard [unicode](https://pkg.go.dev/unicode) package and not used in this library.
-
 ### Code Structure
 
 The data is provided both as static comma-separated files [affixes.csv](affixes.csv) and
