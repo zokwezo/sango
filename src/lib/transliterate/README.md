@@ -83,17 +83,17 @@ This leaves the other 4 letters free for other purposes:
 |   x   | ɛ                     |
 |   j   | ¨ added to next vowel |
 |   J   | ^ added to next vowel |
-|   q   | Uppercase next glyph  |
-|   Q   | Uppercase next word   |
 
 ##### Output
 
-| Encodes | ASCII                     |
-|:-------:|:------------------------- |
-|    ɔ    | c                         |
-|    ɛ    | x                         |
-|    ¨    | upper case vowel only     |
-|    ^    | upper case whole syllable |
+|  Encodes  | ASCII                     |
+|:---------:|:------------------------- |
+| UC letter | q                         |
+| UC word   | Q                         |
+|     ɔ     | c                         |
+|     ɛ     | x                         |
+|     ¨     | upper case vowel only     |
+|     ^     | upper case whole syllable |
 
 > Uppercase ⇒ _q_ prefix(es) is the same as for INPUT.
 

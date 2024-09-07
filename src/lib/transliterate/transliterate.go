@@ -27,44 +27,44 @@ func check(e error) {
 
 var utf8ToAsciiInput = map[string]string{
 	"-":  "",
-	"A":  "qa",
-	"Ä":  "jqa",
-	"Â":  "Jqa",
-	"E":  "qe",
-	"Ë":  "jqe",
-	"Ê":  "Jqe",
-	"Ɛ":  "qx",
-	"Ɛ̈": "jqx",
-	"Ɛ̂": "Jqx",
-	"I":  "qi",
-	"Ï":  "jqi",
-	"Î":  "Jqi",
-	"O":  "qo",
-	"Ö":  "jqo",
-	"Ô":  "Jqo",
-	"Ɔ":  "qc",
-	"Ɔ̈": "jqc",
-	"Ɔ̂": "Jqc",
-	"U":  "qu",
-	"Ü":  "jqu",
-	"Û":  "Jqu",
-	"B":  "qb",
-	"D":  "qd",
-	"F":  "qf",
-	"G":  "qg",
-	"H":  "qh",
-	"K":  "qk",
-	"L":  "ql",
-	"M":  "qm",
-	"N":  "qn",
-	"P":  "qp",
-	"R":  "qr",
-	"S":  "qs",
-	"T":  "qt",
-	"V":  "qv",
-	"W":  "qw",
-	"Y":  "qy",
-	"Z":  "qz",
+	"A":  "A",
+	"Ä":  "jA",
+	"Â":  "JA",
+	"E":  "E",
+	"Ë":  "jE",
+	"Ê":  "JE",
+	"Ɛ":  "X",
+	"Ɛ̈": "jX",
+	"Ɛ̂": "JX",
+	"I":  "I",
+	"Ï":  "jI",
+	"Î":  "JI",
+	"O":  "O",
+	"Ö":  "jO",
+	"Ô":  "JO",
+	"Ɔ":  "C",
+	"Ɔ̈": "jC",
+	"Ɔ̂": "JC",
+	"U":  "U",
+	"Ü":  "jU",
+	"Û":  "JU",
+	"B":  "B",
+	"D":  "D",
+	"F":  "F",
+	"G":  "G",
+	"H":  "H",
+	"K":  "K",
+	"L":  "L",
+	"M":  "M",
+	"N":  "N",
+	"P":  "P",
+	"R":  "R",
+	"S":  "S",
+	"T":  "T",
+	"V":  "V",
+	"W":  "W",
+	"Y":  "Y",
+	"Z":  "Z",
 	"a":  "a",
 	"ä":  "ja",
 	"â":  "Ja",
@@ -225,10 +225,9 @@ func encodeInput() {
 
 	state := -1
 	var c []byte
-	var boundaries int
 	var word string
 	for len(b) > 0 {
-		c, b, boundaries, state = uniseg.Step(b, state)
+		c, b, _, state = uniseg.Step(b, state)
 		s := string(c)
 		a, isSangoUTF8 := utf8ToAsciiInput[s]
 		if isSangoUTF8 {
@@ -239,14 +238,6 @@ func encodeInput() {
 				fmt.Printf("%v", s)
 			}
 			word = ""
-		}
-		if boundaries&uniseg.MaskSentence != 0 {
-			fmt.Println("\nSENTENCE BREAK")
-			if boundaries&uniseg.MaskLine == uniseg.LineMustBreak {
-				fmt.Println("LINE BREAK")
-			}
-		} else if boundaries&uniseg.MaskLine == uniseg.LineMustBreak {
-			fmt.Println("\nLINE BREAK")
 		}
 	}
 }
@@ -357,10 +348,6 @@ var asciiInputToUtf8 = map[bool]map[int]map[string]string{
 
 func decodeInput() {
 	r := bufio.NewReader(os.Stdin)
-	w := bufio.NewWriter(os.Stdout)
-	o := norm.NFKC.Writer(w)
-	b, err := io.ReadAll(r)
-	check(err)
 	isUpperCaseLetter := false
 	isUpperCaseWord := false
 	pitch := 0
@@ -369,21 +356,25 @@ func decodeInput() {
 		switch s {
 		case "j":
 			pitch = 1
+			continue
 		case "J":
 			pitch = 2
+			continue
 		case "q":
 			isUpperCaseLetter = true
+			continue
 		case "Q":
 			isUpperCaseWord = true
+			continue
 		}
 		isUpperCase := isUpperCaseLetter || isUpperCaseWord
-		if v, isVowel := asciiInputToUtf8[isUpperCase][pitch]; isVowel {
-			fmt.Print(v)
-		} else if consonant, isConsonant := utf8ConsonantToAsciiOutput[s]; isConsonant {
+		if m, isVowel := asciiInputToUtf8[isUpperCase][pitch][s]; isVowel {
+			fmt.Print(m)
+		} else if _, isConsonant := utf8ConsonantToAsciiOutput[s]; isConsonant {
 			if isUpperCase {
-				fmt.Print(strings.ToUpper(consonant))
+				fmt.Print(strings.ToUpper(s))
 			} else {
-				fmt.Print(consonant)
+				fmt.Print(s)
 			}
 		} else {
 			fmt.Print(s)
@@ -392,18 +383,8 @@ func decodeInput() {
 		pitch = 0
 		isUpperCaseLetter = false
 	}
-	_, err = o.Write(b)
-	w.Flush()
-	check(err)
 }
 
 func decodeOutput() {
-	r := bufio.NewReader(os.Stdin)
-	w := bufio.NewWriter(os.Stdout)
-	o := norm.NFKC.Writer(w)
-	b, err := io.ReadAll(r)
-	check(err)
-	_, err = o.Write(b)
-	w.Flush()
-	check(err)
+  panic("'transliterate decode output' is not implemented")
 }
