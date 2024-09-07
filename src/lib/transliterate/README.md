@@ -77,24 +77,23 @@ This leaves the other 4 letters free for other purposes:
 
 ##### Input
 
-| ASCII | Encodes                                     |
-| -----:|:------------------------------------------- |
-|     c | ɔ                                           |
-|     x | ɛ                                           |
-|    jj | ¨ added to preceding vowel                  |
-|     j | ^ added to preceding vowel                  |
-|   qqq | Uppercase succeeding until next punctuation |
-|    qq | Uppercase succeeding until next word break  |
-|     q | Uppercase next glyph                        |
+| ASCII | Encodes               |
+|:-----:|:--------------------- |
+|   c   | ɔ                     |
+|   x   | ɛ                     |
+|   j   | ¨ added to next vowel |
+|   J   | ^ added to next vowel |
+|   q   | Uppercase next glyph  |
+|   Q   | Uppercase next word   |
 
 ##### Output
 
 | Encodes | ASCII                     |
-| -------:|:------------------------- |
-|     ɔ   | c                         |
-|     ɛ   | x                         |
-|     ¨   | upper case vowel only     |
-|     ^   | upper case whole syllable |
+|:-------:|:------------------------- |
+|    ɔ    | c                         |
+|    ɛ    | x                         |
+|    ¨    | upper case vowel only     |
+|    ^    | upper case whole syllable |
 
 > Uppercase ⇒ _q_ prefix(es) is the same as for INPUT.
 

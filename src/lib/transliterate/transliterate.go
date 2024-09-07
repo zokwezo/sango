@@ -25,29 +25,29 @@ func check(e error) {
 	}
 }
 
-var utf8ToAsciiInput map[string]string = map[string]string{
+var utf8ToAsciiInput = map[string]string{
 	"-":  "",
 	"A":  "qa",
-	"Ä":  "qaj",
-	"Â":  "qajj",
+	"Ä":  "jqa",
+	"Â":  "Jqa",
 	"E":  "qe",
-	"Ë":  "qej",
-	"Ê":  "qejj",
+	"Ë":  "jqe",
+	"Ê":  "Jqe",
 	"Ɛ":  "qx",
-	"Ɛ̈": "qxj",
-	"Ɛ̂": "qxjj",
+	"Ɛ̈": "jqx",
+	"Ɛ̂": "Jqx",
 	"I":  "qi",
-	"Ï":  "qij",
-	"Î":  "qijj",
+	"Ï":  "jqi",
+	"Î":  "Jqi",
 	"O":  "qo",
-	"Ö":  "qoj",
-	"Ô":  "qojj",
+	"Ö":  "jqo",
+	"Ô":  "Jqo",
 	"Ɔ":  "qc",
-	"Ɔ̈": "qcj",
-	"Ɔ̂": "qcjj",
+	"Ɔ̈": "jqc",
+	"Ɔ̂": "Jqc",
 	"U":  "qu",
-	"Ü":  "quj",
-	"Û":  "qujj",
+	"Ü":  "jqu",
+	"Û":  "Jqu",
 	"B":  "qb",
 	"D":  "qd",
 	"F":  "qf",
@@ -66,26 +66,26 @@ var utf8ToAsciiInput map[string]string = map[string]string{
 	"Y":  "qy",
 	"Z":  "qz",
 	"a":  "a",
-	"ä":  "aj",
-	"â":  "ajj",
+	"ä":  "ja",
+	"â":  "Ja",
 	"e":  "e",
-	"ë":  "ej",
-	"ê":  "ejj",
+	"ë":  "je",
+	"ê":  "Je",
 	"ɛ":  "x",
-	"ɛ̈": "xj",
-	"ɛ̂": "xjj",
+	"ɛ̈": "jx",
+	"ɛ̂": "Jx",
 	"i":  "i",
-	"ï":  "ij",
-	"î":  "ijj",
+	"ï":  "ji",
+	"î":  "Ji",
 	"o":  "o",
-	"ö":  "oj",
-	"ô":  "ojj",
+	"ö":  "jo",
+	"ô":  "Jo",
 	"ɔ":  "c",
-	"ɔ̈": "cj",
-	"ɔ̂": "cjj",
+	"ɔ̈": "jc",
+	"ɔ̂": "Jc",
 	"u":  "u",
-	"ü":  "uj",
-	"û":  "ujj",
+	"ü":  "ju",
+	"û":  "Ju",
 	"b":  "b",
 	"d":  "d",
 	"f":  "f",
@@ -105,7 +105,7 @@ var utf8ToAsciiInput map[string]string = map[string]string{
 	"z":  "z",
 }
 
-var utf8VowelToAsciiOutput map[string]string = map[string]string{
+var utf8VowelToAsciiOutput = map[string]string{
 	"A":  "a",
 	"Ä":  "a",
 	"Â":  "a",
@@ -150,7 +150,7 @@ var utf8VowelToAsciiOutput map[string]string = map[string]string{
 	"û":  "u",
 }
 
-var utf8ConsonantToAsciiOutput map[string]string = map[string]string{
+var utf8ConsonantToAsciiOutput = map[string]string{
 	"B": "b",
 	"D": "d",
 	"F": "f",
@@ -187,7 +187,7 @@ var utf8ConsonantToAsciiOutput map[string]string = map[string]string{
 	"z": "z",
 }
 
-var isHighPitch map[string]bool = map[string]bool{
+var isHighPitch = map[string]bool{
 	"Ä":  false,
 	"Â":  true,
 	"Ë":  false,
@@ -230,8 +230,8 @@ func encodeInput() {
 	for len(b) > 0 {
 		c, b, boundaries, state = uniseg.Step(b, state)
 		s := string(c)
-		a, found := utf8ToAsciiInput[s]
-		if found {
+		a, isSangoUTF8 := utf8ToAsciiInput[s]
+		if isSangoUTF8 {
 			word += a
 		} else {
 			fmt.Printf("%v", word)
@@ -264,8 +264,7 @@ func encodeOutput() {
 		for len(b) > 0 {
 			c, b, _, state = uniseg.Step(b, state)
 			s = string(c)
-			if consonant, found := utf8ConsonantToAsciiOutput[s]; found {
-				consonant := strings.ToLower(consonant)
+			if consonant, isConsonant := utf8ConsonantToAsciiOutput[s]; isConsonant {
 				if consonants == "n" && consonant != "d" && consonant != "g" && consonant != "y" && consonant != "z" {
 					fmt.Print("N")
 					consonants = ""
@@ -276,7 +275,7 @@ func encodeOutput() {
 				break
 			}
 		}
-		if vowel, found := utf8VowelToAsciiOutput[s]; found {
+		if vowel, isVowel := utf8VowelToAsciiOutput[s]; isVowel {
 			if isHigh, isMedOrHigh := isHighPitch[s]; isMedOrHigh {
 				vowel = strings.ToUpper(vowel)
 				if isHigh {
@@ -287,11 +286,73 @@ func encodeOutput() {
 		} else if consonants == "n" {
 			fmt.Print("N")
 		} else if consonants != "" {
-			panic("\nConsonants {" + consonants + "} found not followed by a vowel {" + s + "}")
+			panic("\nConsonants {" + consonants + "} not followed by a vowel {" + s + "}")
 		} else {
 			fmt.Printf("%s", s)
 		}
 	}
+}
+
+// asciiInputToUtf8[isUpperCase][pitch] UTF8
+var asciiInputToUtf8 = map[bool]map[int]map[string]string{
+	false: {
+		0: {
+			"a": "a",
+			"e": "e",
+			"x": "ɛ",
+			"i": "i",
+			"o": "o",
+			"c": "ɔ",
+			"u": "o",
+		},
+		1: {
+			"a": "ä",
+			"e": "ë",
+			"x": "ɛ̈",
+			"i": "ï",
+			"o": "ö",
+			"c": "ɔ̈",
+			"u": "ü",
+		},
+		2: {
+			"a": "â",
+			"e": "ê",
+			"x": "ɛ̂",
+			"i": "î",
+			"o": "ô",
+			"c": "ɔ̂",
+			"u": "û",
+		},
+	},
+	true: {
+		0: {
+			"a": "A",
+			"e": "E",
+			"x": "Ɛ",
+			"i": "I",
+			"o": "O",
+			"c": "Ɔ",
+			"u": "U",
+		},
+		1: {
+			"a": "Ä",
+			"e": "Ë",
+			"x": "Ɛ̈",
+			"i": "Ï",
+			"o": "Ö",
+			"c": "Ɔ̈",
+			"u": "Ü",
+		},
+		2: {
+			"a": "Â",
+			"e": "Ê",
+			"x": "Ɛ̂",
+			"i": "Î",
+			"o": "Ô",
+			"c": "Ɔ̂",
+			"u": "Û",
+		},
+	},
 }
 
 func decodeInput() {
@@ -300,6 +361,37 @@ func decodeInput() {
 	o := norm.NFKC.Writer(w)
 	b, err := io.ReadAll(r)
 	check(err)
+	isUpperCaseLetter := false
+	isUpperCaseWord := false
+	pitch := 0
+	for c, _, err := r.ReadRune(); err == nil; c, _, err = r.ReadRune() {
+		s := string(c)
+		switch s {
+		case "j":
+			pitch = 1
+		case "J":
+			pitch = 2
+		case "q":
+			isUpperCaseLetter = true
+		case "Q":
+			isUpperCaseWord = true
+		}
+		isUpperCase := isUpperCaseLetter || isUpperCaseWord
+		if v, isVowel := asciiInputToUtf8[isUpperCase][pitch]; isVowel {
+			fmt.Print(v)
+		} else if consonant, isConsonant := utf8ConsonantToAsciiOutput[s]; isConsonant {
+			if isUpperCase {
+				fmt.Print(strings.ToUpper(consonant))
+			} else {
+				fmt.Print(consonant)
+			}
+		} else {
+			fmt.Print(s)
+			isUpperCaseWord = false
+		}
+		pitch = 0
+		isUpperCaseLetter = false
+	}
 	_, err = o.Write(b)
 	w.Flush()
 	check(err)
