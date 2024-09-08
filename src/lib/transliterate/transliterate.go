@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/rivo/uniseg"
@@ -13,8 +14,8 @@ import (
 
 func EncodeInput()  { encodeInput() }
 func EncodeOutput() { encodeOutput() }
-func DecodeInput()  { decodeInput() }
-func DecodeOutput() { decodeOutput() }
+func DecodeInput()  { decode(false) }
+func DecodeOutput() { decode(true) }
 
 ////////////////////////////////////////////////////////////////////////
 // IMPLEMENTATION
@@ -27,44 +28,44 @@ func check(e error) {
 
 var utf8ToAsciiInput = map[string]string{
 	"-":  "",
-	"A":  "A",
-	"Ä":  "jA",
-	"Â":  "JA",
-	"E":  "E",
-	"Ë":  "jE",
-	"Ê":  "JE",
-	"Ɛ":  "X",
-	"Ɛ̈": "jX",
-	"Ɛ̂": "JX",
-	"I":  "I",
-	"Ï":  "jI",
-	"Î":  "JI",
-	"O":  "O",
-	"Ö":  "jO",
-	"Ô":  "JO",
-	"Ɔ":  "C",
-	"Ɔ̈": "jC",
-	"Ɔ̂": "JC",
-	"U":  "U",
-	"Ü":  "jU",
-	"Û":  "JU",
-	"B":  "B",
-	"D":  "D",
-	"F":  "F",
-	"G":  "G",
-	"H":  "H",
-	"K":  "K",
-	"L":  "L",
-	"M":  "M",
-	"N":  "N",
-	"P":  "P",
-	"R":  "R",
-	"S":  "S",
-	"T":  "T",
-	"V":  "V",
-	"W":  "W",
-	"Y":  "Y",
-	"Z":  "Z",
+	"A":  "qa",
+	"Ä":  "jqa",
+	"Â":  "Jqa",
+	"E":  "qe",
+	"Ë":  "jqe",
+	"Ê":  "Jqe",
+	"Ɛ":  "qx",
+	"Ɛ̈": "jqx",
+	"Ɛ̂": "Jqx",
+	"I":  "qi",
+	"Ï":  "jqi",
+	"Î":  "Jqi",
+	"O":  "qo",
+	"Ö":  "jqo",
+	"Ô":  "Jqo",
+	"Ɔ":  "qc",
+	"Ɔ̈": "jqc",
+	"Ɔ̂": "Jqc",
+	"U":  "qu",
+	"Ü":  "jqu",
+	"Û":  "Jqu",
+	"B":  "qb",
+	"D":  "qd",
+	"F":  "qf",
+	"G":  "qg",
+	"H":  "qh",
+	"K":  "qk",
+	"L":  "ql",
+	"M":  "qm",
+	"N":  "qn",
+	"P":  "qp",
+	"R":  "qr",
+	"S":  "qs",
+	"T":  "qt",
+	"V":  "qv",
+	"W":  "qw",
+	"Y":  "qy",
+	"Z":  "qz",
 	"a":  "a",
 	"ä":  "ja",
 	"â":  "Ja",
@@ -105,52 +106,24 @@ var utf8ToAsciiInput = map[string]string{
 	"z":  "z",
 }
 
-var utf8VowelToAsciiOutput = map[string]string{
-	"A":  "a",
-	"Ä":  "a",
-	"Â":  "a",
-	"E":  "e",
-	"Ë":  "e",
-	"Ê":  "e",
-	"Ɛ":  "x",
-	"Ɛ̈": "x",
-	"Ɛ̂": "x",
-	"I":  "i",
-	"Ï":  "i",
-	"Î":  "i",
-	"O":  "o",
-	"Ö":  "o",
-	"Ô":  "o",
-	"Ɔ":  "c",
-	"Ɔ̈": "c",
-	"Ɔ̂": "c",
-	"U":  "u",
-	"Ü":  "u",
-	"Û":  "u",
-	"a":  "a",
-	"ä":  "a",
-	"â":  "a",
-	"e":  "e",
-	"ë":  "e",
-	"ê":  "e",
-	"ɛ":  "x",
-	"ɛ̈": "x",
-	"ɛ̂": "x",
-	"i":  "i",
-	"ï":  "i",
-	"î":  "i",
-	"o":  "o",
-	"ö":  "o",
-	"ô":  "o",
-	"ɔ":  "c",
-	"ɔ̈": "c",
-	"ɔ̂": "c",
-	"u":  "u",
-	"ü":  "u",
-	"û":  "u",
+var lowercaseAsciiVowel = map[string]string{
+	"A": "a",
+	"E": "e",
+	"X": "x",
+	"I": "i",
+	"O": "o",
+	"C": "c",
+	"U": "u",
+	"a": "a",
+	"e": "e",
+	"x": "x",
+	"i": "i",
+	"o": "o",
+	"c": "c",
+	"u": "u",
 }
 
-var utf8ConsonantToAsciiOutput = map[string]string{
+var lowercaseAsciiConsonant = map[string]string{
 	"B": "b",
 	"D": "d",
 	"F": "f",
@@ -187,35 +160,54 @@ var utf8ConsonantToAsciiOutput = map[string]string{
 	"z": "z",
 }
 
-var isHighPitch = map[string]bool{
-	"Ä":  false,
-	"Â":  true,
-	"Ë":  false,
-	"Ê":  true,
-	"Ɛ̈": false,
-	"Ɛ̂": true,
-	"Ï":  false,
-	"Î":  true,
-	"Ö":  false,
-	"Ô":  true,
-	"Ɔ̈": false,
-	"Ɔ̂": true,
-	"Ü":  false,
-	"Û":  true,
-	"ä":  false,
-	"â":  true,
-	"ë":  false,
-	"ê":  true,
-	"ɛ̈": false,
-	"ɛ̂": true,
-	"ï":  false,
-	"î":  true,
-	"ö":  false,
-	"ô":  true,
-	"ɔ̈": false,
-	"ɔ̂": true,
-	"ü":  false,
-	"û":  true,
+type AsciiIsHighPitch = struct {
+	ascii       string
+	isHighPitch bool
+}
+
+var asciiIsHighPitchFromUTF8Vowel = map[string]AsciiIsHighPitch{
+	"A":  {"a", false},
+	"Ä":  {"A", false},
+	"Â":  {"A", true},
+	"E":  {"e", false},
+	"Ë":  {"E", false},
+	"Ê":  {"E", true},
+	"Ɛ":  {"x", false},
+	"Ɛ̈": {"X", false},
+	"Ɛ̂": {"X", true},
+	"I":  {"i", false},
+	"Ï":  {"I", false},
+	"Î":  {"I", true},
+	"O":  {"o", false},
+	"Ö":  {"O", false},
+	"Ô":  {"O", true},
+	"Ɔ":  {"c", false},
+	"Ɔ̈": {"C", false},
+	"Ɔ̂": {"C", true},
+	"U":  {"u", false},
+	"Ü":  {"U", false},
+	"Û":  {"U", true},
+	"a":  {"a", false},
+	"ä":  {"A", false},
+	"â":  {"A", true},
+	"e":  {"e", false},
+	"ë":  {"E", false},
+	"ê":  {"E", true},
+	"ɛ":  {"x", false},
+	"ɛ̈": {"X", false},
+	"ɛ̂": {"X", true},
+	"i":  {"i", false},
+	"ï":  {"I", false},
+	"î":  {"I", true},
+	"o":  {"o", false},
+	"ö":  {"O", false},
+	"ô":  {"O", true},
+	"ɔ":  {"c", false},
+	"ɔ̈": {"C", false},
+	"ɔ̂": {"C", true},
+	"u":  {"u", false},
+	"ü":  {"U", false},
+	"û":  {"U", true},
 }
 
 func encodeInput() {
@@ -224,20 +216,14 @@ func encodeInput() {
 	check(err)
 
 	state := -1
-	var c []byte
-	var word string
+	var ccc []byte
 	for len(b) > 0 {
-		c, b, _, state = uniseg.Step(b, state)
-		s := string(c)
-		a, isSangoUTF8 := utf8ToAsciiInput[s]
-		if isSangoUTF8 {
-			word += a
+		ccc, b, _, state = uniseg.Step(b, state)
+		s := string(ccc)
+		if a, isSangoUTF8 := utf8ToAsciiInput[s]; isSangoUTF8 {
+			fmt.Printf("%s", a)
 		} else {
-			fmt.Printf("%v", word)
-			if s != "\n" {
-				fmt.Printf("%v", s)
-			}
-			word = ""
+			fmt.Printf("%s", s)
 		}
 	}
 }
@@ -249,38 +235,41 @@ func encodeOutput() {
 
 	state := -1
 	var c []byte
+	consonantsWithQ := ""
+	consonantsWithoutQ := ""
 	for len(b) > 0 {
-		consonants := ""
-		s := ""
-		for len(b) > 0 {
-			c, b, _, state = uniseg.Step(b, state)
-			s = string(c)
-			if consonant, isConsonant := utf8ConsonantToAsciiOutput[s]; isConsonant {
-				if consonants == "n" && consonant != "d" && consonant != "g" && consonant != "y" && consonant != "z" {
-					fmt.Print("N")
-					consonants = ""
-					continue
-				}
-				consonants += consonant
-			} else {
-				break
+		c, b, _, state = uniseg.Step(b, state)
+		s := string(c)
+		if consonant, isConsonant := lowercaseAsciiConsonant[s]; isConsonant {
+			if consonantsWithoutQ == "n" && consonant != "d" && consonant != "g" && consonant != "y" && consonant != "z" {
+				fmt.Print("N")
+				consonantsWithoutQ = consonant
+				consonantsWithQ = consonant
+				continue
 			}
+			if len(s) > 0 && s == strings.ToUpper(s) {
+				consonantsWithQ += "q"
+			}
+			consonantsWithoutQ += consonant
+			consonantsWithQ += consonant
+			continue
 		}
-		if vowel, isVowel := utf8VowelToAsciiOutput[s]; isVowel {
-			if isHigh, isMedOrHigh := isHighPitch[s]; isMedOrHigh {
-				vowel = strings.ToUpper(vowel)
-				if isHigh {
-					consonants = strings.ToUpper(consonants)
-				}
+		if asciiIsHighPitch, isVowel := asciiIsHighPitchFromUTF8Vowel[s]; isVowel {
+			if asciiIsHighPitch.isHighPitch {
+				consonantsWithQ = strings.ReplaceAll(strings.ToUpper(consonantsWithQ), "Q", "q")
 			}
-			fmt.Printf("%s%s", consonants, vowel)
-		} else if consonants == "n" {
-			fmt.Print("N")
-		} else if consonants != "" {
-			panic("\nConsonants {" + consonants + "} not followed by a vowel {" + s + "}")
+			if len(s) > 0 && s == strings.ToUpper(s) {
+				consonantsWithQ += "q"
+			}
+			fmt.Printf("%s%s", consonantsWithQ, asciiIsHighPitch.ascii)
+		} else if consonantsWithoutQ == "n" {
+			fmt.Printf("%s%s", "N", s)
 		} else {
-			fmt.Printf("%s", s)
+			// TODO: This is a word break. If every other glyph output is a 'q', replace with single initial 'Q'.
+			fmt.Printf("%s%s", consonantsWithQ, s)
 		}
+		consonantsWithQ = ""
+		consonantsWithoutQ = ""
 	}
 }
 
@@ -346,45 +335,141 @@ var asciiInputToUtf8 = map[bool]map[int]map[string]string{
 	},
 }
 
-func decodeInput() {
+func decode(isOutputFormat bool) {
 	r := bufio.NewReader(os.Stdin)
 	isUpperCaseLetter := false
 	isUpperCaseWord := false
+	numLowerCaseConsonants := 0
+	numUpperCaseConsonants := 0
 	pitch := 0
+	word := ""
 	for c, _, err := r.ReadRune(); err == nil; c, _, err = r.ReadRune() {
-		s := string(c)
-		switch s {
-		case "j":
+		if c == 'j' {
 			pitch = 1
 			continue
-		case "J":
+		}
+		if c == 'J' {
 			pitch = 2
 			continue
-		case "q":
+		}
+		if c == 'q' {
 			isUpperCaseLetter = true
 			continue
-		case "Q":
+		}
+		if c == 'Q' {
 			isUpperCaseWord = true
 			continue
 		}
 		isUpperCase := isUpperCaseLetter || isUpperCaseWord
-		if m, isVowel := asciiInputToUtf8[isUpperCase][pitch][s]; isVowel {
-			fmt.Print(m)
-		} else if _, isConsonant := utf8ConsonantToAsciiOutput[s]; isConsonant {
-			if isUpperCase {
-				fmt.Print(strings.ToUpper(s))
-			} else {
-				fmt.Print(s)
-			}
-		} else {
-			fmt.Print(s)
-			isUpperCaseWord = false
-		}
-		pitch = 0
 		isUpperCaseLetter = false
-	}
-}
+		s := string(c)
+		if consonant, isConsonant := lowercaseAsciiConsonant[s]; isConsonant {
+			if consonant == s {
+				numLowerCaseConsonants++
+			} else {
+				numUpperCaseConsonants++
+			}
+			if isUpperCase {
+				word += strings.ToUpper(consonant)
+			} else {
+				word += consonant
+			}
+			continue
+		}
+		if asciiVowel, isAsciiVowel := lowercaseAsciiVowel[s]; isAsciiVowel {
+			if isOutputFormat && pitch == 0 {
+				if numUpperCaseConsonants > 0 {
+					pitch = 2
+				} else if asciiVowel == s {
+					// Leave pitch unchanged
+				} else if numLowerCaseConsonants == 0 {
+					pitch = 2
+				} else {
+					pitch = 1
+				}
+			}
+			vowel, isVowel := asciiInputToUtf8[isUpperCase][pitch][asciiVowel]
+			if !isVowel {
+				panic("asciiInputToUtf8[" + strconv.FormatBool(isUpperCase) + "][" + strconv.Itoa(pitch) + "][" + asciiVowel +
+					"] does not map to a UTF8 vowel")
+			}
+			word += vowel
+			pitch = 0
+			numLowerCaseConsonants = 0
+			numUpperCaseConsonants = 0
+			continue
+		}
+		if isOutputFormat {
+			// Autocorrect words starting with high pitch vowel that should actually be middle pitch.
+		autocorrect:
+			switch word {
+			// RARE: allowlist of known words that start with a middle pitch vowel
+			case "âpɛ":
+				word = "äpɛ"
+			case "âpɛ̈":
+				word = "äpɛ̈"
+			case "ɛ̂":
+				word = "ɛ̈"
+			case "êkälïtïse":
+				word = "ëkälïtïse"
+			case "êpätîte":
+				word = "ëpätîte"
+			case "î":
+				word = "ï"
+			case "îrï":
+				word = "ïrï"
 
-func decodeOutput() {
-  panic("'transliterate decode output' is not implemented")
+			case "Âpɛ":
+				word = "Äpɛ"
+			case "Âpɛ̈":
+				word = "Äpɛ̈"
+			case "Ɛ̂":
+				word = "Ɛ̈"
+			case "Êkälïtïse":
+				word = "Ëkälïtïse"
+			case "Êpätîte":
+				word = "Ëpätîte"
+			case "Î":
+				word = "Ï"
+			case "Îrï":
+				word = "Ïrï"
+
+			case "ÂPƐ":
+				word = "ÄPƐ"
+			case "ÂPƐ̈":
+				word = "ÄPƐ̈"
+			case "ÊKÄLÏTÏSE":
+				word = "ËKÄLÏTÏSE"
+			case "ÊPÄTÎTE":
+				word = "ËPÄTÎTE"
+			case "ÎRÏ":
+				word = "ÏRÏ"
+
+			default:
+				// COMMON: any word that ends in "ngɔ̈" or "NGƆ̈" (verbal gerund form)
+				// Also include "ngö" and "ngö" in case the vowel height is incorrect.
+				if strings.HasSuffix(word, "ngɔ̈") ||
+					strings.HasSuffix(word, "NGƆ̈") ||
+					strings.HasSuffix(word, "ngö") ||
+					strings.HasSuffix(word, "NGÖ") {
+					for _, m := range asciiInputToUtf8 {
+						for v, mid := range m[1] {
+							hi := m[2][v]
+							if suffix, found := strings.CutPrefix(word, hi); found {
+								word = mid + suffix
+								break autocorrect
+							}
+						}
+					}
+				}
+			}
+		}
+
+		fmt.Printf("%s%s", word, s)
+		word = ""
+		pitch = 0
+		isUpperCaseWord = false
+		numLowerCaseConsonants = 0
+		numUpperCaseConsonants = 0
+	}
 }
