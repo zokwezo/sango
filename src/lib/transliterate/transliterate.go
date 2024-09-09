@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"strconv"
 	"strings"
@@ -12,6 +13,7 @@ import (
 	"golang.org/x/text/unicode/norm"
 )
 
+func Normalize()    { normalize() }
 func EncodeInput()  { encodeInput() }
 func EncodeOutput() { encodeOutput() }
 func DecodeInput()  { decode(false) }
@@ -20,10 +22,20 @@ func DecodeOutput() { decode(true) }
 ////////////////////////////////////////////////////////////////////////
 // IMPLEMENTATION
 
-func check(e error) {
-	if e != nil {
-		panic(e)
+func check(err error) {
+	if err != nil {
+		log.Fatal(err)
 	}
+}
+
+func normalize() {
+	r := norm.NFKC.Reader(bufio.NewReader(os.Stdin))
+	b, err := io.ReadAll(r)
+	check(err)
+	w := bufio.NewWriter(os.Stdout)
+	_, err = w.Write(b)
+	w.Flush()
+	check(err)
 }
 
 var utf8ToAsciiInput = map[string]string{
@@ -390,7 +402,7 @@ func decode(isOutputFormat bool) {
 			}
 			vowel, isVowel := asciiInputToUtf8[isUpperCase][pitch][asciiVowel]
 			if !isVowel {
-				panic("asciiInputToUtf8[" + strconv.FormatBool(isUpperCase) + "][" + strconv.Itoa(pitch) + "][" + asciiVowel +
+				log.Fatal("asciiInputToUtf8[" + strconv.FormatBool(isUpperCase) + "][" + strconv.Itoa(pitch) + "][" + asciiVowel +
 					"] does not map to a UTF8 vowel")
 			}
 			word += vowel
