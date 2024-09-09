@@ -7,8 +7,25 @@
 package lexicon
 
 import (
+	"regexp"
 	"unicode/utf8"
 )
+
+type DictRowRegexp struct {
+	TonelessRE   *regexp.Regexp
+	SangoRE      *regexp.Regexp
+	LexPosRE     *regexp.Regexp
+	UDPosRE      *regexp.Regexp
+	UDFeatureRE  *regexp.Regexp
+	CategoryRE   *regexp.Regexp
+	EnglishRE    *regexp.Regexp
+	FrequencyMin int
+	FrequencyMax int
+}
+
+func Lookup(dictRows DictRows, dictRowRegexp DictRowRegexp) (DictRows, error) {
+	return lookupMatchingRows(dictRows, dictRowRegexp)
+}
 
 // Sango affixes and lexicon in row-major and column-major order.
 func AffixesRows() DictRows { return affixesRows }
@@ -45,6 +62,24 @@ type DictCols struct {
 
 //////////////////////////////////////////////////////////////////////////////
 // IMPLEMENTATION
+
+func lookupMatchingRows(in DictRows, f DictRowRegexp) (out DictRows, err error) {
+	for _, r := range in {
+		if r.Toneless != "" &&
+			f.FrequencyMin <= r.Frequency &&
+			f.FrequencyMax >= r.Frequency &&
+			f.TonelessRE.MatchString(r.Toneless) &&
+			f.SangoRE.MatchString(r.Sango) &&
+			f.LexPosRE.MatchString(r.LexPos) &&
+			f.UDPosRE.MatchString(r.UDPos) &&
+			f.UDFeatureRE.MatchString(r.UDFeature) &&
+			f.CategoryRE.MatchString(r.Category) &&
+			f.EnglishRE.MatchString(r.English) {
+			out = append(out, r)
+		}
+	}
+	return out, nil
+}
 
 var affixesRows DictRows = affixesRowsArray[:]
 var lexiconRows DictRows = lexiconRowsArray[:]

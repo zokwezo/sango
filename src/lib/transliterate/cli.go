@@ -27,7 +27,7 @@ var (
 
 	normalizeCmd = &cobra.Command{
 		Use:   "normalize",
-		Short: "XRead from stdin, normalize UTF8 into NFKC, then write to stdout",
+		Short: "Read from stdin, normalize UTF8 into NFKC, then write to stdout",
 		Args:  cobra.MaximumNArgs(0),
 		Run: func(cmd *cobra.Command, args []string) {
 			Normalize()
