@@ -1,6 +1,10 @@
 package transliterate
 
 import (
+	"bufio"
+	"log"
+	"os"
+
 	"github.com/spf13/cobra"
 )
 
@@ -30,7 +34,9 @@ var (
 		Short: "Read from stdin, normalize UTF8 into NFKC, then write to stdout",
 		Args:  cobra.MaximumNArgs(0),
 		Run: func(cmd *cobra.Command, args []string) {
-			Normalize()
+			if err := Normalize(bufio.NewWriter(os.Stdout), bufio.NewReader(os.Stdin)); err != nil {
+				log.Fatal(err)
+			}
 		},
 	}
 
@@ -43,7 +49,9 @@ var (
 		Use:   "input",
 		Short: "Read from stdin, encode UTF8 into ASCII input format, then write to stdout",
 		Run: func(cmd *cobra.Command, args []string) {
-			EncodeInput()
+			if err := EncodeInput(bufio.NewWriter(os.Stdout), bufio.NewReader(os.Stdin)); err != nil {
+				log.Fatal(err)
+			}
 		},
 	}
 
@@ -51,7 +59,9 @@ var (
 		Use:   "output",
 		Short: "Read from stdin, encode UTF8 into ASCII output format, then write to stdout",
 		Run: func(cmd *cobra.Command, args []string) {
-			EncodeOutput()
+			if err := EncodeOutput(bufio.NewWriter(os.Stdout), bufio.NewReader(os.Stdin)); err != nil {
+				log.Fatal(err)
+			}
 		},
 	}
 
@@ -65,7 +75,9 @@ var (
 		Use:   "input",
 		Short: "Read from stdin, decode ASCII into UTF8 input format, then write to stdout",
 		Run: func(cmd *cobra.Command, args []string) {
-			DecodeInput()
+			if err := DecodeInput(bufio.NewWriter(os.Stdout), bufio.NewReader(os.Stdin)); err != nil {
+				log.Fatal(err)
+			}
 		},
 	}
 
@@ -73,7 +85,9 @@ var (
 		Use:   "output",
 		Short: "Read from stdin, decode ASCII into UTF8 output, then write to stdout",
 		Run: func(cmd *cobra.Command, args []string) {
-			DecodeOutput()
+			if err := DecodeOutput(bufio.NewWriter(os.Stdout), bufio.NewReader(os.Stdin)); err != nil {
+				log.Fatal(err)
+			}
 		},
 	}
 )
