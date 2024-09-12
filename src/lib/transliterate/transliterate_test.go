@@ -1804,7 +1804,7 @@ var sangoInputOutput = [...]SangoInputOutput{
 	{"sakpä", "sakpja", "sakpA"},
 	{"sâla", "sJala", "SAla"},
 	{"sâla", "sJala", "SAla"},
-	{"saläad", "saljaad", "salAad"},
+	{"saläada", "saljaada", "salAada"},
 	{"sâla na", "sJala na", "SAla na"},
 	{"sâla na bɛ̂ ɔ̂kɔ", "sJala na bJx Jckc", "SAla na BX Ckc"},
 	{"sâla na bɛ̂ ûse", "sJala na bJx Juse", "SAla na BX Use"},

@@ -1948,7 +1948,7 @@ var lexiconRowsArray = [...]DictRow{
 	{"sakpa", "sakpä", "N", "NOUN", "", "OBJ", 2, "basket"},
 	{"sala", "sâla", "VI", "VERB", "Subcat=Intr", "ACT", 1, "happen, occur"},
 	{"sala", "sâla", "VT", "VERB", "Subcat=Tran", "ACT", 1, "do, make, spend (time)"},
-	{"salaad", "saläad", "N", "NOUN", "", "OBJ", 4, "[Fr: salade]: lettuce"},
+	{"salaada", "saläada", "N", "NOUN", "", "OBJ", 4, "[Fr: salade]: lettuce"},
 	{"salana", "sâla na", "VT", "VERB", "Subcat=Tran", "ACT", 1, "serve"},
 	{"salanabeoko", "sâla na bɛ̂ ɔ̂kɔ", "VI", "VERB", "Subcat=Intr", "ACT", 1, "[lit: do|with|heart|one]: act as one, act together, act in harmony"},
 	{"salanabeuse", "sâla na bɛ̂ ûse", "VI", "VERB", "Subcat=Intr", "ACT", 1, "[lit: do|with|heart|two]: act against each other, act in opposition"},
