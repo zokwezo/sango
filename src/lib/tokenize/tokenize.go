@@ -14,9 +14,9 @@ import (
 )
 
 var SangoTokenizerRegexps = []*regexp.Regexp{
-	regexp.MustCompile(`(?:\p{Zl}|\p{Zp}|\p{Zs}|\p{Z}|\s)+`),                     // sep/whitespace
-	regexp.MustCompile(`\p{Nd}+(?:[.,]\p{Nd}*)*`),                                // numbers
-	regexp.MustCompile(`\p{Pi}|\p{Pf}|\p{Ps}|\p{Pe}|\p{Pd}|\p{Pc}|\p{Po}|\p{P}`), // punctuation
+	regexp.MustCompile(`\p{Z}+`),                  // whitespace
+	regexp.MustCompile(`\p{Nd}+(?:[.,]\p{Nd}*)*`), // numbers
+	regexp.MustCompile(`\.{3}|\p{P}`),             // punctuation
 	regexp.MustCompile(`^(?:(?i)` +
 		`(?:n(?:[dyz]?|gb?)|m[bv]?|kp?|gb?|[bdfhlprstvwyz]?)?` +
 		`(?:(?:ä|ë|ï|ö|ü|â|ê|î|ô|û|a|e|i|o|u)n?|ɛ̂|ɛ̈|ɛ|ɔ̂|ɔ̈|ɔ))+$`), // Sango
