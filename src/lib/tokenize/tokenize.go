@@ -5,24 +5,111 @@ package tokenize
 
 import (
 	"regexp"
+	"strings"
 )
 
 var SangoTokenizerRegexps = []*regexp.Regexp{
-	regexp.MustCompile(`\pZ+`),                    // whitespace
-	regexp.MustCompile(`\p{Nd}+(?:[.,]\p{Nd}*)*`), // numbers
-	regexp.MustCompile(`\pP`),                     // punctuation
+	regexp.MustCompile(`(?:\p{Zl}|\p{Zp}|\p{Zs}|\p{Z}|\s)+`),                     // sep/whitespace
+	regexp.MustCompile(`\p{Nd}+(?:[.,]\p{Nd}*)*`),                                // numbers
+	regexp.MustCompile(`\p{Pi}|\p{Pf}|\p{Ps}|\p{Pe}|\p{Pd}|\p{Pc}|\p{Po}|\p{P}`), // punctuation
 	regexp.MustCompile(`^(?:(?i)` +
 		`(?:n(?:[dyz]?|gb?)|m[bv]?|kp?|gb?|[bdfhlprstvwyz]?)?` +
-		`(?:(?:ä|ë|ï|ö|ü|â|ê|î|ô|û|a|e|i|o|u)n?|ɛ̂|ɛ̈|ɛ|ɔ̂|ɔ̈|ɔ))+$`), // Sango words
-	regexp.MustCompile(`^\p{Latin}+$`), // words in other languages with a Latin script
-} // implicitly, everything else
+		`(?:(?:ä|ë|ï|ö|ü|â|ê|î|ô|û|a|e|i|o|u)n?|ɛ̂|ɛ̈|ɛ|ɔ̂|ɔ̈|ɔ))+$`), // Sango
+	regexp.MustCompile(`^\p{Latin}+$`), // English/French
+} // everything else
 
 type Token = struct {
-	begin, end int
-	reIndex    int
+	Begin   int
+	End     int
+	REindex int
 }
 
-func Tokenize(s *string, regexps []*regexp.Regexp) (*string, []Token) {
+type Lemma struct {
+	Word string
+	Type string
+	Lang string
+}
+
+func ClassifySango(s *string) []Lemma {
+	return classify(TokenizeSango(s))
+}
+
+func TokenizeSango(s *string) (*string, []Token) {
+	return tokenize(s, SangoTokenizerRegexps)
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// IMPLEMENTATION
+
+func classify(s *string, tokens []Token) []Lemma {
+	Pi := regexp.MustCompile(`\p{Pi}`)
+	Pf := regexp.MustCompile(`\p{Pf}`)
+	Ps := regexp.MustCompile(`\p{Ps}`)
+	Pe := regexp.MustCompile(`\p{Pe}`)
+	Pd := regexp.MustCompile(`\p{Pd}`)
+	Pc := regexp.MustCompile(`\p{Pc}`)
+	Po := regexp.MustCompile(`\p{Po}`)
+	P := regexp.MustCompile(`\p{P}`)
+
+	if s == nil || tokens == nil {
+		return nil
+	}
+	lemmas := []Lemma{}
+	for _, token := range tokens {
+		b := token.Begin
+		e := token.End
+		r := token.REindex
+		w := (*s)[b:e]
+		wLC := strings.ToLower(w)
+		l := ""
+		t := "OTHER"
+		switch r {
+		case 0:
+			t = "SPACE"
+		case 1:
+			t = "NUM"
+		case 2:
+			t = "PUNC"
+			if w == "..." {
+				w = "…"
+				wLC = "…"
+			}
+			if Pi.MatchString(wLC) || Ps.MatchString(wLC) {
+				l = "open"
+			} else if Pf.MatchString(wLC) || Pe.MatchString(wLC) {
+				l = "close"
+			} else if Pd.MatchString(wLC) {
+				l = "dash"
+			} else if Pc.MatchString(wLC) {
+				l = "connector"
+			} else if Po.MatchString(wLC) {
+				l = "other"
+			} else if P.MatchString(wLC) {
+				l = "punc"
+			}
+		case 3:
+			t = "WORD"
+			if _, isSg := sgWords[wLC]; isSg {
+				l = "sg"
+				break
+			}
+			fallthrough
+		case 4:
+			t = "WORD"
+			if _, isFr := frWords[wLC]; isFr {
+				l = "fr"
+			} else if _, isEn := enWords[wLC]; isEn {
+				l = "en"
+			} else {
+				l = "XX"
+			}
+		}
+		lemmas = append(lemmas, Lemma{w, t, l})
+	}
+	return lemmas
+}
+
+func tokenize(s *string, regexps []*regexp.Regexp) (*string, []Token) {
 	if s == nil {
 		return s, nil
 	}
@@ -30,9 +117,9 @@ func Tokenize(s *string, regexps []*regexp.Regexp) (*string, []Token) {
 	var tokenize func(Token) []Token
 	tokenize = func(candidate Token) (tokens []Token) {
 		tokens = []Token{}
-		b := candidate.begin
-		e := candidate.end
-		r := candidate.reIndex
+		b := candidate.Begin
+		e := candidate.End
+		r := candidate.REindex
 		if b >= e {
 			return tokens
 		}
