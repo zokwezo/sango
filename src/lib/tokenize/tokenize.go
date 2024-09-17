@@ -4,8 +4,13 @@
 package tokenize
 
 import (
+	"bufio"
+	"bytes"
+	"compress/bzip2"
 	"regexp"
 	"strings"
+
+	_ "embed"
 )
 
 var SangoTokenizerRegexps = []*regexp.Regexp{
@@ -40,6 +45,28 @@ func TokenizeSango(s *string) (*string, []Token) {
 
 //////////////////////////////////////////////////////////////////////////////
 // IMPLEMENTATION
+
+//go:embed wordlist_en.txt.bz2
+var enBzip2CompressedWordList []byte
+
+//go:embed wordlist_fr.txt.bz2
+var frBzip2CompressedWordList []byte
+
+//go:embed wordlist_sg.txt.bz2
+var sgBzip2CompressedWordList []byte
+
+var enWords = getWordListFromBzip2File(enBzip2CompressedWordList)
+var frWords = getWordListFromBzip2File(frBzip2CompressedWordList)
+var sgWords = getWordListFromBzip2File(sgBzip2CompressedWordList)
+
+func getWordListFromBzip2File(b []byte) *map[string]struct{} {
+	wordList := map[string]struct{}{}
+	scanner := bufio.NewScanner(bufio.NewReader(bzip2.NewReader(bytes.NewReader(b))))
+	for scanner.Scan() {
+		wordList[scanner.Text()] = struct{}{}
+	}
+	return &wordList
+}
 
 func classify(s *string, tokens []Token) []Lemma {
 	Pi := regexp.MustCompile(`\p{Pi}`)
@@ -89,16 +116,16 @@ func classify(s *string, tokens []Token) []Lemma {
 			}
 		case 3:
 			t = "WORD"
-			if _, isSg := sgWords[wLC]; isSg {
+			if _, isSg := (*sgWords)[wLC]; isSg {
 				l = "sg"
 				break
 			}
 			fallthrough
 		case 4:
 			t = "WORD"
-			if _, isFr := frWords[wLC]; isFr {
+			if _, isFr := (*frWords)[wLC]; isFr {
 				l = "fr"
-			} else if _, isEn := enWords[wLC]; isEn {
+			} else if _, isEn := (*enWords)[wLC]; isEn {
 				l = "en"
 			} else {
 				l = "XX"

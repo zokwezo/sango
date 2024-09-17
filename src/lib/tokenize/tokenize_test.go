@@ -1,8 +1,6 @@
 package tokenize
 
-import (
-	"testing"
-)
+import "testing"
 
 func TestTokenizeSango(t *testing.T) {
 	check := func(s *string, expected []Token) {
