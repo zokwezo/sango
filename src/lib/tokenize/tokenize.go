@@ -4,13 +4,12 @@
 package tokenize
 
 import (
-	"bufio"
-	"bytes"
-	"compress/bzip2"
 	"regexp"
 	"strings"
 
 	_ "embed"
+
+	cuckoo "github.com/panmari/cuckoofilter"
 )
 
 type Lemma struct {
@@ -46,26 +45,25 @@ var sangoTokenizerRegexps = []*regexp.Regexp{
 	regexp.MustCompile(`^\p{Latin}+$`), // English/French
 } // everything else
 
-//go:embed wordlist_en.txt.bz2
-var enBzip2CompressedWordList []byte
+//go:embed wordlist_en.cf
+var enWordListEncodedCuckooFilter []byte
 
-//go:embed wordlist_fr.txt.bz2
-var frBzip2CompressedWordList []byte
+//go:embed wordlist_fr.cf
+var frWordListEncodedCuckooFilter []byte
 
-//go:embed wordlist_sg.txt.bz2
-var sgBzip2CompressedWordList []byte
+//go:embed wordlist_sg.cf
+var sgWordListEncodedCuckooFilter []byte
 
-var enWords = getWordListFromBzip2File(enBzip2CompressedWordList)
-var frWords = getWordListFromBzip2File(frBzip2CompressedWordList)
-var sgWords = getWordListFromBzip2File(sgBzip2CompressedWordList)
+var enWords = getWordListFromEncodedCuckooFilter(enWordListEncodedCuckooFilter)
+var frWords = getWordListFromEncodedCuckooFilter(frWordListEncodedCuckooFilter)
+var sgWords = getWordListFromEncodedCuckooFilter(sgWordListEncodedCuckooFilter)
 
-func getWordListFromBzip2File(b []byte) *map[string]struct{} {
-	wordList := map[string]struct{}{}
-	scanner := bufio.NewScanner(bufio.NewReader(bzip2.NewReader(bytes.NewReader(b))))
-	for scanner.Scan() {
-		wordList[scanner.Text()] = struct{}{}
+func getWordListFromEncodedCuckooFilter(b []byte) *cuckoo.Filter {
+	cf, err := cuckoo.Decode(b)
+	if err != nil {
+		panic(err)
 	}
-	return &wordList
+	return cf
 }
 
 func classify(s *string, tokens []Token) []Lemma {
@@ -116,16 +114,16 @@ func classify(s *string, tokens []Token) []Lemma {
 			}
 		case 3:
 			t = "WORD"
-			if _, isSg := (*sgWords)[wLC]; isSg {
+			if sgWords.Lookup([]byte(wLC)) {
 				l = "sg"
 				break
 			}
 			fallthrough
 		case 4:
 			t = "WORD"
-			if _, isFr := (*frWords)[wLC]; isFr {
+			if frWords.Lookup([]byte(wLC)) {
 				l = "fr"
-			} else if _, isEn := (*enWords)[wLC]; isEn {
+			} else if enWords.Lookup([]byte(wLC)) {
 				l = "en"
 			} else {
 				l = "XX"

@@ -1,7 +1,7 @@
-Files wordlist_en.txt.bz2 and wordlist_fr.txt.bz2 are copies of
+Files wordlist_en.cf and wordlist_fr.cf are copies of
 enwiki-2023-04-13.txt and frwiki-2022-08-29.txt, respectively, downloaded from
 https://github.com/IlyaSemenov/wikipedia-word-frequency/blob/master/results/
-then trimmed to 100K words and compressed with `bzip2 -9`.
+then trimmed to 100K words and serialized using github.com/panmari/cuckoofilter.Encode().
 
 These files are governed by and used in accordance with the following notice:
 
