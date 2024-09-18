@@ -5,6 +5,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/zokwezo/sango/src/lib/lexicon"
+	"github.com/zokwezo/sango/src/lib/tokenize"
 	"github.com/zokwezo/sango/src/lib/transliterate"
 )
 
@@ -18,6 +19,7 @@ var (
 
 func init() {
 	lexicon.Init(sangoCmd)
+	tokenize.Init(sangoCmd)
 	transliterate.Init(sangoCmd)
 }
 

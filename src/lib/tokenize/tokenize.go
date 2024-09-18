@@ -13,22 +13,6 @@ import (
 	_ "embed"
 )
 
-var SangoTokenizerRegexps = []*regexp.Regexp{
-	regexp.MustCompile(`\p{Z}+`),                  // whitespace
-	regexp.MustCompile(`\p{Nd}+(?:[.,]\p{Nd}*)*`), // numbers
-	regexp.MustCompile(`\.{3}|\p{P}`),             // punctuation
-	regexp.MustCompile(`^(?:(?i)` +
-		`(?:n(?:[dyz]?|gb?)|m[bv]?|kp?|gb?|[bdfhlprstvwyz]?)?` +
-		`(?:(?:ä|ë|ï|ö|ü|â|ê|î|ô|û|a|e|i|o|u)n?|ɛ̂|ɛ̈|ɛ|ɔ̂|ɔ̈|ɔ))+$`), // Sango
-	regexp.MustCompile(`^\p{Latin}+$`), // English/French
-} // everything else
-
-type Token = struct {
-	Begin   int
-	End     int
-	REindex int
-}
-
 type Lemma struct {
 	Word string
 	Type string
@@ -39,12 +23,28 @@ func ClassifySango(s *string) []Lemma {
 	return classify(TokenizeSango(s))
 }
 
+type Token = struct {
+	Begin   int
+	End     int
+	REindex int
+}
+
 func TokenizeSango(s *string) (*string, []Token) {
-	return tokenize(s, SangoTokenizerRegexps)
+	return tokenize(s, sangoTokenizerRegexps)
 }
 
 //////////////////////////////////////////////////////////////////////////////
 // IMPLEMENTATION
+
+var sangoTokenizerRegexps = []*regexp.Regexp{
+	regexp.MustCompile(`\p{Z}+`),                  // whitespace
+	regexp.MustCompile(`\p{Nd}+(?:[.,]\p{Nd}*)*`), // numbers
+	regexp.MustCompile(`\.{3}|\p{P}`),             // punctuation
+	regexp.MustCompile(`^(?:(?i)` +
+		`(?:n(?:[dyz]?|gb?)|m[bv]?|kp?|gb?|[bdfhlprstvwyz]?)?` +
+		`(?:(?:ä|ë|ï|ö|ü|â|ê|î|ô|û|a|e|i|o|u)n?|ɛ̂|ɛ̈|ɛ|ɔ̂|ɔ̈|ɔ))+$`), // Sango
+	regexp.MustCompile(`^\p{Latin}+$`), // English/French
+} // everything else
 
 //go:embed wordlist_en.txt.bz2
 var enBzip2CompressedWordList []byte
