@@ -21,19 +21,19 @@ func main() {
 
 	getBytesFields := func(d l.DictCols) []bytesField {
 		return []bytesField{
-			bytesField{"Toneless  ", &d.Toneless},
-			bytesField{"SangoUTF8 ", &d.SangoUTF8},
-			bytesField{"LexPos    ", &d.LexPos},
-			bytesField{"UDPos     ", &d.UDPos},
-			bytesField{"UDFeature ", &d.UDFeature},
-			bytesField{"Category  ", &d.Category},
-			bytesField{"English   ", &d.English},
+			bytesField{"Toneless           ", &d.Toneless},
+			bytesField{"SangoUTF8          ", &d.SangoUTF8},
+			bytesField{"UDPos              ", &d.UDPos},
+			bytesField{"UDFeature          ", &d.UDFeature},
+			bytesField{"Category           ", &d.Category},
+			bytesField{"EnglishTranslation ", &d.EnglishTranslation},
+			bytesField{"EnglishDefinition  ", &d.EnglishDefinition},
 		}
 	}
 
 	getRunesFields := func(d l.DictCols) []runesField {
 		return []runesField{
-			runesField{"Sango     ", &d.Sango},
+			runesField{"Sango              ", &d.Sango},
 		}
 	}
 

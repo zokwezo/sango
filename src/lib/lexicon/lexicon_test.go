@@ -28,9 +28,6 @@ func TestConsistencyBetweenRowAndColMajorOrder(t *testing.T) {
 		if nc := len(rc.cols.SangoUTF8); nc != nr {
 			t.Error(rc.name, ": SangoUTF8 cols has ", nc, " entries, but rows has ", nr, " entries")
 		}
-		if nc := len(rc.cols.LexPos); nc != nr {
-			t.Error(rc.name, ": LexPos cols has ", nc, " entries, but rows has ", nr, " entries")
-		}
 		if nc := len(rc.cols.UDPos); nc != nr {
 			t.Error(rc.name, ": UDPos cols has ", nc, " entries, but rows has ", nr, " entries")
 		}
@@ -43,8 +40,11 @@ func TestConsistencyBetweenRowAndColMajorOrder(t *testing.T) {
 		if nc := len(rc.cols.Frequency); nc != nr {
 			t.Error(rc.name, ": Frequency cols has ", nc, " entries, but rows has ", nr, " entries")
 		}
-		if nc := len(rc.cols.English); nc != nr {
-			t.Error(rc.name, ": English cols has ", nc, " entries, but rows has ", nr, " entries")
+		if nc := len(rc.cols.EnglishTranslation); nc != nr {
+			t.Error(rc.name, ": EnglishTranslation cols has ", nc, " entries, but rows has ", nr, " entries")
+		}
+		if nc := len(rc.cols.EnglishDefinition); nc != nr {
+			t.Error(rc.name, ": EnglishDefinition cols has ", nc, " entries, but rows has ", nr, " entries")
 		}
 
 		// Check that backing arrays are not empty.
@@ -77,13 +77,6 @@ func TestConsistencyBetweenRowAndColMajorOrder(t *testing.T) {
 				t.Error(rc.name, ": SangoUTF8[", k, "] col (", s, ") != row (", row.Sango, ")")
 			}
 
-			if len(row.LexPos) == 0 {
-				t.Error(rc.name, ": LexPos row is empty")
-			}
-			if s := string(rc.cols.LexPos[k]); s != row.LexPos {
-				t.Error(rc.name, ": LexPos[", k, "] col (", s, ") != row (", row.LexPos, ")")
-			}
-
 			if len(row.UDPos) == 0 {
 				t.Error(rc.name, ": UDPos row is empty")
 			}
@@ -106,14 +99,21 @@ func TestConsistencyBetweenRowAndColMajorOrder(t *testing.T) {
 				t.Error(rc.name, ": Frequency[", k, "] col (", s, ") != row (", row.Frequency, ")")
 			}
 
-			if len(row.English) == 0 {
-				t.Error(rc.name, ": English row is empty")
+			if len(row.EnglishTranslation) == 0 {
+				t.Error(rc.name, ": EnglishTranslation row is empty")
 			}
-			if s := string(rc.cols.English[k]); s != row.English {
-				t.Error(rc.name, ": English[", k, "] col (", s, ") != row (", row.English, ")")
+			if s := string(rc.cols.EnglishTranslation[k]); s != row.EnglishTranslation {
+				t.Error(rc.name, ": EnglishTranslation[", k, "] col (", s, ") != row (", row.EnglishTranslation, ")")
 			}
 
-			// Ensure that the rows are in strictly ascending order (ignoring Frequency and English fields).
+			if len(row.EnglishDefinition) == 0 {
+				t.Error(rc.name, ": EnglishDefinition row is empty")
+			}
+			if s := string(rc.cols.EnglishDefinition[k]); s != row.EnglishDefinition {
+				t.Error(rc.name, ": EnglishDefinition[", k, "] col (", s, ") != row (", row.EnglishDefinition, ")")
+			}
+
+			// Ensure that the rows are in strictly ascending order (ignoring Frequency, EnglishTranslation, and EnglishDefinition fields).
 			if k == 0 {
 				continue
 			}
@@ -130,12 +130,6 @@ func TestConsistencyBetweenRowAndColMajorOrder(t *testing.T) {
 			}
 			if prevRow.Sango > currRow.Sango {
 				t.Error(rc.name, "[", k, "]: Bad Sango order, prev={", prevRow, "}, curr={", currRow, "}")
-			}
-			if prevRow.LexPos < currRow.LexPos {
-				continue
-			}
-			if prevRow.LexPos > currRow.LexPos {
-				t.Error(rc.name, "[", k, "]: Bad LexPos order, prev={", prevRow, "}, curr={", currRow, "}")
 			}
 			if prevRow.UDPos < currRow.UDPos {
 				continue

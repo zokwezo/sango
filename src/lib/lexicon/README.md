@@ -1,11 +1,14 @@
 # Sango Lexicon
 
-This directory contains a Sango-English lexicon and metadata, available in two formats:
+This directory contains a Sango-English lexicon and metadata, available in both row-major and column-major order, via a Go library.
 
-- in both row-major and column-major order, via a Go library
-- in row-major order, as static comma-separated files [affixes.csv](affixes.csv) and [lexicon.csv](lexicon.csv)
-
-Both formats contain the identical data.
+This data can be extracted (if needed for other purposes) into CSV files with the bash shell commands:
+```bash
+echo '"Toneless","Sango","UDPos","UDFeature","Category","Frequency","EnglishTranslation","EnglishDefinition"' > /tmp/affixes.csv 
+echo '"Toneless","Sango","UDPos","UDFeature","Category","Frequency","EnglishTranslation","EnglishDefinition"' > /tmp/lexicon.csv 
+cat lexicon.go | sed -n "198,205p"  | sed -E 's/^\s*\{((.)*)\},/\1/' | sed -E 's/(["0-9],) /\1/g' >> /tmp/affixes.csv
+cat lexicon.go | sed -n "210,2322p" | sed -E 's/^\s*\{((.)*)\},/\1/' | sed -E 's/(["0-9],) /\1/g' >> /tmp/lexicon.csv
+```
 
 ### Background
 
