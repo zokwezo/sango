@@ -3,150 +3,142 @@ package lexicon
 import "testing"
 
 func TestConsistencyBetweenRowAndColMajorOrder(t *testing.T) {
-	type RC struct {
-		name string
-		rows DictRows
-		cols DictCols
+	name := "Lexicon"
+	rows := LexiconRows()
+	cols := LexiconCols()
+
+	// Check that all array lengths match.
+	nr := len(rows)
+	if nr == 0 {
+		t.Error(name, ": Rows is empty")
 	}
-	var rcs = []RC{
-		{"Affixes", AffixesRows(), AffixesCols()},
-		{"Lexicon", LexiconRows(), LexiconCols()},
+	if nc := len(cols.Toneless); nc != nr {
+		t.Error(name, ": Toneless cols has ", nc, " entries, but rows has ", nr, " entries")
+	}
+	if nc := len(cols.Sango); nc != nr {
+		t.Error(name, ": Sango cols has ", nc, " entries, but rows has ", nr, " entries")
+	}
+	if nc := len(cols.SangoUTF8); nc != nr {
+		t.Error(name, ": SangoUTF8 cols has ", nc, " entries, but rows has ", nr, " entries")
+	}
+	if nc := len(cols.UDPos); nc != nr {
+		t.Error(name, ": UDPos cols has ", nc, " entries, but rows has ", nr, " entries")
+	}
+	if nc := len(cols.UDFeature); nc != nr {
+		t.Error(name, ": UDFeature cols has ", nc, " entries, but rows has ", nr, " entries")
+	}
+	if nc := len(cols.Category); nc != nr {
+		t.Error(name, ": Category cols has ", nc, " entries, but rows has ", nr, " entries")
+	}
+	if nc := len(cols.Frequency); nc != nr {
+		t.Error(name, ": Frequency cols has ", nc, " entries, but rows has ", nr, " entries")
+	}
+	if nc := len(cols.EnglishTranslation); nc != nr {
+		t.Error(name, ": EnglishTranslation cols has ", nc, " entries, but rows has ", nr, " entries")
+	}
+	if nc := len(cols.EnglishDefinition); nc != nr {
+		t.Error(name, ": EnglishDefinition cols has ", nc, " entries, but rows has ", nr, " entries")
 	}
 
-	for _, rc := range rcs {
-		// Check that all array lengths match.
-		nr := len(rc.rows)
-		if nr == 0 {
-			t.Error(rc.name, ": Rows is empty")
-		}
-		if nc := len(rc.cols.Toneless); nc != nr {
-			t.Error(rc.name, ": Toneless cols has ", nc, " entries, but rows has ", nr, " entries")
-		}
-		if nc := len(rc.cols.Sango); nc != nr {
-			t.Error(rc.name, ": Sango cols has ", nc, " entries, but rows has ", nr, " entries")
-		}
-		if nc := len(rc.cols.SangoUTF8); nc != nr {
-			t.Error(rc.name, ": SangoUTF8 cols has ", nc, " entries, but rows has ", nr, " entries")
-		}
-		if nc := len(rc.cols.UDPos); nc != nr {
-			t.Error(rc.name, ": UDPos cols has ", nc, " entries, but rows has ", nr, " entries")
-		}
-		if nc := len(rc.cols.UDFeature); nc != nr {
-			t.Error(rc.name, ": UDFeature cols has ", nc, " entries, but rows has ", nr, " entries")
-		}
-		if nc := len(rc.cols.Category); nc != nr {
-			t.Error(rc.name, ": Category cols has ", nc, " entries, but rows has ", nr, " entries")
-		}
-		if nc := len(rc.cols.Frequency); nc != nr {
-			t.Error(rc.name, ": Frequency cols has ", nc, " entries, but rows has ", nr, " entries")
-		}
-		if nc := len(rc.cols.EnglishTranslation); nc != nr {
-			t.Error(rc.name, ": EnglishTranslation cols has ", nc, " entries, but rows has ", nr, " entries")
-		}
-		if nc := len(rc.cols.EnglishDefinition); nc != nr {
-			t.Error(rc.name, ": EnglishDefinition cols has ", nc, " entries, but rows has ", nr, " entries")
-		}
+	// Check that backing arrays are not empty.
+	if len(cols.Bytes) == 0 {
+		t.Error(name, ": Bytes col is empty")
+	}
+	if len(cols.Runes) == 0 {
+		t.Error(name, ": Runes col is empty")
+	}
 
-		// Check that backing arrays are not empty.
-		if len(rc.cols.Bytes) == 0 {
-			t.Error(rc.name, ": Bytes col is empty")
-		}
-		if len(rc.cols.Runes) == 0 {
-			t.Error(rc.name, ": Runes col is empty")
-		}
-
-		for k, row := range rc.rows {
-			if len(row.Toneless) == 0 {
-				if len(row.Sango) == 0 {
-					// Skip metadata header row
-					continue
-				}
-				t.Error(rc.name, ": Toneless row is empty")
-			}
-			if s := string(rc.cols.Toneless[k]); s != row.Toneless {
-				t.Error(rc.name, ": Toneless[", k, "] col (", s, ") != row (", row.Toneless, ")")
-			}
-
+	for k, row := range rows {
+		if len(row.Toneless) == 0 {
 			if len(row.Sango) == 0 {
-				t.Error(rc.name, ": Sango row is empty")
-			}
-			if s := string(rc.cols.Sango[k]); s != row.Sango {
-				t.Error(rc.name, ": Sango[", k, "] col (", s, ") != row (", row.Sango, ")")
-			}
-			if s := string(rc.cols.SangoUTF8[k]); s != row.Sango {
-				t.Error(rc.name, ": SangoUTF8[", k, "] col (", s, ") != row (", row.Sango, ")")
-			}
-
-			if len(row.UDPos) == 0 {
-				t.Error(rc.name, ": UDPos row is empty")
-			}
-			if s := string(rc.cols.UDPos[k]); s != row.UDPos {
-				t.Error(rc.name, ": UDPos[", k, "] col (", s, ") != row (", row.UDPos, ")")
-			}
-
-			if s := string(rc.cols.UDFeature[k]); s != row.UDFeature {
-				t.Error(rc.name, ": UDFeature[", k, "] col (", s, ") != row (", row.UDFeature, ")")
-			}
-
-			if s := string(rc.cols.Category[k]); s != row.Category {
-				t.Error(rc.name, ": Category[", k, "] col (", s, ") != row (", row.Category, ")")
-			}
-
-			if row.Frequency < 1 || row.Frequency > 9 {
-				t.Error(rc.name, ": Invalid Frequency[", k, "] (", row.Frequency, ")")
-			}
-			if s := rc.cols.Frequency[k]; s != row.Frequency {
-				t.Error(rc.name, ": Frequency[", k, "] col (", s, ") != row (", row.Frequency, ")")
-			}
-
-			if len(row.EnglishTranslation) == 0 {
-				t.Error(rc.name, ": EnglishTranslation row is empty")
-			}
-			if s := string(rc.cols.EnglishTranslation[k]); s != row.EnglishTranslation {
-				t.Error(rc.name, ": EnglishTranslation[", k, "] col (", s, ") != row (", row.EnglishTranslation, ")")
-			}
-
-			if len(row.EnglishDefinition) == 0 {
-				t.Error(rc.name, ": EnglishDefinition row is empty")
-			}
-			if s := string(rc.cols.EnglishDefinition[k]); s != row.EnglishDefinition {
-				t.Error(rc.name, ": EnglishDefinition[", k, "] col (", s, ") != row (", row.EnglishDefinition, ")")
-			}
-
-			// Ensure that the rows are in strictly ascending order (ignoring Frequency, EnglishTranslation, and EnglishDefinition fields).
-			if k == 0 {
+				// Skip metadata header row
 				continue
 			}
-			prevRow := &rc.rows[k-1]
-			currRow := &rc.rows[k]
-			if prevRow.Toneless < currRow.Toneless {
-				continue
-			}
-			if prevRow.Toneless > currRow.Toneless {
-				t.Error(rc.name, "[", k, "]: Bad Toneless order, prev={", prevRow, "}, curr={", currRow, "}")
-			}
-			if prevRow.Sango < currRow.Sango {
-				continue
-			}
-			if prevRow.Sango > currRow.Sango {
-				t.Error(rc.name, "[", k, "]: Bad Sango order, prev={", prevRow, "}, curr={", currRow, "}")
-			}
-			if prevRow.UDPos < currRow.UDPos {
-				continue
-			}
-			if prevRow.UDPos > currRow.UDPos {
-				t.Error(rc.name, "[", k, "]: Bad UDPos order, prev={", prevRow, "}, curr={", currRow, "}")
-			}
-			if prevRow.UDFeature < currRow.UDFeature {
-				continue
-			}
-			if prevRow.UDFeature > currRow.UDFeature {
-				t.Error(rc.name, "[", k, "]: Bad UDFeature order, prev={", prevRow, "}, curr={", currRow, "}")
-			}
-			if prevRow.Category < currRow.Category {
-				continue
-			}
-			t.Error(rc.name, "[", k, "]: Bad Category order, prev={", prevRow, "}, curr={", currRow, "}")
+			t.Error(name, ": Toneless row is empty")
 		}
+		if s := string(cols.Toneless[k]); s != row.Toneless {
+			t.Error(name, ": Toneless[", k, "] col (", s, ") != row (", row.Toneless, ")")
+		}
+
+		if len(row.Sango) == 0 {
+			t.Error(name, ": Sango row is empty")
+		}
+		if s := string(cols.Sango[k]); s != row.Sango {
+			t.Error(name, ": Sango[", k, "] col (", s, ") != row (", row.Sango, ")")
+		}
+		if s := string(cols.SangoUTF8[k]); s != row.Sango {
+			t.Error(name, ": SangoUTF8[", k, "] col (", s, ") != row (", row.Sango, ")")
+		}
+
+		if len(row.UDPos) == 0 {
+			t.Error(name, ": UDPos row is empty")
+		}
+		if s := string(cols.UDPos[k]); s != row.UDPos {
+			t.Error(name, ": UDPos[", k, "] col (", s, ") != row (", row.UDPos, ")")
+		}
+
+		if s := string(cols.UDFeature[k]); s != row.UDFeature {
+			t.Error(name, ": UDFeature[", k, "] col (", s, ") != row (", row.UDFeature, ")")
+		}
+
+		if s := string(cols.Category[k]); s != row.Category {
+			t.Error(name, ": Category[", k, "] col (", s, ") != row (", row.Category, ")")
+		}
+
+		if row.Frequency < 1 || row.Frequency > 9 {
+			t.Error(name, ": Invalid Frequency[", k, "] (", row.Frequency, ")")
+		}
+		if s := cols.Frequency[k]; s != row.Frequency {
+			t.Error(name, ": Frequency[", k, "] col (", s, ") != row (", row.Frequency, ")")
+		}
+
+		if len(row.EnglishTranslation) == 0 {
+			t.Error(name, ": EnglishTranslation row is empty")
+		}
+		if s := string(cols.EnglishTranslation[k]); s != row.EnglishTranslation {
+			t.Error(name, ": EnglishTranslation[", k, "] col (", s, ") != row (", row.EnglishTranslation, ")")
+		}
+
+		if len(row.EnglishDefinition) == 0 {
+			t.Error(name, ": EnglishDefinition row is empty")
+		}
+		if s := string(cols.EnglishDefinition[k]); s != row.EnglishDefinition {
+			t.Error(name, ": EnglishDefinition[", k, "] col (", s, ") != row (", row.EnglishDefinition, ")")
+		}
+
+		// Ensure that the rows are in strictly ascending order (ignoring Frequency, EnglishTranslation, and EnglishDefinition fields).
+		if k == 0 {
+			continue
+		}
+		prevRow := &rows[k-1]
+		currRow := &rows[k]
+		if prevRow.Toneless < currRow.Toneless {
+			continue
+		}
+		if prevRow.Toneless > currRow.Toneless {
+			t.Error(name, "[", k, "]: Bad Toneless order, prev={", prevRow, "}, curr={", currRow, "}")
+		}
+		if prevRow.Sango < currRow.Sango {
+			continue
+		}
+		if prevRow.Sango > currRow.Sango {
+			t.Error(name, "[", k, "]: Bad Sango order, prev={", prevRow, "}, curr={", currRow, "}")
+		}
+		if prevRow.UDPos < currRow.UDPos {
+			continue
+		}
+		if prevRow.UDPos > currRow.UDPos {
+			t.Error(name, "[", k, "]: Bad UDPos order, prev={", prevRow, "}, curr={", currRow, "}")
+		}
+		if prevRow.UDFeature < currRow.UDFeature {
+			continue
+		}
+		if prevRow.UDFeature > currRow.UDFeature {
+			t.Error(name, "[", k, "]: Bad UDFeature order, prev={", prevRow, "}, curr={", currRow, "}")
+		}
+		if prevRow.Category < currRow.Category {
+			continue
+		}
+		t.Error(name, "[", k, "]: Bad Category order, prev={", prevRow, "}, curr={", currRow, "}")
 	}
 }

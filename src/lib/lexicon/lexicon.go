@@ -27,9 +27,7 @@ func Lookup(dictRows DictRows, dictRowRegexp DictRowRegexp) (DictRows, error) {
 	return lookupMatchingRows(dictRows, dictRowRegexp)
 }
 
-// Sango affixes and lexicon in row-major and column-major order.
-func AffixesRows() DictRows { return affixesRows }
-func AffixesCols() DictCols { return affixesCols }
+// Sango lexicon in row-major and column-major order, outer joined with compatible affixes.
 func LexiconRows() DictRows { return lexiconRows }
 func LexiconCols() DictCols { return lexiconCols }
 
@@ -81,10 +79,7 @@ func lookupMatchingRows(in DictRows, f DictRowRegexp) (out DictRows, err error) 
 	return out, nil
 }
 
-var affixesRows DictRows = affixesRowsArray[:]
 var lexiconRows DictRows = lexiconRowsArray[:]
-
-var affixesCols DictCols = convertToColumnMajorOrder(affixesRows)
 var lexiconCols DictCols = convertToColumnMajorOrder(lexiconRows)
 
 func convertToColumnMajorOrder(rows DictRows) DictCols {
@@ -193,16 +188,20 @@ func convertToColumnMajorOrder(rows DictRows) DictCols {
 	return d
 }
 
+// TODO: On load, form outer product with compatible lexemes in lexiconRows, appending new rows into an expanded lexiconRowsArray.
+var _ = affixesRowsArray[:]
+
 // Keep in sorted order.
 var affixesRowsArray = [...]DictRow{
 	{"", "", "DO NOT REMOVE THIS ROW", "Copyright=DanielDWeston2024", "http://www.apache.org/licenses/LICENSE-2.0", 0, "westondan@zokwezo.net", "https://github.com/zokwezo/sango/blob/main/src/lib/lexicon/lexicon.csv"},
-	{"a", "a", "VERB", "Person=3|Prefix=Yes", "WHO", 1, "[subject]", "(+ Verb) Generic subject pronoun"},
-	{"a", "â", "NOUN", "Prefix=Yes", "NUM", 1, "[plural]", "(+ Noun) [plural]"},
-	{"ba", "bâ", "NOUN", "Prefix=Yes", "WHERE", 1, "place", "(public) place (for)"},
-	{"nga", "nga", "VERB", "Aspect=Iter|Suffix=Yes", "HOW", 1, "[periodic]", "[periodic]"},
-	{"ngbi", "ngbi", "VERB", "Reflex=Yes|Suffix=Yes", "HOW", 1, "[synchronically]", "[synchronically]"},
-	{"ngo", "ngɔ̈", "VERB", "Suffix=Yes|VerbForm=Vnoun", "HOW", 1, "-ing", "[gerund]"},
-	{"wa", "wa", "NOUN", "Prefix=Yes", "WHO", 1, "one who", "one who"},
+	{"a", "a", "VERB", "CanPrefix=VERB|Person=3|VerbForm=Fin", "WHO", 1, "does-", "subject marker"},
+	{"a", "â", "ADJ", "CanPrefix=ADJ|Number=Plur", "NUM", 1, "[plural]-", "plural marker"},
+	{"a", "â", "NOUN", "CanPrefix=NOUN|Number=Plur", "NUM", 1, "[plural]-", "plural marker"},
+	{"ba", "bâ", "NOUN", "CanPrefix=NOUN", "WHERE", 1, "place-for-", "canonical place for"},
+	{"nga", "nga", "VERB", "Aspect=Iter|CanSuffix=VERB", "HOW", 1, "-repeatedly", "periodic action"},
+	{"ngbi", "ngbi", "VERB", "Aspect=Imp|CanSuffix=VERB|Reflex=Yes", "HOW", 1, "-together", "synchronic action"},
+	{"ngo", "ngɔ̈", "VERB", "CanSuffix=VERB|VerbForm=Vnoun", "HOW", 1, "-ing", "gerund (-ing)"},
+	{"wa", "wa", "NOUN", "CanPrefix=VERB", "WHO", 1, "one-who-", "agent (one who)"},
 }
 
 // Keep in sorted order.
@@ -315,7 +314,7 @@ var lexiconRowsArray = [...]DictRow{
 	{"bangbi", "bângbi", "VERB", "Subcat=Tran", "SENSE", 3, "supervise", "supervise"},
 	{"bangi", "bangi", "NOUN", "", "TREE", 5, "iroko tree", "iroko"},
 	{"bangi", "bangî", "NOUN", "", "WHERE", 1, "Bangui", "Bangui"},
-	{"bangi", "bângi", "NOUN", "", "PLANT", 5, "hemp; marijuana", "hemp"},
+	{"bangi", "bângi", "NOUN", "", "PLANT", 5, "[Sw: mbangi] hemp; marijuana", "hemp"},
 	{"bangu", "bâ-ngû", "NOUN", "", "NATURE", 3, "watering hole; trough", "[lit: place|water]: watering hole, trough"},
 	{"bao", "bäö", "NOUN", "", "ANIM", 6, "python", "python"},
 	{"bara", "bara", "NOUN", "", "ALT SP FOR", 9, "bala", "bala"},
@@ -355,7 +354,6 @@ var lexiconRowsArray = [...]DictRow{
 	{"bengbakete", "bengbä-kɛ̂tɛ̂", "ADJ", "", "COLOR", 3, "pink", "pink"},
 	{"benge", "bɛ̈ngɛ̈", "NOUN", "", "PLANT", 6, "poison, strychnine", "poison, strychnine"},
 	{"bengo", "bɛ̈ngɔ̈", "ADJ", "", "STATE", 3, "reddish, ripe", "reddish, ripe"},
-	{"bengo", "bɛ̈ngɔ̈", "VERB", "VerbForm=Vnoun", "STATE", 3, "reddening, ripening", "reddening, ripening"},
 	{"benyama", "bɛ̂-nyämä", "NOUN", "", "CIVIL", 2, "countryside, rural", "countryside, rural"},
 	{"bere", "bere", "VERB", "Subcat=Intr", "INTERACT", 4, "hide, crouch down, hunker down, squat", "hide, crouch down, hunker down, squat"},
 	{"bere", "berë", "ADV", "", "HOW", 6, "maybe", "maybe"},
@@ -542,7 +540,7 @@ var lexiconRowsArray = [...]DictRow{
 	{"dondo", "dôndô", "NOUN", "", "FOOD", 5, "corn paste bar", "corn paste bar"},
 	{"dongba", "döngbä", "NOUN", "", "FISH", 6, "catfish", "catfish"},
 	{"dongo", "dɔngɔ", "VERB", "Subcat=Tran", "ACT", 3, "classify", "classify"},
-	{"dongo", "dɔngɔ̈", "NOUN", "", "FOOD", 6, "okra", "okra"},
+	{"dongo dodo", "dɔngɔ̈ dɔ̈dɔ̈", "VERB", "Subcat=Intr|VerbForm=Vnoun", "BODY", 3, "dancing", "dancing"},
 	{"dongongbi", "dɔngɔ̈ngbi", "NOUN", "", "ACT", 3, "arrangement", "arrangement"},
 	{"dongongbi", "dɔngɔ̈ngbi", "VERB", "Subcat=Tran", "ACT", 3, "arrange", "arrange"},
 	{"dongongbitere", "dɔngɔ̈ngbi tɛrɛ̂", "VERB", "Subcat=Intr", "ACT", 3, "[lit: arrange|oneself]: arrange oneself, get in order, get in line", "[lit: arrange|oneself]: arrange oneself, get in order, get in line"},
@@ -554,7 +552,7 @@ var lexiconRowsArray = [...]DictRow{
 	{"du", "dü", "VERB", "", "BODY", 3, "give birth, be born", "give birth, be born"},
 	{"dudu", "dudu", "NOUN", "", "CIVIL", 6, "poverty", "poverty"},
 	{"duma", "duma", "NOUN", "", "DRINK", 5, "honey beer", "honey beer"},
-	{"dungo", "düngɔ̈", "NOUN", "", "BODY", 4, "birth, existence", "birth, existence"},
+	{"dungo", "düngɔ̈", "VERB", "VerbForm=Vnoun", "BODY", 4, "birth, existence", "birth, existence"},
 	{"dungu", "dû-ngû", "NOUN", "", "NATURE", 3, "[lit: hole|water]: well, cistern", "[lit: hole|water]: well, cistern"},
 	{"dunia", "dûnîa", "NOUN", "", "CIVIL", 3, "world, universe, history", "world, universe, history"},
 	{"dunyene", "dû-nyɛnɛ̈", "NOUN", "", "BODY", 6, "[lit: hole|buttocks]: anus", "[lit: hole|buttocks]: anus"},
@@ -629,7 +627,6 @@ var lexiconRowsArray = [...]DictRow{
 	{"gangba", "gangba", "ADJ", "", "HOW", 4, "ripe", "ripe"},
 	{"gangbi", "gângbi", "NOUN", "", "MOVE", 3, "coming at the same time, convergence", "coming at the same time, convergence"},
 	{"gangbi", "gângbi", "VERB", "Subcat=Intr", "MOVE", 3, "come at the same time, converge", "come at the same time, converge"},
-	{"gango", "gängɔ̈", "VERB", "VerbForm=Vnoun", "MOVE", 3, "coming", "coming"},
 	{"ganza", "ganzâ", "NOUN", "", "BODY", 4, "circumcision, excision", "circumcision, excision"},
 	{"gao", "gao", "NOUN", "", "HOW", 3, "beauty", "beauty"},
 	{"gapa", "gapa", "NOUN", "", "INTERACT", 3, "menace", "menace"},
@@ -715,7 +712,7 @@ var lexiconRowsArray = [...]DictRow{
 	{"gekoro", "gêkôrô", "NOUN", "", "ANIM", 6, "python", "python"},
 	{"gene", "gɛnɛ", "NOUN", "", "CIVIL", 3, "visit(or)", "visit(or)"},
 	{"genia", "genia", "ADJ", "", "HOW", 4, "meticulous", "meticulous"},
-	{"genyengo", "gɛ̈nyɛ̈ngɔ̈", "NOUN", "", "OBJ", 4, "throwing knife", "throwing knife"},
+	{"genyengo", "gɛ̈nyɛ̈ngɔ̈", "NOUN", "", "OBJ", 4, "[lit: (wondering) what's here?] throwing knife", "throwing knife"},
 	{"gere", "gɛrɛ̂", "NOUN", "", "BODY", 2, "leg, foot", "leg, foot"},
 	{"gere", "gɛrɛ̂", "NOUN", "", "OBJ", 2, "support, foundation, underpinnings", "support, foundation, underpinnings"},
 	{"gerere", "gɛrɛrɛ", "ADJ", "", "HOW", 3, "ordinary, useless, empty", "ordinary, useless, empty"},
@@ -732,7 +729,6 @@ var lexiconRowsArray = [...]DictRow{
 	{"gilisa", "gilisa", "VERB", "", "SENSE", 2, "lose, forget", "lose, forget"},
 	{"ginabe", "gi na bɛ̂", "VERB", "Subcat=Tran", "FEEL", 1, "[lit: seek|in|heart]: consider carefully, think about, meditate on", "[lit: seek|in|heart]: consider carefully, think about, meditate on"},
 	{"gindi", "gindî", "NOUN", "", "OBJ", 4, "bow(for arrows)", "bow(for arrows)"},
-	{"gingo", "gïngɔ̈", "VERB", "VerbForm=Vnoun", "ACT", 1, "seeking, searching; annoying", "seeking, searching; annoying"},
 	{"ginon", "ginon", "NOUN", "", "CIVIL", 5, "bravery, courage, ardor in battle", "bravery, courage, ardor in battle"},
 	{"gio", "giɔ", "VERB", "", "ACT", 3, "pull", "pull"},
 	{"giriri", "giriri", "ADV", "", "WHEN", 1, "long ago", "long ago"},
@@ -798,7 +794,6 @@ var lexiconRowsArray = [...]DictRow{
 	{"hondesioye", "hɔ̂ndɛ-sïɔ̈-yê", "VERB", "Subcat=Intr", "GOD", 3, "forgive", "forgive"},
 	{"hongere", "hôn-gɛrɛ̂", "NOUN", "", "ANIM", 4, "caterpillar", "[lit: nose|foot]: caterpillar"},
 	{"honndoti", "hön ̈ndö tî", "VERB", "Subcat=Tran", "HOW", 2, "surpass, triumph over, vanquish, dominate", "[lit: pass|place|of]: surpass, triumph over, vanquish, dominate"},
-	{"honngo", "hönngɔ̈", "VERB", "VerbForm=Vnoun", "ACT", 2, "passing, going by", "passing, going by"},
 	{"honti", "hôntï", "NOUN", "", "BODY", 5, "wrist", "[lit: nose|arm]: wrist"},
 	{"hu", "hû", "VERB", "Subcat=Tran", "SENSE", 3, "see", "see"},
 	{"hule", "hûlɛ", "VERB", "Subcat=Intr", "HOW", 2, "dry (out, up)", "dry, dry out, dry up"},
@@ -867,7 +862,7 @@ var lexiconRowsArray = [...]DictRow{
 	{"kangbi", "kângbi", "VERB", "Subcat=Tran", "CIVIL", 3, "divide, separate, share", "divide, separate, share"},
 	{"kangbitere", "kângbi tɛrɛ̂", "VERB", "Subcat=Intr", "CIVIL", 3, "separate, break apart", "[lit: divide|oneself]: separate, break apart"},
 	{"kangi", "kangi", "NOUN", "", "ANIM", 3, "wingless soldier termite", "wingless soldier termite"},
-	{"kango", "kängɔ̈", "VERB", "VerbForm=Vnoun", "CIVIL", 3, "selling, sale", "selling, sale"},
+	{"kango", "kängɔ̈", "VERB", "VerbForm=Vnoun", "CIVIL", 3, "sale", "sale"},
 	{"kangoya", "kangoya", "NOUN", "", "DRINK", 5, "oil palm wine", "oil palm wine"},
 	{"kanya", "kânyâ", "NOUN", "", "OBJ", 2, "fork", "fork"},
 	{"kanza", "kanza", "NOUN", "", "WHAT", 4, "raw materials", "raw materials"},
@@ -1171,7 +1166,7 @@ var lexiconRowsArray = [...]DictRow{
 	{"li", "li", "NOUN", "", "STATE", 3, "mildew", "mildew"},
 	{"li", "li", "NOUN", "", "WHEN", 1, "beginning", "beginning"},
 	{"li", "li", "NOUN", "", "WHERE", 1, "top", "top, front of a line, summit, point"},
-	{"li", "li", "VERB", "VerbForm=Vnoun", "NUM", 2, "number, count, quantity", "number, count, quantity"},
+	{"li", "li", "VERB", "", "NUM", 2, "number, count, quantity", "number, count, quantity"},
 	{"li", "lï", "VERB", "Subcat=Intr", "MOVE", 1, "enter", "enter, break into"},
 	{"li", "lï", "VERB", "Subcat=Intr", "STATE", 1, "be deep", "be deep"},
 	{"lia", "lîâ", "NOUN", "", "OBJ", 4, "fishing net", "handheld fishing net"},
@@ -1188,7 +1183,7 @@ var lexiconRowsArray = [...]DictRow{
 	{"linga", "lïngä", "NOUN", "", "OBJ", 5, "tambourine", "[African-made]: wooden tambourine"},
 	{"lingbi", "lîngbi", "VERB", "Mood=Nec|Subcat=Intr", "HOW", 1, "must, may, can, should", "must, may, can, should"},
 	{"lingbi", "lîngbi", "VERB", "Mood=Pot|Subcat=Intr", "HOW", 3, "suffice, be equal, according", "suffice, be equal, according"},
-	{"lingo", "lïngɔ̈", "VERB", "VerbForm=Vnoun", "MOVE", 1, "entering", "entrance, entering, breaking in"},
+	{"lingo", "lïngɔ̈", "VERB", "VerbForm=Vnoun", "MOVE", 1, "entrance", "entrance, entering, breaking in"},
 	{"lingu", "li-ngû", "NOUN", "", "NATURE", 3, "water source", "[lit: head|water]: source of drinking water"},
 	{"lio", "lîɔ", "ADJ", "", "HOW", 5, "dwarf", "dwarf"},
 	{"lisoro", "lisoro", "NOUN", "", "INTERACT", 2, "conversation, chat", "conversation, chat"},
@@ -1246,7 +1241,6 @@ var lexiconRowsArray = [...]DictRow{
 	{"manda", "manda", "VERB", "Subcat=Tran", "ACT", 1, "learn, study", "learn, study, imitate"},
 	{"manda", "mä ndâ", "VERB", "Subcat=Intr", "SENSE", 1, "understand", "understand how and why"},
 	{"mandako", "mandako", "NOUN", "", "INTERACT", 6, "canoe race", "canoe race"},
-	{"mandango", "mändängɔ̈", "VERB", "VerbForm=Vnoun", "ACT", 1, "learning, studying", "learning, studying"},
 	{"mando", "mä-ndo", "INTERJ", "Mood=Jus", "INTERACT", 4, "Listen up!", "Listen up!"},
 	{"manga", "mânga", "NOUN", "", "OBJ", 3, "cigarette, tobacco", "cigarette, tobacco"},
 	{"mangbere", "mangbɛ̂rɛ̂", "NOUN", "", "FOOD", 3, "manioc bar", "manioc bar"},
@@ -1359,7 +1353,7 @@ var lexiconRowsArray = [...]DictRow{
 	{"mene", "mɛnɛ", "VERB", "Subcat=Tran", "ACT", 3, "swallow", "swallow"},
 	{"mene", "mɛ̂nɛ̈", "NOUN", "", "BODY", 3, "blood", "blood, one related by blood"},
 	{"menga", "mɛ̈ngä", "NOUN", "", "BODY", 3, "tongue", "tongue"},
-	{"mengo", "mɛ̈ngɔ̈", "NOUN", "", "MOVE", 2, "climbing", "climbing"},
+	{"mengo", "mɛ̈ngɔ̈", "VERB", "VerbForm=Vnoun", "MOVE", 2, "climbing", "climbing"},
 	{"mesa", "mɛ̂sa", "NOUN", "", "GOD", 5, "mass", "mass"},
 	{"meti", "mɛtï", "VERB", "Subcat=Intr", "MOVE", 2, "climb", "climb vertically"},
 	{"mi", "mî", "NOUN", "", "BODY", 3, "flesh; thickness", "flesh; thickness"},
@@ -1392,9 +1386,9 @@ var lexiconRowsArray = [...]DictRow{
 	{"mopi", "mɔpï", "NOUN", "", "STATE", 3, "bad luck", "bad luck"},
 	{"mosasako", "mɔsasako", "NOUN", "", "WHEN", 6, "July", "July"},
 	{"mosongoli", "mosongôli", "NOUN", "", "HOW", 6, "pink", "pink"},
-	{"mosoro", "mɔsɔrɔ", "NOUN", "", "CIVIL", 4, "wealth", "wealth"},
-	{"mosuma", "mosümä", "NOUN", "", "FEEL", 3, "dream", "dream"},
-	{"mozingo", "mɔzïngɔ̈", "NOUN", "", "CIVIL", 6, "poverty", "poverty"},
+	{"mosoro", "mɔsɔrɔ", "NOUN", "", "CIVIL", 4, "wealth", "[lit: you|choose]: wealth"},
+	{"mosuma", "mosümä", "NOUN", "", "FEEL", 3, "dream", "[lit: you|dream]: dream"},
+	{"mozingo", "mɔzïngɔ̈", "NOUN", "", "CIVIL", 6, "poverty", "[lit: you|rising up]: poverty"},
 	{"mu", "mû", "VERB", "Subcat=Tran", "INTERACT", 1, "give; take", "give [+na=to]; take [+na=as]"},
 	{"mua", "müä", "NOUN", "", "CIVIL", 3, "common purpose; mourning, fasting, penitance; castration", "common purpose; mourning, fasting, penitance; castration"},
 	{"muen", "muen", "NOUN", "", "NATURE", 4, "tidal ebb", "tidal ebb"},
@@ -1520,7 +1514,6 @@ var lexiconRowsArray = [...]DictRow{
 	{"ngbangbo", "ngbangbo", "NUM", "NumType=Card", "NUM", 2, "hundred", "hundred"},
 	{"ngbangbotukia", "ngbangbo-tukîa", "NOUN", "", "NUM", 5, "hectare", "[lit: hecto|are]: hectare=~2.5 acres"},
 	{"ngbangerengu", "ngbângêrêngû", "NOUN", "", "SICK", 6, "convulsions", "convulsions"},
-	{"ngbango", "ngbängɔ̈", "VERB", "VerbForm=Vnoun", "STATE", 1, "remaining", "remaining"},
 	{"ngbanzoni", "ngbâ nzɔ̈nî", "INTERJ", "Mood=Opt", "INTERACT", 1, "Goodbye! (said to those staying)", "[lit: remain|well]: Goodbye! (said to those staying)"},
 	{"ngbene", "ngbɛ̂nɛ", "ADJ", "", "HOW", 4, "old, aged", "old, aged"},
 	{"ngbengbe", "ngbëngbë", "NOUN", "", "OBJ", 4, "fish net", "fish net"},
@@ -1935,7 +1928,7 @@ var lexiconRowsArray = [...]DictRow{
 	{"songo", "söngö", "NOUN", "", "FAMILY", 2, "family member", "family member"},
 	{"songo", "söngö", "NOUN", "", "FEEL", 2, "familial affection, filial love", "familial affection, filial love"},
 	{"songo", "sɔngɔ̈", "VERB", "VerbForm=Vnoun", "FEEL", 2, "pain", "pain"},
-	{"songobe", "sɔngɔ̈-bɛ̂", "VERB", "VerbForm=Vnoun", "FEEL", 2, "mental anguish", "mental anguish"},
+	{"songobe", "sɔngɔ̈-bɛ̂", "NOUN", "", "FEEL", 2, "mental anguish", "mental anguish"},
 	{"songosongo", "songosongo", "NOUN", "", "PLANT", 6, "elephant grass", "elephant grass"},
 	{"soro", "soro", "VERB", "Subcat=Tran", "ACT", 6, "choose", "choose"},
 	{"soro", "sorö", "NOUN", "", "ACT", 6, "choice", "choice"},
@@ -1967,7 +1960,7 @@ var lexiconRowsArray = [...]DictRow{
 	{"sumbu", "sumbu", "NOUN", "", "ANIM", 5, "gorilla", "gorilla"},
 	{"sungba", "sungba", "VERB", "Subcat=Intr", "NATURE", 3, "explode, thunder, blossom", "explode, thunder, blossom"},
 	{"sungba", "sungbä", "NOUN", "", "NATURE", 3, "debris from explosion", "debris from explosion"},
-	{"sungbango", "süngbängɔ̈", "NOUN", "", "NATURE", 3, "explosion", "explosion"},
+	{"sungbango", "süngbängɔ̈", "VERB", "VerbForm=Vnoun", "NATURE", 3, "explosion", "explosion"},
 	{"sungombeti", "süngɔ̈-mbɛ̈tï", "VERB", "VerbForm=Vnoun", "INTERACT", 6, "writing", "[lit: tracing|writing]: writing"},
 	{"supu", "sûpu", "NOUN", "", "FOOD", 4, "[Fr: soupe]: soup", "soup"},
 	{"sura", "sura", "VERB", "Subcat=Tran", "INTERACT", 5, "cut, divide, partition", "cut, divide, partition"},
