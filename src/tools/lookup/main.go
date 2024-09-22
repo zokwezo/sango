@@ -37,30 +37,22 @@ func main() {
 		}
 	}
 
-	type Dict struct {
-		name string
-		rows l.DictRows
-		cols l.DictCols
+	rows := l.LexiconRows()
+	cols := l.LexiconCols()
+	fmt.Printf("\n\nROWS:\n")
+	for i, row := range rows {
+		fmt.Printf("Row[%v] = %v\n", i, row)
 	}
-
-	dicts := []Dict{
-		{"AFFIXES", l.AffixesRows(), l.AffixesCols()},
-		{"LEXICON", l.LexiconRows(), l.LexiconCols()},
-	}
-
-	for _, dict := range dicts {
-		fmt.Printf("\n\n%v ROWS:\n%v\n", dict.name, dict.rows)
-		fmt.Printf("\n\n%v COLS AS STRINGS:\n", dict.name)
-		fmt.Printf("%v Cols[Frequency ] = %v\n", dict.name, dict.cols.Frequency)
-		for _, bf := range getBytesFields(dict.cols) {
-			for i, b := range *bf.field {
-				fmt.Printf("%v Cols[%v][%v] = {%s}\n", dict.name, bf.name, i, string(b))
-			}
+	fmt.Printf("\n\nCOLS AS STRINGS:\n")
+	fmt.Printf("Cols[Frequency ] = %v\n", cols.Frequency)
+	for _, bf := range getBytesFields(cols) {
+		for i, b := range *bf.field {
+			fmt.Printf("Cols[%v][%v] = {%s}\n", bf.name, i, string(b))
 		}
-		for _, bf := range getRunesFields(dict.cols) {
-			for i, b := range *bf.field {
-				fmt.Printf("%v Cols[%v][%v] = {%s}\n", dict.name, bf.name, i, string(b))
-			}
+	}
+	for _, bf := range getRunesFields(cols) {
+		for i, b := range *bf.field {
+			fmt.Printf("Cols[%v][%v] = {%s}\n", bf.name, i, string(b))
 		}
 	}
 

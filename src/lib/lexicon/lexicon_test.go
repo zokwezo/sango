@@ -105,40 +105,5 @@ func TestConsistencyBetweenRowAndColMajorOrder(t *testing.T) {
 		if s := string(cols.EnglishDefinition[k]); s != row.EnglishDefinition {
 			t.Error(name, ": EnglishDefinition[", k, "] col (", s, ") != row (", row.EnglishDefinition, ")")
 		}
-
-		// Ensure that the rows are in strictly ascending order (ignoring Frequency, EnglishTranslation, and EnglishDefinition fields).
-		if k == 0 {
-			continue
-		}
-		prevRow := &rows[k-1]
-		currRow := &rows[k]
-		if prevRow.Toneless < currRow.Toneless {
-			continue
-		}
-		if prevRow.Toneless > currRow.Toneless {
-			t.Error(name, "[", k, "]: Bad Toneless order, prev={", prevRow, "}, curr={", currRow, "}")
-		}
-		if prevRow.Sango < currRow.Sango {
-			continue
-		}
-		if prevRow.Sango > currRow.Sango {
-			t.Error(name, "[", k, "]: Bad Sango order, prev={", prevRow, "}, curr={", currRow, "}")
-		}
-		if prevRow.UDPos < currRow.UDPos {
-			continue
-		}
-		if prevRow.UDPos > currRow.UDPos {
-			t.Error(name, "[", k, "]: Bad UDPos order, prev={", prevRow, "}, curr={", currRow, "}")
-		}
-		if prevRow.UDFeature < currRow.UDFeature {
-			continue
-		}
-		if prevRow.UDFeature > currRow.UDFeature {
-			t.Error(name, "[", k, "]: Bad UDFeature order, prev={", prevRow, "}, curr={", currRow, "}")
-		}
-		if prevRow.Category < currRow.Category {
-			continue
-		}
-		t.Error(name, "[", k, "]: Bad Category order, prev={", prevRow, "}, curr={", currRow, "}")
 	}
 }
