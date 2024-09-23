@@ -7,10 +7,8 @@
 package lexicon
 
 import (
-	"fmt"
 	"regexp"
 	"slices"
-	"strconv"
 	"strings"
 	"unicode/utf8"
 )
@@ -2204,17 +2202,37 @@ var lexiconRowsAndCols = func() dictRowsAndCols {
 	// UDFeature must end in "|Can{Prefix,Suffix}=POS" (including the vertical bar).
 	affixesRows := []DictRow{
 		{"", "", "DO NOT REMOVE THIS ROW", "Copyright=DanielDWeston2024", "http://www.apache.org/licenses/LICENSE-2.0", 0, "westondan@zokwezo.net", "https://github.com/zokwezo/sango/blob/main/src/lib/lexicon/lexicon.csv"},
-		{"a", "a", "VERB", "Person=3|VerbForm=Fin|CanPrefix=VERB", "WHO", 1, "does-", "subject marker"},
-		{"a", "â", "ADJ", "Number=Plur|CanPrefix=ADJ", "NUM", 1, "[plural]-", "plural marker"},
-		{"a", "â", "NOUN", "Number=Plur|CanPrefix=NOUN", "NUM", 1, "[plural]-", "plural marker"},
-		{"ba", "bâ", "NOUN", "|CanPrefix=NOUN", "WHERE", 1, "place-for-", "canonical place for"},
-		{"nga", "nga", "VERB", "Aspect=Iter|CanSuffix=VERB", "HOW", 1, "-repeatedly", "periodic action"},
-		{"ngbi", "ngbi", "VERB", "Aspect=Imp|Reflex=Yes|CanSuffix=VERB", "HOW", 1, "-together", "synchronic action"},
-		{"ngo", "ngɔ̈", "VERB", "VerbForm=Vnoun|CanSuffix=VERB", "HOW", 1, "-ing", "gerund (-ing)"},
-		{"wa", "wa", "NOUN", "|CanPrefix=VERB", "WHO", 1, "one-who-", "agent (one who)"},
+		{"a", "a", "VERB", "Person=3|VerbForm=Fin|CanPrefix=VERB", "WHO", 1, "", ""},
+		{"a", "â", "ADJ", "Number=Plur|CanPrefix=ADJ", "NUM", 1, "", ""},
+		{"a", "â", "NOUN", "Number=Plur|CanPrefix=NOUN", "NUM", 1, "", ""},
+		{"ba", "bâ-", "NOUN", "|CanPrefix=NOUN", "WHERE", 1, "place-for-", "place-for-"},
+		{"nga", "nga", "VERB", "Aspect=Iter|CanSuffix=VERB", "HOW", 1, "-repeatedly", "-repeatedly"},
+		{"ngbi", "ngbi", "VERB", "Aspect=Imp|Reflex=Yes|CanSuffix=VERB", "HOW", 1, "-together", "-together"},
+		{"ngo", "ngɔ̈", "VERB", "VerbForm=Vnoun|CanSuffix=VERB", "HOW", 1, "ing", "ing"},
+		{"wa", "wa-", "NOUN", "|CanPrefix=VERB", "WHO", 1, "one-who-", "one-who-"},
 	}
 
+	// Create a set of Sango lemmas to avoid duplicating existing ones.
+	sangoLemmas := map[string]struct{}{}
+	for k := range rows {
+		sangoLemmas[rows[k].Sango] = struct{}{}
+	}
 	// Add new lexicon rows with applicable affixes.
+	toMidPitch := func() func(r rune) rune {
+		m := map[rune]rune{
+			'a': 'ä', 'â': 'ä', 'e': 'ë', 'ê': 'ë', 'i': 'ï',
+			'î': 'ï', 'o': 'ö', 'ô': 'ö', 'u': 'ü', 'û': 'ü'}
+		return func(r rune) rune {
+			if c, found := m[r]; found {
+				return c
+			}
+			return r
+		}
+	}()
+	const (
+		PREFIX = iota
+		SUFFIX
+	)
 	affixKeys := [2]string{"|CanPrefix=", "|CanSuffix="}
 	possibleAffixPOS := [...]string{"ADJ", "NOUN", "VERB"}
 	for affixKeyIndex, affixKey := range affixKeys {
@@ -2222,6 +2240,9 @@ var lexiconRowsAndCols = func() dictRowsAndCols {
 			if affixRow.Sango == "" {
 				continue
 			}
+			isAPlural := affixRow.Sango == "â"
+			isAGerund := affixRow.Toneless == "ngo"
+			isAnAgent := affixRow.Toneless == "wa"
 			for _, affixPOS := range possibleAffixPOS {
 				affixKeyValue := affixKey + affixPOS
 				numLexiconRows := len(rows)
@@ -2232,19 +2253,58 @@ var lexiconRowsAndCols = func() dictRowsAndCols {
 						!strings.Contains(affixRow.UDFeature, affixKeyValue) {
 						continue
 					}
+					if isAPlural && lexiconRow.Category == "NUM" {
+						continue
+					}
+					if affixKeyIndex == SUFFIX || isAnAgent {
+						if strings.HasSuffix(lexiconRow.Sango, affixRow.Sango) {
+							continue
+						}
+						// Convert the verb stem to a gerund before applying the "wa" prefix.
+						if isAnAgent {
+							lexiconRow.Toneless += "ngo"
+							lexiconRow.Sango += "ngɔ̈"
+						}
+						// Multirune graphemes must be processed separately.
+						if isAGerund || isAnAgent {
+							s := &lexiconRow.Sango
+							*s = strings.ReplaceAll(*s, "ɛ̈", "ɛ")
+							*s = strings.ReplaceAll(*s, "ɛ̂", "ɛ")
+							*s = strings.ReplaceAll(*s, "ɔ̈", "ɔ")
+							*s = strings.ReplaceAll(*s, "ɔ̂", "ɔ")
+							*s = strings.Map(toMidPitch, *s)
+							*s = strings.ReplaceAll(*s, "ɛ", "ɛ̈")
+							*s = strings.ReplaceAll(*s, "ɛ̂", "ɛ̈")
+							*s = strings.ReplaceAll(*s, "ɔ", "ɔ̈")
+							*s = strings.ReplaceAll(*s, "ɔ̂", "ɔ̈")
+							// Skip if entry already exists.
+							if _, found := sangoLemmas[*s]; found {
+								continue
+							}
+						}
+					}
 
-					// TODO: For suffix -ngɔ̈, enforce vowel pitch harmony.
-					// TODO: For prefix -wa, convert verb to gerund.
 					switch affixKeyIndex {
-					case 0:
+					case PREFIX:
 						lexiconRow.Toneless = affixRow.Toneless + lexiconRow.Toneless
 						lexiconRow.Sango = affixRow.Sango + lexiconRow.Sango
-					case 1:
+						lexiconRow.EnglishTranslation = affixRow.EnglishTranslation + lexiconRow.EnglishTranslation
+						lexiconRow.EnglishDefinition = affixRow.EnglishDefinition + lexiconRow.EnglishDefinition
+					case SUFFIX:
 						lexiconRow.Toneless += affixRow.Toneless
 						lexiconRow.Sango += affixRow.Sango
+						lexiconRow.EnglishTranslation += affixRow.EnglishTranslation
+						lexiconRow.EnglishDefinition += affixRow.EnglishDefinition
 					default:
 						panic("Bad affixKeyIndex")
 					}
+					if isAnAgent || affixRow.EnglishTranslation == "" {
+						lexiconRow.EnglishTranslation += "s"
+					}
+					if isAnAgent || affixRow.EnglishDefinition == "" {
+						lexiconRow.EnglishDefinition += "s"
+					}
+
 					var found bool
 					lexiconRow.UDFeature += "|" + affixRow.UDFeature
 					if lexiconRow.UDFeature, found = strings.CutSuffix(lexiconRow.UDFeature, affixKeyValue); !found {
@@ -2256,7 +2316,7 @@ var lexiconRowsAndCols = func() dictRowsAndCols {
 			}
 		}
 	}
-	slices.SortStableFunc(rows, func(lhs, rhs DictRow) int {
+	rowLess := func(lhs, rhs DictRow) int {
 		if c := strings.Compare(lhs.Toneless, rhs.Toneless); c != 0 {
 			return c
 		}
@@ -2269,19 +2329,13 @@ var lexiconRowsAndCols = func() dictRowsAndCols {
 		if c := strings.Compare(lhs.UDFeature, rhs.UDFeature); c != 0 {
 			return c
 		}
-		if c := strings.Compare(lhs.Category, rhs.Category); c != 0 {
-			return c
-		}
-		if c := strings.Compare(strconv.Itoa(lhs.Frequency), strconv.Itoa(rhs.Frequency)); c != 0 {
-			return c
-		}
-		if c := strings.Compare(lhs.EnglishTranslation, rhs.EnglishTranslation); c != 0 {
-			return c
-		}
-		fmt.Printf("lhs = %v\n", lhs)
-		fmt.Printf("rhs = %v\n", rhs)
-		panic("Duplicate rows")
-	})
+		return strings.Compare(lhs.Category, rhs.Category)
+	}
+	rowEquiv := func(lhs, rhs DictRow) bool {
+		return rowLess(lhs, rhs) == 0
+	}
+	slices.SortStableFunc(rows, rowLess)
+	rows = slices.CompactFunc(rows, rowEquiv)
 
 	// Preallocate memory to save space.
 	numRows := len(rows)

@@ -2,12 +2,12 @@
 
 This directory contains a Sango-English lexicon and metadata, available in both row-major and column-major order, via a Go library.
 
-The data can be extracted from code (if needed for other purposes) into a standalone CSV file with the following bash shell commands:
+The lexicon data can be extracted from code (if needed for other purposes) into a standalone CSV file with the following bash shell commands:
 
 ```bash
 outfile="/tmp/lexicon.csv"
 echo '"Toneless","Sango","UDPos","UDFeature","Category","Frequency","EnglishTranslation","EnglishDefinition"' >  "${outfile}"
-cat lexicon.go | sed -n "210,2322p" | sed -E 's/^\s*\{((.)*)\},/\1/' | sed -E 's/(["0-9],) /\1/g' >> "${outfile}"
+cat lexicon.go | grep -E '^\s*{"[a-z]*",' | head -n -9 | sed -E 's/^\s*\{((.)*)\},/\1/' | sed -E 's/(["0-9],) /\1/g' >> "${outfile}"
 ```
 
 ### Background
