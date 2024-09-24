@@ -1,6 +1,43 @@
 package lexicon
 
-import "testing"
+import (
+	"os"
+	"testing"
+
+	cuckoo "github.com/panmari/cuckoofilter"
+)
+
+func TestGenerateEncodedCuckooFilterOfSango(t *testing.T) {
+	cf := cuckoo.NewFilter(uint(len(LexiconCols().SangoUTF8)))
+	keys := map[string]struct{}{}
+	for _, sangoUTF8 := range LexiconCols().SangoUTF8 {
+		key := string(sangoUTF8)
+		if _, found := keys[key]; !found {
+			keys[key] = struct{}{}
+			cf.Insert(sangoUTF8)
+		}
+	}
+	err := os.WriteFile("/tmp/wordlist_sg.cf", cf.Encode(), 0664)
+	if err != nil {
+		t.Error(err)
+	}
+}
+
+func TestGenerateEncodedCuckooFilterOfToneless(t *testing.T) {
+	cf := cuckoo.NewFilter(uint(len(LexiconCols().Toneless)))
+	keys := map[string]struct{}{}
+	for _, toneless := range LexiconCols().Toneless {
+		key := string(toneless)
+		if _, found := keys[key]; !found {
+			keys[key] = struct{}{}
+			cf.Insert(toneless)
+		}
+	}
+	err := os.WriteFile("/tmp/wordlist_sg_toneless.cf", cf.Encode(), 0664)
+	if err != nil {
+		t.Error(err)
+	}
+}
 
 func TestConsistencyBetweenRowAndColMajorOrder(t *testing.T) {
 	name := "Lexicon"

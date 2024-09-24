@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"io"
+	"log"
 	"regexp"
 	"strings"
 
@@ -29,6 +30,38 @@ func DecodeOutput(out *bufio.Writer, in *bufio.Reader) error { return decode(out
 // and case {lower, upper}^letter, trying longest token to shortest token.
 // This can be done efficiently with the maps and regexp at the bottom of this file.
 
+func tokenize(re *regexp.Regexp, inStr string) (matching, nonmatching [][2]int) {
+	matching = [][2]int{}
+	nonmatching = [][2]int{}
+	n := len(inStr)
+	spans := re.FindAllStringSubmatchIndex(inStr, -1)
+	if spans == nil {
+		if n > 0 {
+			nonmatching = append(nonmatching, [2]int{0, n})
+		}
+		return
+	}
+	jPrev := 0
+	for _, span := range spans {
+		if len(span) != 2 {
+			panic("Bad span")
+		}
+		i := span[0]
+		j := span[1]
+		if jPrev < i {
+			nonmatching = append(nonmatching, [2]int{jPrev, i})
+		}
+		if i < j {
+			matching = append(matching, [2]int{i, j})
+		}
+		jPrev = j
+	}
+	if jPrev < n {
+		nonmatching = append(nonmatching, [2]int{jPrev, n})
+	}
+	return
+}
+
 func normalize(out *bufio.Writer, in *bufio.Reader) error {
 	defer out.Flush()
 	r := norm.NFKC.Reader(in)
@@ -36,10 +69,106 @@ func normalize(out *bufio.Writer, in *bufio.Reader) error {
 	if err != nil {
 		return err
 	}
-	_, err = out.Write(b)
+
+	enFrRE := regexp.MustCompile(`(?i)(?:[a-z]|[ß-ÿ])+`)
+	wordRE := regexp.MustCompile(`(?:(?i)(?:n(?:[dyz]?|gb?)|m[bv]?|kp?|gb?|[bdfhlprstvwyz]?)(?:(?:ä|ë|ï|ö|ü|â|ê|î|ô|û|a|e|i|o|u)n?|ɛ̂|ɛ̈|ɛ|ɔ̂|ɔ̈|ɔ))+`)
+	lastSyllableRE := regexp.MustCompile(`(?:(?i)(?:n(?:[dyz]?|gb?)|m[bv]?|kp?|gb?|[bdfhlprstvwyz]?)(?:(?:ä|ë|ï|ö|ü|â|ê|î|ô|û|a|e|i|o|u)n?|ɛ̂|ɛ̈|ɛ|ɔ̂|ɔ̈|ɔ))$`)
+
+	inStr := string(b)
+	var outStrBuilder strings.Builder
+	fmt.Printf("%v\n", *wordRE)
+	wordIndexes := wordRE.FindAllStringSubmatchIndex(inStr, -1)
+	fmt.Printf("%v\n", wordIndexes)
+	jPrev := 0
+forEachWord:
+	for k, wordIndexPair := range wordIndexes {
+		if len(wordIndexPair) != 2 {
+			panic("Bad wordIndexPair")
+		}
+		i := wordIndexPair[0]
+		j := wordIndexPair[1]
+		if jPrev < i {
+			log.Printf("%3v   PUNCT[%v:%v] = %v \n", k, jPrev, i, inStr[jPrev:i])
+			enFrIndexes := enFrRE.FindAllStringSubmatchIndex(inStr[jPrev:i], -1)
+			for ek, ev := range enFrIndexes {
+				ei := jPrev + ev[0]
+				ej := jPrev + ev[1]
+				log.Printf("%3v.%1.1v EN_FR[%v:%v] = %v \n", k, ek, ei, ej, inStr[ei:ej])
+			}
+			outStrBuilder.WriteString("{")
+			outStrBuilder.WriteString(inStr[jPrev:i])
+			outStrBuilder.WriteString("}")
+		}
+		jPrev = j
+		var outSyllables []string
+		for l := 0; i < j; l++ {
+			log.Printf("%3v.%1.1v SANGO[%v:%v] = %v \n", k, l, i, j, inStr[i:j])
+			lastSyllableIndexPair := lastSyllableRE.FindStringSubmatchIndex(inStr[i:j])
+			if len(lastSyllableIndexPair) != 2 {
+				panic("Bad lastSyllableIndexPair")
+			}
+			ii := i + lastSyllableIndexPair[0]
+			jj := i + lastSyllableIndexPair[1]
+			if ii < jj {
+				if input, isSangoUTF8 := utf8ToInput[inStr[ii:jj]]; isSangoUTF8 {
+					log.Printf("%3v.%1.1v SANSY[%v:%v] = %v => %v \n", k, l, ii, jj, inStr[ii:jj], input)
+					outSyllables = append(outSyllables, input)
+				} else {
+					// Don't partially translate the word, just output in braces
+					log.Printf("%3v.%1.1v OTHER[%v:%v] = %v => UNKNOWN\n", k, l, ii, jj, inStr[ii:jj])
+					outStrBuilder.WriteString("{")
+					outStrBuilder.WriteString(inStr[i:jPrev])
+					outStrBuilder.WriteString("}")
+					continue forEachWord
+				}
+			}
+			j -= jj - ii
+		}
+		for n := len(outSyllables); n > 0; n-- {
+			outStrBuilder.WriteString(outSyllables[n-1])
+		}
+	}
+	outStrBuilder.WriteString(inStr[jPrev:])
+
+	/*
+	     if j = indexPair[0]; i < j {
+	       fmt.Printf("%v N[%v:%v] = %v\n", k, i, j, s[i:j])
+	     }
+	     if i, j = j, indexPair[1]; i < j {
+	       word := s[i:j]
+	       fmt.Printf("%v S[%v:%v] = %v\n", k, i, j, word)
+	       for ii, jj := i, j; ii < jj; ii, jj = i, ii {
+	         syllableIndex := lastSyllableRE.FindStringIndex(s[ii:jj])
+	         iii := syllableIndex[0]
+	         jjj := syllableIndex[1]
+	         log.Printf("k = %v  i = %v  j = %v  iii = %v  jjj = %v\n", k, i, j, iii, jjj)
+	         syllable := s[iii:jjj]
+	         fmt.Printf("%v Z[%v:%v] = %v\n", k, iii, jjj, syllable)
+	         if a, isSangoUTF8 := utf8ToInput[syllable]; isSangoUTF8 {
+	           fmt.Printf("%v T[%v:%v] = %v\n", k, iii, jjj, a)
+	         } else {
+	           panic("Cannot find syllable in word " + s[iii:jjj])
+	         }
+	         log.Printf("k = %v  i = %v  j = %v  iii = %v  jjj = %v\n", k, i, j, iii, jjj)
+	         jj = iii
+	       }
+	     }
+	     i = j
+	   }
+	   if i, j = j, len(s); i < j {
+	     fmt.Printf("%v N[%v:%v] = %v\n", len(submatchIndexes), i, j, s[i:j])
+	   }
+	*/
+	_, err = out.WriteString(outStrBuilder.String())
+
 	return err
 }
 
+// This implementation is very efficient but is unable to predict code-switching
+// and unable to recover (even midword) if a non-Sango phoneme is discovered.
+// Instead, prefer the new implementation using regexp to tokenize Sango words
+// into syllables (an embarrassingly parallel operation) and then use a map for
+// O(1) conversion into/out of ASCII encoding.
 func encodeInput(out *bufio.Writer, in *bufio.Reader) error {
 	defer out.Flush()
 	src, err := io.ReadAll(norm.NFKC.Reader(in))
@@ -573,21 +702,48 @@ func dump(out *bufio.Writer, in *bufio.Reader) error {
 	fmt.Println(inputToUtf8)
 	fmt.Println("outputToUtf8")
 	fmt.Println(outputToUtf8)
-	fmt.Println("syllableRE")
-	fmt.Println(*syllableRE)
+	fmt.Println("numUtf8")
+	fmt.Println(numUtf8)
 	return nil
 }
 
-// An admittedly hacky way to define 5 for the price of 1...
+// Instead, prefer the new implementation using regexp to tokenize Sango words
+// into syllables (an embarrassingly parallel operation) and then use a map for
+// O(1) conversion into/out of ASCII encoding.
+/*
+func encodeInput(out *bufio.Writer, in *bufio.Reader) error {
+  defer out.Flush()
+  src, err := io.ReadAll(norm.NFKC.Reader(in))
+  if err != nil { return err }
+
+  // Use a regexp to split the string into Sango (and non-Sango) syllables,
+  // then replace any valid Sango syllable with
+  // This is not only a massively parallel operation, but one that is inherently
+  // stable and robust against arbitrary code switching and nonstandard orthography.
+  dst := syllableRE.ReplaceAllFunc(string(src), func(utf8 string) string {
+    if input, found := utf8ToInput[utf8]; found {
+      return input
+    }
+    return utf8
+  })
+
+  _, err = out.WriteString(dst)
+  return err
+}
+*/
+
+// An admittedly hacky way to define 4 for the price of 1...
 var utf8ToInput = map[string]string{}
 var utf8ToOutput = map[string]string{}
 var inputToUtf8 = map[string]string{}
 var outputToUtf8 = map[string]string{}
-var syllableRE = func(u2i, u2o, i2u, o2u *map[string]string) *regexp.Regexp {
-	re := regexp.MustCompile(`(?i)(?:n(?:[dyz]?|gb?)|m[bv]?|kp?|gb?|[bdfhlprstvwyz]?)(?:(?:ä|ë|ï|ö|ü|â|ê|î|ô|û|a|e|i|o|u)n?|ɛ̂|ɛ̈|ɛ|ɔ̂|ɔ̈|ɔ)`)
+var numUtf8 = func(u2i, u2o, i2u, o2u *map[string]string) int {
+	syllablePattern := `(?i)(?:n(?:[dyz]?|gb?)|m[bv]?|kp?|gb?|[bdfhlprstvwyz]?)(?:(?:ä|ë|ï|ö|ü|â|ê|î|ô|û|a|e|i|o|u)n?|ɛ̂|ɛ̈|ɛ|ɔ̂|ɔ̈|ɔ)`
+	syllableRE := regexp.MustCompile(syllablePattern)
 	var found bool
+	n := len(utf8InputOutputs)
 	for _, r := range utf8InputOutputs {
-		if submatch := re.FindString(r.utf8); submatch != r.utf8 {
+		if submatch := syllableRE.FindString(r.utf8); submatch != r.utf8 {
 			panic("Invalid syllable ( " + r.utf8 + " ) in utf8InputOutputs.utf8, found ( " + submatch + " )")
 		}
 		_, found = (*u2i)[r.utf8]
@@ -611,7 +767,7 @@ var syllableRE = func(u2i, u2o, i2u, o2u *map[string]string) *regexp.Regexp {
 		(*i2u)[r.input] = r.utf8
 		(*o2u)[r.output] = r.utf8
 	}
-	return re
+	return n
 }(&utf8ToInput, &utf8ToOutput, &inputToUtf8, &outputToUtf8)
 
 var utf8InputOutputs = [...]struct{ utf8, input, output string }{

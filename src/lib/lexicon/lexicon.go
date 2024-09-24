@@ -35,6 +35,14 @@ func LexiconCols() DictCols { return lexiconRowsAndCols.cols }
 
 type DictRows = []DictRow
 
+// TODO: Add a column Heightless and auto-populate from Sango after
+// converting open vowels to close vowels using the following code:
+//    row.Heightless = row.Sango
+//		for _, v := range [...][2]string{{"ɛ̂", "e"}, {"ɛ̈", "e"}, {"ɛ", "e"}, {"ɔ̂", "o"}, {"ɔ̈", "o"}, {"ɔ", "o"}} {
+//			row.Heightless = strings.ReplaceAll(row.Heightless, v[0], v[1])
+//		}
+// The standard orthography does not express vowel height.
+
 type DictRow struct {
 	Toneless           string
 	Sango              string
@@ -1403,9 +1411,9 @@ var lexiconRowsAndCols = func() dictRowsAndCols {
 		{"ngbenge", "ngbengë", "NOUN", "", "OBJ", 5, "guitar", "guitar"},
 		{"ngberena", "ngbêrênâ", "NOUN", "", "OBJ", 4, "bracelet, anklet", "bracelet, anklet"},
 		{"ngbetere", "ngbɛrɛrɛ", "NOUN", "", "WHEN", 5, "October", "October"},
-		{"ngbiii", "ngbiii", "ADV", "", "WHEN", 1, "long time", "long time"},
-		{"ngbiiiasina", "ngbiii asî na", "ADP", "", "WHEN", 1, "not until", "[lit: long time|arrive|at]: not until"},
-		{"ngbiiisi", "ngbiii sï", "SCONJ", "", "WHEN", 1, "not until", "[lit: long time|arrive]: not until"},
+		{"ngbii", "ngbii", "ADV", "", "WHEN", 1, "long time", "long time"},
+		{"ngbiiasina", "ngbii asî na", "ADP", "", "WHEN", 1, "not until", "[lit: long time|arrive|at]: not until"},
+		{"ngbiisi", "ngbii sï", "SCONJ", "", "WHEN", 1, "not until", "[lit: long time|arrive]: not until"},
 		{"ngbo", "ngbɔ̈", "NOUN", "", "ANIM", 2, "snake", "snake"},
 		{"ngbo", "ngbɔ̈", "NOUN", "", "FAMILY", 4, "twins", "twins"},
 		{"ngboko", "ngbɔ̈kɔ̈", "NOUN", "", "PLANT", 6, "sugarcane", "sugarcane"},
@@ -2212,11 +2220,6 @@ var lexiconRowsAndCols = func() dictRowsAndCols {
 		{"wa", "wa-", "NOUN", "|CanPrefix=VERB", "WHO", 1, "one-who-", "one-who-"},
 	}
 
-	// Create a set of Sango lemmas to avoid duplicating existing ones.
-	sangoLemmas := map[string]struct{}{}
-	for k := range rows {
-		sangoLemmas[rows[k].Sango] = struct{}{}
-	}
 	// Add new lexicon rows with applicable affixes.
 	toMidPitch := func() func(r rune) rune {
 		m := map[rune]rune{
@@ -2277,10 +2280,6 @@ var lexiconRowsAndCols = func() dictRowsAndCols {
 							*s = strings.ReplaceAll(*s, "ɛ̂", "ɛ̈")
 							*s = strings.ReplaceAll(*s, "ɔ", "ɔ̈")
 							*s = strings.ReplaceAll(*s, "ɔ̂", "ɔ̈")
-							// Skip if entry already exists.
-							if _, found := sangoLemmas[*s]; found {
-								continue
-							}
 						}
 					}
 

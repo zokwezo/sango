@@ -12,16 +12,6 @@ import (
 	cuckoo "github.com/panmari/cuckoofilter"
 )
 
-type Lemma struct {
-	Word string
-	Type string
-	Lang string
-}
-
-func ClassifySango(s *string) []Lemma {
-	return classify(TokenizeSango(s))
-}
-
 type Token = struct {
 	Begin   int
 	End     int
@@ -30,6 +20,18 @@ type Token = struct {
 
 func TokenizeSango(s *string) (*string, []Token) {
 	return tokenize(s, sangoTokenizerRegexps)
+}
+
+type Lemma struct {
+	Source   Token
+	Toneless string
+	Sango    string
+	Type     string
+	Lang     string
+}
+
+func ClassifySango(s *string) []Lemma {
+	return classify(TokenizeSango(s))
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -54,9 +56,13 @@ var frWordListEncodedCuckooFilter []byte
 //go:embed wordlist_sg.cf
 var sgWordListEncodedCuckooFilter []byte
 
+//go:embed wordlist_sg_toneless.cf
+var sgTonelessWordListEncodedCuckooFilter []byte
+
 var enWords = getWordListFromEncodedCuckooFilter(enWordListEncodedCuckooFilter)
 var frWords = getWordListFromEncodedCuckooFilter(frWordListEncodedCuckooFilter)
 var sgWords = getWordListFromEncodedCuckooFilter(sgWordListEncodedCuckooFilter)
+var sgTonelessWords = getWordListFromEncodedCuckooFilter(sgTonelessWordListEncodedCuckooFilter)
 
 func getWordListFromEncodedCuckooFilter(b []byte) *cuckoo.Filter {
 	cf, err := cuckoo.Decode(b)
@@ -65,6 +71,18 @@ func getWordListFromEncodedCuckooFilter(b []byte) *cuckoo.Filter {
 	}
 	return cf
 }
+
+var toLowPitch = func() func(r rune) rune {
+	m := map[rune]rune{
+		'ä': 'a', 'â': 'a', 'ë': 'e', 'ê': 'e', 'ï': 'i',
+		'î': 'i', 'ö': 'o', 'ô': 'o', 'ü': 'u', 'û': 'u'}
+	return func(r rune) rune {
+		if c, found := m[r]; found {
+			return c
+		}
+		return r
+	}
+}()
 
 func classify(s *string, tokens []Token) []Lemma {
 	Pi := regexp.MustCompile(`\p{Pi}`)
@@ -86,6 +104,11 @@ func classify(s *string, tokens []Token) []Lemma {
 		r := token.REindex
 		w := (*s)[b:e]
 		wLC := strings.ToLower(w)
+		wToneless := wLC
+		for _, p := range [...][2]string{{"ɛ̂", "e"}, {"ɛ̈", "e"}, {"ɛ", "e"}, {"ɔ̂", "o"}, {"ɔ̈", "o"}, {"ɔ", "o"}} {
+			wToneless = strings.ReplaceAll(wToneless, p[0], p[1])
+		}
+		wToneless = strings.Map(toLowPitch, wToneless)
 		l := ""
 		t := "OTHER"
 		switch r {
@@ -96,8 +119,8 @@ func classify(s *string, tokens []Token) []Lemma {
 		case 2:
 			t = "PUNC"
 			if w == "..." {
-				w = "…"
 				wLC = "…"
+				wToneless = "…"
 			}
 			if Pi.MatchString(wLC) || Ps.MatchString(wLC) {
 				l = "open"
@@ -116,6 +139,25 @@ func classify(s *string, tokens []Token) []Lemma {
 			t = "WORD"
 			if sgWords.Lookup([]byte(wLC)) {
 				l = "sg"
+				// TODO: Create and use sgHeightlessWords.Lookup to automatically keep
+				// extant pitch accent when restoring vowel height. This is the most
+				// common case since the standard orthography does not encode height
+				// but does encode pitch.
+				if sgTonelessWords.Lookup([]byte(wLC)) {
+					// There is ambiguity when matching a Sango word with no pitch or height accents.
+					// This word (possibly by coincidence) matches a lexicon entry, but absence of
+					// accent marks does not prove there shouldn't be any. It would be much clearer
+					// if low pitch and close vowels (e and o) had explicit markings, or if conversely
+					// unaccented words were marked explicitly as unknown.
+					// Indicate this ambiguity with a mixed-case language code.
+					l = "Sg"
+				}
+				break
+			}
+			if sgTonelessWords.Lookup([]byte(wToneless)) {
+				// Lexeme does not match as is, but would with different accents.
+				// Indicate this with uppercase language code.
+				l = "SG"
 				break
 			}
 			fallthrough
@@ -125,11 +167,11 @@ func classify(s *string, tokens []Token) []Lemma {
 				l = "fr"
 			} else if enWords.Lookup([]byte(wLC)) {
 				l = "en"
-			} else {
+			} else if l == "" {
 				l = "XX"
 			}
 		}
-		lemmas = append(lemmas, Lemma{w, t, l})
+		lemmas = append(lemmas, Lemma{token, wToneless, wLC, t, l})
 	}
 	return lemmas
 }

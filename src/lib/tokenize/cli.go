@@ -47,7 +47,7 @@ var (
 				if _, err := out.WriteString("|"); err != nil {
 					panic(err)
 				}
-				if _, err := out.WriteString(lemma.Word); err != nil {
+				if _, err := out.WriteString(lemma.Sango); err != nil {
 					panic(err)
 				}
 				if _, err := out.WriteString("}\n"); err != nil {
