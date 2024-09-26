@@ -11,7 +11,6 @@ import (
 func Init(rootCmd *cobra.Command) {
 	rootCmd.AddCommand(transliterateCmd)
 
-	transliterateCmd.AddCommand(dumpCmd)
 	transliterateCmd.AddCommand(normalizeCmd)
 
 	transliterateCmd.AddCommand(encodeCmd)
@@ -28,16 +27,6 @@ var (
 		Use:   "transliterate",
 		Short: "A CLI to transliterate Sango between UTF8 and ASCII",
 		Long:  "https://github.com/zokwezo/sango/blob/main/src/lib/transliterate/README.md",
-	}
-
-	dumpCmd = &cobra.Command{
-		Use:   "dump",
-		Short: "Output maps of UTF8 syllables to/from ASCII input/output",
-		Run: func(cmd *cobra.Command, args []string) {
-			if err := Dump(bufio.NewWriter(os.Stdout), bufio.NewReader(os.Stdin)); err != nil {
-				log.Fatal(err)
-			}
-		},
 	}
 
 	normalizeCmd = &cobra.Command{

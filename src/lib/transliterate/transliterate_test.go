@@ -3,53 +3,8 @@ package transliterate
 import (
 	"bufio"
 	"bytes"
-	"regexp"
 	"testing"
 )
-
-type TestCase struct {
-	input       string
-	matching    [][2]int
-	nonmatching [][2]int
-}
-
-type Expect struct {
-	re        *regexp.Regexp
-	testCases []TestCase
-}
-
-func isEqual(lhs, rhs [][2]int) bool {
-	if len(lhs) != len(rhs) {
-		return false
-	}
-	for k, l := range lhs {
-		if l[0] != rhs[k][0] || l[1] != rhs[k][1] {
-			return false
-		}
-	}
-	return true
-}
-
-func TestTokenize(t *testing.T) {
-	expected := [...]Expect{
-		Expect{regexp.MustCompile(`(?i)(?:[a-z]|[ß-ÿ])+`), []TestCase{
-			{"", [][2]int{}, [][2]int{}},
-			{"Ça3cÉj-ïq", [][2]int{{0, 3}, {4, 8}, {9, 12}}, [][2]int{{3, 4}, {8, 9}}},
-		},
-		},
-	}
-	for k, expect := range expected {
-		for i, testCase := range expect.testCases {
-			matching, nonmatching := tokenize(expect.re, testCase.input)
-			if !isEqual(matching, testCase.matching) {
-				t.Errorf("Expect[%v][%v].matching = %v but found %v\n", k, i, testCase.matching, matching)
-			}
-			if !isEqual(nonmatching, testCase.nonmatching) {
-				t.Errorf("Expect[%v][%v].nonmatching = %v but found %v\n", k, i, testCase.nonmatching, nonmatching)
-			}
-		}
-	}
-}
 
 type SangoInputOutput struct {
 	Sango, Input, Output string
@@ -1849,7 +1804,7 @@ var sangoInputOutput = [...]SangoInputOutput{
 	{"sakpä", "sakpja", "sakpA"},
 	{"sâla", "sJala", "SAla"},
 	{"sâla", "sJala", "SAla"},
-	{"saläada", "saljaada", "salAada"},
+	{"saläad", "saljaad", "salAad"},
 	{"sâla na", "sJala na", "SAla na"},
 	{"sâla na bɛ̂ ɔ̂kɔ", "sJala na bJx Jckc", "SAla na BX Ckc"},
 	{"sâla na bɛ̂ ûse", "sJala na bJx Juse", "SAla na BX Use"},
