@@ -1,7 +1,8 @@
-package transliterate
+package transcode
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
 	"io"
 	"strings"
@@ -15,6 +16,15 @@ func EncodeInput(out *bufio.Writer, in *bufio.Reader) error  { return encodeInpu
 func EncodeOutput(out *bufio.Writer, in *bufio.Reader) error { return encodeOutput(out, in) }
 func DecodeInput(out *bufio.Writer, in *bufio.Reader) error  { return decode(out, in, false) }
 func DecodeOutput(out *bufio.Writer, in *bufio.Reader) error { return decode(out, in, true) }
+
+// Convenience function to apply one of the above transcoders to a string.
+func FromString(in string, transcode func(*bufio.Writer, *bufio.Reader) error) string {
+	var out bytes.Buffer
+	if err := transcode(bufio.NewWriter(&out), bufio.NewReader(bytes.NewBufferString(in))); err != nil {
+		panic(err)
+	}
+	return out.String()
+}
 
 ////////////////////////////////////////////////////////////////////////
 // IMPLEMENTATION

@@ -1,10 +1,6 @@
-package transliterate
+package transcode
 
-import (
-	"bufio"
-	"bytes"
-	"testing"
-)
+import "testing"
 
 type SangoInputOutput struct {
 	Sango, Input, Output string
@@ -12,48 +8,32 @@ type SangoInputOutput struct {
 
 func TestEncodeInput(t *testing.T) {
 	for k, r := range sangoInputOutput {
-		var found bytes.Buffer
-		if err := EncodeInput(bufio.NewWriter(&found), bufio.NewReader(bytes.NewBufferString(r.Sango))); err != nil {
-			t.Errorf("Example %v: EncodeInput(%q) expected %q, returned error %v", k, r.Sango, r.Input, err)
-		}
-		if found.String() != r.Input {
-			t.Errorf("Example %v: EncodeInput(%q) = %q, expected %q", k, r.Sango, found.String(), r.Input)
+		if out := FromString(r.Sango, EncodeInput); out != r.Input {
+			t.Errorf("Example %v: EncodeInput(%q) = %q, expected %q", k, r.Sango, out, r.Input)
 		}
 	}
 }
 
 func TestEncodeOutput(t *testing.T) {
 	for k, r := range sangoInputOutput {
-		var found bytes.Buffer
-		if err := EncodeOutput(bufio.NewWriter(&found), bufio.NewReader(bytes.NewBufferString(r.Sango))); err != nil {
-			t.Errorf("Example %v: EncodeOutput(%q) expected %q, returned error %v", k, r.Sango, r.Output, err)
-		}
-		if found.String() != r.Output {
-			t.Errorf("Example %v: EncodeOutput(%q) = %q, expected %q", k, r.Sango, found.String(), r.Output)
+		if out := FromString(r.Sango, EncodeOutput); out != r.Output {
+			t.Errorf("Example %v: EncodeOutput(%q) = %q, expected %q", k, r.Sango, out, r.Output)
 		}
 	}
 }
 
 func TestDecodeInput(t *testing.T) {
 	for k, r := range sangoInputOutput {
-		var found bytes.Buffer
-		if err := DecodeInput(bufio.NewWriter(&found), bufio.NewReader(bytes.NewBufferString(r.Input))); err != nil {
-			t.Errorf("Example %v: DecodeInput(%q) expected %q, returned error %v", k, r.Input, r.Sango, err)
-		}
-		if found.String() != r.Sango {
-			t.Errorf("Example %v: DecodeInput(%q) = %q, expected %q", k, r.Input, found.String(), r.Sango)
+		if out := FromString(r.Input, DecodeInput); out != r.Sango {
+			t.Errorf("Example %v: DecodeInput(%q) = %q, expected %q", k, r.Input, out, r.Sango)
 		}
 	}
 }
 
 func TestDecodeOutput(t *testing.T) {
 	for k, r := range sangoInputOutput {
-		var found bytes.Buffer
-		if err := DecodeOutput(bufio.NewWriter(&found), bufio.NewReader(bytes.NewBufferString(r.Output))); err != nil {
-			t.Errorf("Example %v: DecodeOutput(%q) expected %q, returned error %v", k, r.Output, r.Sango, err)
-		}
-		if found.String() != r.Sango {
-			t.Errorf("Example %v: DecodeOutput(%q) = %q, expected %q", k, r.Output, found.String(), r.Sango)
+		if out := FromString(r.Output, DecodeOutput); out != r.Sango {
+			t.Errorf("Example %v: DecodeOutput(%q) = %q, expected %q", k, r.Output, out, r.Sango)
 		}
 	}
 }

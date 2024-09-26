@@ -1,4 +1,4 @@
-package transliterate
+package transcode
 
 import (
 	"bufio"
@@ -9,24 +9,24 @@ import (
 )
 
 func Init(rootCmd *cobra.Command) {
-	rootCmd.AddCommand(transliterateCmd)
+	rootCmd.AddCommand(transcodeCmd)
 
-	transliterateCmd.AddCommand(normalizeCmd)
+	transcodeCmd.AddCommand(normalizeCmd)
 
-	transliterateCmd.AddCommand(encodeCmd)
+	transcodeCmd.AddCommand(encodeCmd)
 	encodeCmd.AddCommand(encodeInputCmd)
 	encodeCmd.AddCommand(encodeOutputCmd)
 
-	transliterateCmd.AddCommand(decodeCmd)
+	transcodeCmd.AddCommand(decodeCmd)
 	decodeCmd.AddCommand(decodeInputCmd)
 	decodeCmd.AddCommand(decodeOutputCmd)
 }
 
 var (
-	transliterateCmd = &cobra.Command{
-		Use:   "transliterate",
-		Short: "A CLI to transliterate Sango between UTF8 and ASCII",
-		Long:  "https://github.com/zokwezo/sango/blob/main/src/lib/transliterate/README.md",
+	transcodeCmd = &cobra.Command{
+		Use:   "transcode",
+		Short: "A CLI to transcode Sango between UTF8 and ASCII",
+		Long:  "https://github.com/zokwezo/sango/blob/main/src/lib/transcode/README.md",
 	}
 
 	normalizeCmd = &cobra.Command{

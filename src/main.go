@@ -7,7 +7,7 @@ import (
 	"github.com/zokwezo/sango/src/lib/lexicon"
 	"github.com/zokwezo/sango/src/lib/restore"
 	"github.com/zokwezo/sango/src/lib/tokenize"
-	"github.com/zokwezo/sango/src/lib/transliterate"
+	"github.com/zokwezo/sango/src/lib/transcode"
 )
 
 var (
@@ -20,9 +20,9 @@ var (
 
 func init() {
 	lexicon.Init(sangoCmd)
-	tokenize.Init(sangoCmd)
-	transliterate.Init(sangoCmd)
 	restore.Init(sangoCmd)
+	tokenize.Init(sangoCmd)
+	transcode.Init(sangoCmd)
 }
 
 func main() {
