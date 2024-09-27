@@ -10,12 +10,12 @@ can mess up lexicon lookup and be impossible to diagnose visually.
 Even after normalizing input to [NFKD](https://unicode.org/reports/tr15/#Norm_Forms),
 the number of bytes and runes varies with vowel, as seen in the following table:
 
-   | Graphemes | # Runes | # Bytes |
-   |:---------:|:-------:|:-------:|
-   |    e o    |    1    |    1    |
-   |    ɛ ɔ    |    1    |    2    |
-   |  ë ê ö ô  |    2    |    3    |
-   |  ɛ̈ ɛ̂ ɔ̈ ɔ̂  |    2    |    4    |
+| Graphemes | # Runes | # Bytes |
+| :-------: | :-----: | :-----: |
+|    e o    |    1    |    1    |
+|    ɛ ɔ    |    1    |    2    |
+|  ë ê ö ô  |    2    |    3    |
+|  ɛ̈ ɛ̂ ɔ̈ ɔ̂  |    2    |    4    |
 
 This means that graphemes in a Sango phrase cannot be randomly accessed, nor phrase length be
 immediately calculated from its byte or rune representations when e.g. aligning interlinearly
@@ -33,11 +33,11 @@ a third-party [Unicode Text Segmentation library](https://github.com/rivo/uniseg
 
 ### CHALLENGES
 
-2. Non-literal translation of single words is difficult
-3. Nonspace vs hyphen vs space segmentation of morphemes is not standardized and subject to significant variation.
-4. A single English word might require a multiword phrase in Sango due to the latter's impoverished vocabulary, e.g.
+1. Non-literal translation of single words is difficult
+2. Nonspace vs hyphen vs space segmentation of morphemes is not standardized and subject to significant variation.
+3. A single English word might require a multiword phrase in Sango due to the latter's impoverished vocabulary, e.g.
    - **mafüta tî ngû tî mɛ tî bâgara** = "grease of water of teat of cow" = butter
-5. A period (**.**) may indicate an abbreviation in English, but this is very uncommon in Sango.
+4. A period (**.**) may indicate an abbreviation in English, but this is very uncommon in Sango.
 
 ### SOLUTION
 
@@ -54,9 +54,12 @@ a third-party [Unicode Text Segmentation library](https://github.com/rivo/uniseg
 
 ### CHALLENGES
 
-2. It is tedious to input Sango text with accents and open vowels ɛ and ɔ from a keyboard.
-3. It is hard for the visually challenged to distingish between circumflex and diaeresis accents.
-4. The width of text hard to predict or assess when dealing with text layout.
+UTF8 is a neverending source of bugs, results in complex code, requires the use of specialty libraries,
+and makes it difficult to have random access to substrings or even determine string length.
+
+1. It is tedious to input Sango text with accents and open vowels ɛ and ɔ from a keyboard.
+2. It is hard for the visually challenged to distingish between circumflex and diaeresis accents.
+3. The width of text hard to predict or assess when dealing with text layout.
 
 ### REQUIREMENTS
 
@@ -70,32 +73,48 @@ column alignment, and reading (especially aloud) in smaller font. The encoding s
 
 ### SOLUTION
 
-#### ASCII encoding
+Sango uses only 22 letters, leaving the other 4 letters (`x`, `c`, `j`, and `q`) (along with various punctuation) available for other uses.
 
-Sango uses only 22 letters, even in French loan words.
-This leaves the other 4 letters free for other purposes:
+In particular, the phonemic rigidity of Sango allows for a way to encode vowel pitch and height using uppercase:
 
-##### Input
+|   Encodes   | ASCII                    |
+| :---------: | :----------------------- |
+|  Low pitch  | LC whole syllable        |
+|   High ^    | UC whole syllable        |
+|    Mid ¨    | LC consonants + UC vowel |
+| Escape next | q                        |
+| Raise pitch | j                        |
+|      ɔ      | c                        |
+|      ɛ      | x                        |
+|      “      | ``                       |
+|      ”      | ''                       |
+|      ‘      | \`                       |
+|      ’      | '                        |
+|      «      | <<                       |
+|      »      | >>                       |
+|  Start UC   | <                        |
+|   End UC    | >                        |
+| Start Annot | {                        |
+|  End Annot  | }                        |
 
-| ASCII | Encodes               |
-|:-----:|:--------------------- |
-|   c   | ɔ                     |
-|   x   | ɛ                     |
-|   j   | ¨ added to next vowel |
-|   J   | ^ added to next vowel |
+Note that:
 
-##### Output
-
-|  Encodes  | ASCII                     |
-|:---------:|:------------------------- |
-| UC letter | q                         |
-| UC word   | Q                         |
-|     ɔ     | c                         |
-|     ɛ     | x                         |
-|     ¨     | upper case vowel only     |
-|     ^     | upper case whole syllable |
-
-> Uppercase ⇒ _q_ prefix(es) is the same as for INPUT.
+1. A `q` (or `Q`) escapes, i.e. disables the decoding for any single ASCII character after it
+2. Pitch is preferably encoded via uppercase, but `j` (or `J`) is available as an alternative.
+   Each `j` (cyclically) raises one level of pitch, e.g. `bja` = **bä**, `jja` = **bâ**, and `bjjja` = **ba**.
+   - This is useful mainly to facilitate input from a keyboard, since it is much easier to type `j` than press and hold the Shift key.
+   - Internally, the encoding is canonicalized whatever its original format.
+3. Uppercase is used for pitch encoding and not available for capitalization.
+   Instead, any encoded string within angle brackets (which may be nested) is uppercased.
+4. Any string within braces (which may be nested) is syntactically ignored, and may
+   be used for comments, semantic annotations, translations, or metadata.
+5. Mid pitch syllables-initial vowels are not directly representable.
+   Instead, high pitch syllable-initial vowels are implicitly lowered to mid pitch:
+   - in a gerund (words ending in **-ngɔ̈** except for the word **îngɔ̈**)
+   - for a closed known small fixed set of lexemes: `Apx` = **äpɛ**, not **âpɛ**.
+6. Enclosing in single angular brackets is used to render uppercase,
+   but unneed at the start of a sentence (or after final punctuation) where it is done automatically:
+   - `balaɔ̂. ïrï tî mbï <kɔ̂lïngbâ> <k>ɔ̈sï.` = **Balaɔ̂. Ïrï tî mbï KƆ̂LÏNGBÂ Kɔ̈sï.**
 
 ## Code switching is frequent: **Classify using phonemics and lexicon**
 
@@ -131,4 +150,7 @@ Phonemic solutions are fastest and preferred:
   - The letters **ɛ** and **ɔ** are not found in French (nor in the standard Sango orthography) but
     can be assumed to be open **e** and **o** in Sango.
 
-In case of ambiguity, lexical lookup can be used as an allowlist of valid Sango lexemes.
+In case of ambiguity:
+
+- lexical lookup can be used as an allowlist of valid Sango lexemes
+- language annotations enclosed in braces can be added

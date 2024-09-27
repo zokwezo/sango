@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"regexp"
 	"strings"
 
 	"github.com/rivo/uniseg"
@@ -230,84 +231,16 @@ func decode(out *bufio.Writer, in *bufio.Reader, isOutputFormat bool) error {
 		}
 		if isOutputFormat {
 			// Autocorrect words starting with high pitch vowel that should actually be middle pitch.
-		autocorrect:
-			switch word {
-			// RARE: allowlist of known words that start with a middle pitch vowel
-			case "âpɛ":
-				word = "äpɛ"
-			case "âpɛ̈":
-				word = "äpɛ̈"
-			case "ɛ̂":
-				word = "ɛ̈"
-			case "êkälïtïse":
-				word = "ëkälïtïse"
-			case "êpätîte":
-				word = "ëpätîte"
-			case "î":
-				word = "ï"
-			case "îrï":
-				word = "ïrï"
-
-			case "Âpɛ":
-				word = "Äpɛ"
-			case "Âpɛ̈":
-				word = "Äpɛ̈"
-			case "Ɛ̂":
-				word = "Ɛ̈"
-			case "Êkälïtïse":
-				word = "Ëkälïtïse"
-			case "Êpätîte":
-				word = "Ëpätîte"
-			case "Î":
-				word = "Ï"
-			case "Îrï":
-				word = "Ïrï"
-
-			case "ÂPƐ":
-				word = "ÄPƐ"
-			case "ÂPƐ̈":
-				word = "ÄPƐ̈"
-			case "ÊKÄLÏTÏSE":
-				word = "ËKÄLÏTÏSE"
-			case "ÊPÄTÎTE":
-				word = "ËPÄTÎTE"
-			case "ÎRÏ":
-				word = "ÏRÏ"
-
-				// False friends ending in "-ngɔ̈" that are not gerunds
-			case "îngɔ̈":
-				word = "îngɔ̈"
-			case "Îngɔ̈":
-				word = "Îngɔ̈"
-			case "ÎNGƆ̈":
-				word = "ÎNGƆ̈"
-
-			default:
-				// COMMON: any word that ends in "ngɔ̈" or "NGƆ̈" (verbal gerund form)
-				// Also include "ngö" and "ngö" in case the vowel height is incorrect.
-				if strings.HasSuffix(word, "ngɔ̈") ||
-					strings.HasSuffix(word, "ngƆ̈") ||
-					strings.HasSuffix(word, "nGɔ̈") ||
-					strings.HasSuffix(word, "nGƆ̈") ||
-					strings.HasSuffix(word, "Ngɔ̈") ||
-					strings.HasSuffix(word, "NgƆ̈") ||
-					strings.HasSuffix(word, "NGɔ̈") ||
-					strings.HasSuffix(word, "NGƆ̈") ||
-					strings.HasSuffix(word, "ngö") ||
-					strings.HasSuffix(word, "ngÖ") ||
-					strings.HasSuffix(word, "nGö") ||
-					strings.HasSuffix(word, "nGÖ") ||
-					strings.HasSuffix(word, "Ngö") ||
-					strings.HasSuffix(word, "NgÖ") ||
-					strings.HasSuffix(word, "NGö") ||
-					strings.HasSuffix(word, "NGÖ") {
-					for _, m := range asciiInputToUtf8 {
-						for v, mid := range m[1] {
-							hi := m[2][v]
-							if suffix, found := strings.CutPrefix(word, hi); found {
-								word = mid + suffix
-								break autocorrect
-							}
+			if midPitch, shouldLowerPitch := highToMedPitchMap[word]; shouldLowerPitch {
+				word = midPitch
+			} else if mustGerundifyRE.MatchString(word) {
+			autocorrect:
+				for _, m := range asciiInputToUtf8 {
+					for v, mid := range m[1] {
+						hi := m[2][v]
+						if suffix, found := strings.CutPrefix(word, hi); found {
+							word = mid + suffix
+							break autocorrect
 						}
 					}
 				}
@@ -328,6 +261,114 @@ func decode(out *bufio.Writer, in *bufio.Reader, isOutputFormat bool) error {
 	}
 	_, err := out.WriteString(word)
 	return err
+}
+
+var mustGerundifyRE = regexp.MustCompile(`(?i)(^|[^a-zäëïöüâêîôûɛ̂ɛ̈ɛɔ̂ɔ̈ɔ])(â|ê|î|ô|û|ɛ̂|ɔ̂)[a-zäëïöüâêîôûɛ̂ɛ̈ɛɔ̂ɔ̈ɔ]*ng(ɔ̈|ö)($|[^a-zäëïöüâêîôûɛ̂ɛ̈ɛɔ̂ɔ̈ɔ])`)
+
+var highToMedPitchMap = map[string]string{
+	// Syllable-initial high pitch that should actually be mid pitch:
+	"ÂPƐ":        "ÄPƐ",
+	"BÄÔ":        "BÄÖ",
+	"BIÔ":        "BIÖ",
+	"BUÂ":        "BUÄ",
+	"BUÂTE":      "BUÄTE",
+	"DAÂ":        "DAÄ",
+	"Ê":          "Ë",
+	"ÊKÄLÏTÏSE":  "ËKÄLÏTÏSE",
+	"ÊPÄTÎTE":    "ËPÄTÎTE",
+	"GBÏÂ":       "GBÏÄ",
+	"GÖGÜÂ":      "GÖGÜÄ",
+	"GÜÂGÜÂ":     "GÜÄGÜÄ",
+	"Î":          "Ï",
+	"ÎRÏ":        "ÏRÏ",
+	"KÜÂ":        "KÜÄ",
+	"MBÏƆ̂̈":     "MBÏƆ̈",
+	"MƐƐ̂̈":      "MƐƐ̈",
+	"MÜÂ":        "MÜÄ",
+	"MVITASIÖON": "MVITASIÖON",
+	"NDÊNDÏÂ":    "NDÊNDÏÄ",
+	"NZAÎ":       "NZAÏ",
+	"SÏƆ̂̈":      "SÏƆ̈",
+	"SÏƆ̂̈NÎ":    "SÏƆ̈NÎ",
+	"SÜÄ":        "SÜÄ",
+	"SÜÄLI":      "SÜÄLI",
+	"USÏÔ":       "USÏÖ",
+	"WAÂWA":      "WAÄWA",
+	"Âpɛ":        "Äpɛ",
+	"Bäô":        "Bäö",
+	"Biô":        "Biö",
+	"Buâ":        "Buä",
+	"Buâte":      "Buäte",
+	"Daâ":        "Daä",
+	"Êkälïtïse":  "Ëkälïtïse",
+	"Êpätîte":    "Ëpätîte",
+	"Gbïâ":       "Gbïä",
+	"Gögüâ":      "Gögüä",
+	"Güâgüâ":     "Güägüä",
+	"Îrï":        "Ïrï",
+	"Küâ":        "Küä",
+	"Mbïɔ̂̈":     "Mbïɔ̈",
+	"Mɛɛ̂̈":      "Mɛɛ̈",
+	"Müâ":        "Müä",
+	"Mvitasiöon": "Mvitasiöon",
+	"Ndêndïâ":    "Ndêndïä",
+	"Nzaî":       "Nzaï",
+	"Sïɔ̂̈":      "Sïɔ̈",
+	"Sïɔ̂̈nî":    "Sïɔ̈nî",
+	"Süä":        "Süä",
+	"Süäli":      "Süäli",
+	"Usïô":       "Usïö",
+	"Waâwa":      "Waäwa",
+	"âpɛ":        "äpɛ",
+	"bäô":        "bäö",
+	"biô":        "biö",
+	"buâ":        "buä",
+	"buâte":      "buäte",
+	"daâ":        "daä",
+	"ê":          "ë",
+	"êkälïtïse":  "ëkälïtïse",
+	"êpätîte":    "ëpätîte",
+	"gbïâ":       "gbïä",
+	"gögüâ":      "gögüä",
+	"güâgüâ":     "güägüä",
+	"î":          "ï",
+	"îrï":        "ïrï",
+	"küâ":        "küä",
+	"mbïɔ̂̈":     "mbïɔ̈",
+	"mɛɛ̂̈":      "mɛɛ̈",
+	"müâ":        "müä",
+	"mvitasiöon": "mvitasiöon",
+	"ndêndïâ":    "ndêndïä",
+	"nzaî":       "nzaï",
+	"sïɔ̂̈":      "sïɔ̈",
+	"sïɔ̂̈nî":    "sïɔ̈nî",
+	"süä":        "süä",
+	"süäli":      "süäli",
+	"usïô":       "usïö",
+	"waâwa":      "waäwa",
+	// Words that look like gerunds but aren't,
+	// and shouldn't be coerced to all mid pitch:
+	"BÄKƆNGƆ̈": "BÄKƆNGƆ̈",
+	"BƆNGƆ̈":   "BƆNGƆ̈",
+	"ÎNGƆ̈":    "ÎNGƆ̈",
+	"KONGƆ̈":   "KONGƆ̈",
+	"KƆNGƆ̈":   "KƆNGƆ̈",
+	"MƆZÏNGƆ̈": "MƆZÏNGƆ̈",
+	"YINGƆ̈":   "YINGƆ̈",
+	"Bäkɔngɔ̈": "Bäkɔngɔ̈",
+	"Bɔngɔ̈":   "Bɔngɔ̈",
+	"Îngɔ̈":    "Îngɔ̈",
+	"Kongɔ̈":   "Kongɔ̈",
+	"Kɔngɔ̈":   "Kɔngɔ̈",
+	"Mɔzïngɔ̈": "Mɔzïngɔ̈",
+	"Yingɔ̈":   "Yingɔ̈",
+	"bäkɔngɔ̈": "bäkɔngɔ̈",
+	"bɔngɔ̈":   "bɔngɔ̈",
+	"îngɔ̈":    "îngɔ̈",
+	"kongɔ̈":   "kongɔ̈",
+	"kɔngɔ̈":   "kɔngɔ̈",
+	"mɔzïngɔ̈": "mɔzïngɔ̈",
+	"yingɔ̈":   "yingɔ̈",
 }
 
 var utf8ToAsciiInput = map[string]string{
