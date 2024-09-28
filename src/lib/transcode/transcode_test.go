@@ -1,39 +1,50 @@
 package transcode
 
-import "testing"
+import (
+	"bufio"
+	"bytes"
+	"testing"
+)
 
 type SangoInputOutput struct {
 	Sango, Input, Output string
 }
 
+// Convenience function to apply one of the above transcoders to a string.
+func encodeInput(out *bufio.Writer, in *bufio.Reader) error {
+	return Encode(out, in, true)
+}
+
+func encodeOutput(out *bufio.Writer, in *bufio.Reader) error {
+	return Encode(out, in, false)
+}
+
+func fromString(in string, transcode func(*bufio.Writer, *bufio.Reader) error) string {
+	var out bytes.Buffer
+	if err := transcode(bufio.NewWriter(&out), bufio.NewReader(bytes.NewBufferString(in))); err != nil {
+		panic(err)
+	}
+	return out.String()
+}
+
 func TestEncodeInput(t *testing.T) {
 	for k, r := range sangoInputOutput {
-		if out := FromString(r.Sango, EncodeInput); out != r.Input {
-			t.Errorf("Example %v: EncodeInput(%q) = %q, expected %q", k, r.Sango, out, r.Input)
+		if out := fromString(r.Sango, encodeInput); out != r.Input {
+			t.Errorf("Example %v: encodeInput(%q) = %q, expected %q", k, r.Sango, out, r.Input)
+		}
+		if out := fromString(r.Sango, encodeOutput); out != r.Output {
+			t.Errorf("Example %v: encodeOutput(%q) = %q, expected %q", k, r.Sango, out, r.Output)
 		}
 	}
 }
 
-func TestEncodeOutput(t *testing.T) {
+func TestDecode(t *testing.T) {
 	for k, r := range sangoInputOutput {
-		if out := FromString(r.Sango, EncodeOutput); out != r.Output {
-			t.Errorf("Example %v: EncodeOutput(%q) = %q, expected %q", k, r.Sango, out, r.Output)
+		if out := fromString(r.Input, Decode); out != r.Sango {
+			t.Errorf("Example %v: Decode(%q) = %q, expected %q", k, r.Input, out, r.Sango)
 		}
-	}
-}
-
-func TestDecodeInput(t *testing.T) {
-	for k, r := range sangoInputOutput {
-		if out := FromString(r.Input, DecodeInput); out != r.Sango {
-			t.Errorf("Example %v: DecodeInput(%q) = %q, expected %q", k, r.Input, out, r.Sango)
-		}
-	}
-}
-
-func TestDecodeOutput(t *testing.T) {
-	for k, r := range sangoInputOutput {
-		if out := FromString(r.Output, DecodeOutput); out != r.Sango {
-			t.Errorf("Example %v: DecodeOutput(%q) = %q, expected %q", k, r.Output, out, r.Sango)
+		if out := fromString(r.Output, Decode); out != r.Sango {
+			t.Errorf("Example %v: Decode(%q) = %q, expected %q", k, r.Output, out, r.Sango)
 		}
 	}
 }

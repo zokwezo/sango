@@ -9,20 +9,16 @@ import (
 )
 
 func Init(rootCmd *cobra.Command) {
+	encodeCmd.Flags().BoolVar(&useJForPitchFlagValue, "useJForPitch", false, "Use the letter 'j' instead of uppercase for pitch accent.")
 	rootCmd.AddCommand(transcodeCmd)
-
 	transcodeCmd.AddCommand(normalizeCmd)
-
 	transcodeCmd.AddCommand(encodeCmd)
-	encodeCmd.AddCommand(encodeInputCmd)
-	encodeCmd.AddCommand(encodeOutputCmd)
-
 	transcodeCmd.AddCommand(decodeCmd)
-	decodeCmd.AddCommand(decodeInputCmd)
-	decodeCmd.AddCommand(decodeOutputCmd)
 }
 
 var (
+	useJForPitchFlagValue bool
+
 	transcodeCmd = &cobra.Command{
 		Use:   "transcode",
 		Short: "A CLI to transcode Sango between UTF8 and ASCII",
@@ -43,23 +39,8 @@ var (
 	encodeCmd = &cobra.Command{
 		Use:   "encode",
 		Short: "Read from stdin, encode UTF8 into ASCII format, then write to stdout",
-	}
-
-	encodeInputCmd = &cobra.Command{
-		Use:   "input",
-		Short: "Read from stdin, encode UTF8 into ASCII input format, then write to stdout",
 		Run: func(cmd *cobra.Command, args []string) {
-			if err := EncodeInput(bufio.NewWriter(os.Stdout), bufio.NewReader(os.Stdin)); err != nil {
-				log.Fatal(err)
-			}
-		},
-	}
-
-	encodeOutputCmd = &cobra.Command{
-		Use:   "output",
-		Short: "Read from stdin, encode UTF8 into ASCII output format, then write to stdout",
-		Run: func(cmd *cobra.Command, args []string) {
-			if err := EncodeOutput(bufio.NewWriter(os.Stdout), bufio.NewReader(os.Stdin)); err != nil {
+			if err := Encode(bufio.NewWriter(os.Stdout), bufio.NewReader(os.Stdin), useJForPitchFlagValue); err != nil {
 				log.Fatal(err)
 			}
 		},
@@ -68,24 +49,8 @@ var (
 	decodeCmd = &cobra.Command{
 		Use:   "decode",
 		Short: "Read from stdin, decode ASCII into UTF8 format, then write to stdout",
-		Args:  cobra.MaximumNArgs(0),
-	}
-
-	decodeInputCmd = &cobra.Command{
-		Use:   "input",
-		Short: "Read from stdin, decode ASCII into UTF8 input format, then write to stdout",
 		Run: func(cmd *cobra.Command, args []string) {
-			if err := DecodeInput(bufio.NewWriter(os.Stdout), bufio.NewReader(os.Stdin)); err != nil {
-				log.Fatal(err)
-			}
-		},
-	}
-
-	decodeOutputCmd = &cobra.Command{
-		Use:   "output",
-		Short: "Read from stdin, decode ASCII into UTF8 output, then write to stdout",
-		Run: func(cmd *cobra.Command, args []string) {
-			if err := DecodeOutput(bufio.NewWriter(os.Stdout), bufio.NewReader(os.Stdin)); err != nil {
+			if err := Decode(bufio.NewWriter(os.Stdout), bufio.NewReader(os.Stdin)); err != nil {
 				log.Fatal(err)
 			}
 		},

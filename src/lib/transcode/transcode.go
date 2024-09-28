@@ -2,7 +2,6 @@ package transcode
 
 import (
 	"bufio"
-	"bytes"
 	"fmt"
 	"io"
 	"regexp"
@@ -12,23 +11,25 @@ import (
 	"golang.org/x/text/unicode/norm"
 )
 
-func Normalize(out *bufio.Writer, in *bufio.Reader) error    { return normalize(out, in) }
-func EncodeInput(out *bufio.Writer, in *bufio.Reader) error  { return encodeInput(out, in) }
-func EncodeOutput(out *bufio.Writer, in *bufio.Reader) error { return encodeOutput(out, in) }
-func DecodeInput(out *bufio.Writer, in *bufio.Reader) error  { return decode(out, in, false) }
-func DecodeOutput(out *bufio.Writer, in *bufio.Reader) error { return decode(out, in, true) }
-
-// Convenience function to apply one of the above transcoders to a string.
-func FromString(in string, transcode func(*bufio.Writer, *bufio.Reader) error) string {
-	var out bytes.Buffer
-	if err := transcode(bufio.NewWriter(&out), bufio.NewReader(bytes.NewBufferString(in))); err != nil {
-		panic(err)
-	}
-	return out.String()
+func Normalize(out *bufio.Writer, in *bufio.Reader) error { return normalize(out, in) }
+func Encode(out *bufio.Writer, in *bufio.Reader, useJForPitch bool) error {
+	return encode(out, in, useJForPitch)
 }
+func Decode(out *bufio.Writer, in *bufio.Reader) error { return decode(out, in) }
 
 ////////////////////////////////////////////////////////////////////////
 // IMPLEMENTATION
+
+const (
+	lowPitch = iota
+	midPitch
+	highPitch
+)
+
+type asciiAndPitch = struct {
+	ascii string
+	pitch int
+}
 
 // TODO: Greatly simplify the logic by replacing with substring tokenization
 // over the fixed set of 7650 tokens comprised by the outer product of consonants
@@ -49,41 +50,7 @@ func normalize(out *bufio.Writer, in *bufio.Reader) error {
 	return err
 }
 
-func encodeInput(out *bufio.Writer, in *bufio.Reader) error {
-	defer out.Flush()
-	src, err := io.ReadAll(norm.NFKC.Reader(in))
-	if err != nil {
-		return err
-	}
-	state := -1
-	var dst []byte
-	for len(src) > 0 {
-		dst, src, _, state = uniseg.Step(src, state)
-		if a, isSangoUTF8 := utf8ToAsciiInput[string(dst)]; isSangoUTF8 {
-			if _, err = out.WriteString(a); err != nil {
-				return err
-			}
-		} else {
-			if _, err = out.Write(dst); err != nil {
-				return err
-			}
-		}
-	}
-	return err
-}
-
-const (
-	lowPitch = iota
-	midPitch
-	highPitch
-)
-
-type asciiAndPitch = struct {
-	ascii string
-	pitch int
-}
-
-func encodeOutput(out *bufio.Writer, in *bufio.Reader) error {
+func encode(out *bufio.Writer, in *bufio.Reader, useJForPitch bool) error {
 	defer out.Flush()
 	src, err := io.ReadAll(norm.NFKC.Reader(in))
 	if err != nil {
@@ -93,26 +60,44 @@ func encodeOutput(out *bufio.Writer, in *bufio.Reader) error {
 	var dst []byte
 	consonantsWithQ := ""
 	consonantsWithoutQ := ""
+	defer func() {
+		if consonantsWithoutQ == "n" {
+			_, err = out.WriteRune('N')
+		} else {
+			_, err = out.WriteString(consonantsWithQ)
+		}
+	}()
+
 	for len(src) > 0 {
 		dst, src, _, state = uniseg.Step(src, state)
 		dstStr := string(dst)
-		if consonant, isConsonant := lowercaseAsciiConsonant[dstStr]; isConsonant {
-			if consonantsWithoutQ == "n" && consonant != "d" && consonant != "g" && consonant != "y" && consonant != "z" {
+		consonant := ""
+		isConsonant := false
+		if useJForPitch {
+			if a, isSangoUTF8 := utf8ToAsciiInput[dstStr]; isSangoUTF8 {
+				if _, err = out.WriteString(a); err != nil {
+					return err
+				}
+			} else if _, err = out.Write(dst); err != nil {
+				return err
+			}
+		} else if consonant, isConsonant = lowercaseAsciiConsonant[dstStr]; isConsonant {
+			if consonant == "d" || consonant == "g" || consonant == "y" || consonant == "z" {
+				if len(dstStr) > 0 && dstStr == strings.ToUpper(dstStr) {
+					consonantsWithQ += "q"
+				}
+			} else if consonantsWithoutQ == "n" {
 				if _, err = out.WriteRune('N'); err != nil {
 					return err
 				}
-				consonantsWithoutQ = consonant
-				consonantsWithQ = consonant
-				continue
-			}
-			if len(dstStr) > 0 && dstStr == strings.ToUpper(dstStr) {
+				consonantsWithoutQ = ""
+				consonantsWithQ = ""
+			} else if len(dstStr) > 0 && dstStr == strings.ToUpper(dstStr) {
 				consonantsWithQ += "q"
 			}
 			consonantsWithoutQ += consonant
 			consonantsWithQ += consonant
-			continue
-		}
-		if asciiPitch, isVowel := asciiAndPitchFromUTF8Vowel[dstStr]; isVowel {
+		} else if asciiPitch, isVowel := asciiAndPitchFromUTF8Vowel[dstStr]; isVowel {
 			if consonantsWithoutQ != "" && asciiPitch.pitch == highPitch {
 				consonantsWithQ = strings.ReplaceAll(strings.ReplaceAll(strings.ToUpper(consonantsWithQ), "Q", "q"), "J", "j")
 			} else if consonantsWithoutQ == "" && asciiPitch.pitch == midPitch {
@@ -127,6 +112,8 @@ func encodeOutput(out *bufio.Writer, in *bufio.Reader) error {
 			if _, err = out.WriteString(asciiPitch.ascii); err != nil {
 				return err
 			}
+			consonantsWithQ = ""
+			consonantsWithoutQ = ""
 		} else if consonantsWithoutQ == "n" {
 			if _, err = out.WriteRune('N'); err != nil {
 				return err
@@ -134,6 +121,8 @@ func encodeOutput(out *bufio.Writer, in *bufio.Reader) error {
 			if _, err = out.Write(dst); err != nil {
 				return err
 			}
+			consonantsWithQ = ""
+			consonantsWithoutQ = ""
 		} else {
 			// TODO: This is a word break. If every other glyph output is a 'q', replace with single initial 'Q'.
 			if _, err = out.WriteString(consonantsWithQ); err != nil {
@@ -142,19 +131,14 @@ func encodeOutput(out *bufio.Writer, in *bufio.Reader) error {
 			if _, err = out.Write(dst); err != nil {
 				return err
 			}
+			consonantsWithQ = ""
+			consonantsWithoutQ = ""
 		}
-		consonantsWithQ = ""
-		consonantsWithoutQ = ""
-	}
-	if consonantsWithoutQ == "n" {
-		_, err = out.WriteRune('N')
-	} else {
-		_, err = out.WriteString(consonantsWithQ)
 	}
 	return err
 }
 
-func decode(out *bufio.Writer, in *bufio.Reader, isOutputFormat bool) error {
+func decode(out *bufio.Writer, in *bufio.Reader) error {
 	defer out.Flush()
 	isUpperCaseLetter := false
 	isUpperCaseWord := false
@@ -207,7 +191,7 @@ func decode(out *bufio.Writer, in *bufio.Reader, isOutputFormat bool) error {
 			continue
 		}
 		if asciiVowel, isAsciiVowel := lowercaseAsciiVowel[srcStr]; isAsciiVowel {
-			if isOutputFormat && pitch == 0 {
+			if pitch == 0 {
 				if numUpperCaseConsonants > 0 {
 					pitch = 2
 				} else if asciiVowel == srcStr {
@@ -229,24 +213,24 @@ func decode(out *bufio.Writer, in *bufio.Reader, isOutputFormat bool) error {
 			priorLetter = srcRune
 			continue
 		}
-		if isOutputFormat {
-			// Autocorrect words starting with high pitch vowel that should actually be middle pitch.
-			if midPitch, shouldLowerPitch := highToMedPitchMap[word]; shouldLowerPitch {
-				word = midPitch
-			} else if mustGerundifyRE.MatchString(word) {
-			autocorrect:
-				for _, m := range asciiInputToUtf8 {
-					for v, mid := range m[1] {
-						hi := m[2][v]
-						if suffix, found := strings.CutPrefix(word, hi); found {
-							word = mid + suffix
-							break autocorrect
-						}
+
+		// Autocorrect words starting with high pitch vowel that should actually be middle pitch.
+		if midPitch, shouldLowerPitch := highToMedPitchMap[word]; shouldLowerPitch {
+			word = midPitch
+		} else if mustGerundifyRE.MatchString(word) {
+		autocorrect:
+			for _, m := range asciiInputToUtf8 {
+				for v, mid := range m[1] {
+					hi := m[2][v]
+					if suffix, found := strings.CutPrefix(word, hi); found {
+						word = mid + suffix
+						break autocorrect
 					}
 				}
 			}
-			priorLetter = srcRune
 		}
+		priorLetter = srcRune
+
 		if _, err = out.WriteString(word); err != nil {
 			return err
 		}
