@@ -1,6 +1,6 @@
 # Challenges and Solutions in Working with Sango Text
 
-## Glyph UTF representations are not fixed-width: **Segment input and use glyph representation internally**
+## Glyph UTF representations are not fixed-width: **Segment input and use syllable encoding internally**
 
 ### CHALLENGES
 
@@ -21,13 +21,21 @@ This means that graphemes in a Sango phrase cannot be randomly accessed, nor phr
 immediately calculated from its byte or rune representations when e.g. aligning interlinearly
 with translations into columns.
 
+Also, combining marks are separate runes that attach to their immediately preceding rune and can
+be easily separated from them during segmentation or string reversal.
+
 ### SOLUTION
 
+#### Input and Output
 All input is first converted to [NFKD](https://unicode.org/reports/tr15/#Norm_Forms)
 for ease of handling accents separately, then reconverts to NFC on output.
 
-Although the Go standard library (surprisingly) does not provide this functionality, there is
-a third-party [Unicode Text Segmentation library](https://github.com/rivo/uniseg/blob/master/README.md) that does.
+> _NOTE: Although the Go standard library (surprisingly) does not provide native functionality to iterate over whole glyphs (including combining marks), there is a third-party [Unicode Text Segmentation library](https://github.com/rivo/uniseg/blob/master/README.md) that does. However, its use increases complexity and where possible an ASCII encoding is used internally (see below)._
+
+#### Internally
+
+The data is stored internally encoded as sequences of syllables in `[]uint16`. This is also an optimal encoding for
+use in machine learning algorithms. See the documentation on [Sango Syllabic Encoding](encoding.md) for full details.
 
 ## Segmentation is hard: **Parse sequence of syllables instead**
 
@@ -36,7 +44,7 @@ a third-party [Unicode Text Segmentation library](https://github.com/rivo/uniseg
 1. Non-literal translation of single words is difficult
 2. Nonspace vs hyphen vs space segmentation of morphemes is not standardized and subject to significant variation.
 3. A single English word might require a multiword phrase in Sango due to the latter's impoverished vocabulary, e.g.
-   - **mafüta tî ngû tî mɛ tî bâgara** = "grease of water of teat of cow" = butter
+   - **mafüta tî ngû tî mɛ tî bâgara** = _oil of water of teat of cow_ = butter
 4. A period (**.**) may indicate an abbreviation in English, but this is very uncommon in Sango.
 
 ### SOLUTION
@@ -50,7 +58,7 @@ a third-party [Unicode Text Segmentation library](https://github.com/rivo/uniseg
    - a period followed by a single space and a (possibly uppercase) letter always signals abbreviation
    - use two spaces to signal sentence final.
 
-## Unicode is inconvenient for humans: **Use ASCII encodings instead**
+## Inputting Unicode from the keyboard is inconvenient: **Use an ASCII encoding**
 
 ### CHALLENGES
 
@@ -64,59 +72,113 @@ and makes it difficult to have random access to substrings or even determine str
 ### REQUIREMENTS
 
 An ASCII-only representation is much easier for keyboard input, canonicalization, internal processing,
-column alignment, and reading (especially aloud) in smaller font. The encoding should:
+column alignment, and reading (especially aloud) in smaller font. Desirable encoding properties include:
 
-1. be one byte per glyph, for random access and predictable string length
-2. consist only of lowercase letters, so that fingers rarely need to leave the home row of a keyboard
-3. be easily stripped of vowel pitch and height through trivial transformations
+1. use only ASCII accessible on a keyboard, ideally only lowercase letters
+   that can be typed without needing to leave the home row of a keyboard
+2. be easily stripped of vowel pitch and/or height through trivial transformations
+3. be one byte per glyph, for random access and predictable string length
 4. be human readable, and facilitate correct pronunciation by nonnative speakers
 
 ### SOLUTION
 
-Sango uses only 22 letters, leaving the other 4 letters (`x`, `c`, `j`, and `q`) (along with various punctuation) available for other uses.
+#### Punctuation
 
-In particular, the phonemic rigidity of Sango allows for a way to encode vowel pitch and height using uppercase:
+It is convenient to use ASCII to encode punctuation common in Sango text that require UTF8 glyphs:
 
-|   Encodes   | ASCII                    |
-| :---------: | :----------------------- |
-|  Low pitch  | LC whole syllable        |
-|   High ^    | UC whole syllable        |
-|    Mid ¨    | LC consonants + UC vowel |
-| Escape next | q                        |
-| Raise pitch | j                        |
-|      ɔ      | c                        |
-|      ɛ      | x                        |
-|      “      | ``                       |
-|      ”      | ''                       |
-|      ‘      | \`                       |
-|      ’      | '                        |
-|      «      | <<                       |
-|      »      | >>                       |
-|  Start UC   | <                        |
-|   End UC    | >                        |
-| Start Annot | {                        |
-|  End Annot  | }                        |
+|     UTF8     | ASCII |
+| :----------: | :---: |
+|      “       |  ``   |
+|      ”       |  ''   |
+|      ‘       |  \`   |
+|      ’       |   '   |
+|      «       |  <<   |
+|      »       |  >>   |
+| ellipses (…) | . . . |
+|  hyphen (-)  |   -   |
+| en-dash (–)  |  - -  |
+| em-dash (—)  | - - - |
 
-Note that:
+> _NOTE: the spaces within the ASCII encodings are for display purposes only and not to be added in text._
 
-1. A `q` (or `Q`) escapes, i.e. disables the decoding for any single ASCII character after it
-2. Pitch is preferably encoded via uppercase, but `j` (or `J`) is available as an alternative.
-   Each `j` (cyclically) raises one level of pitch, e.g. `bja` = **bä**, `jja` = **bâ**, and `bjjja` = **ba**.
-   - This is useful mainly to facilitate input from a keyboard, since it is much easier to type `j` than press and hold the Shift key.
-   - Internally, the encoding is canonicalized whatever its original format.
-3. Uppercase is used for pitch encoding and not available for capitalization.
-   Instead, any encoded string within angle brackets (which may be nested) is uppercased.
-4. Any string within braces (which may be nested) is syntactically ignored, and may
-   be used for comments, semantic annotations, translations, or metadata.
-5. Mid pitch syllables-initial vowels are not directly representable.
+#### Vowel height: SEXC encoding
+
+> _NOTE: SEXC (pronounced "sexy-jay") is short for ‘Sango Encoding X and C’._
+
+The consonants **x** and **c** are not used in Sango, and are repurposed to represent open vowels instead:
+
+| UTF8 | ASCII |
+| :--: | :---: |
+|  ɛ   |   x   |
+|  ɔ   |   c   |
+
+#### Vowel pitch
+
+There are two different schemes to encode vowel pitch, each with its advantages and disadvantages:
+
+##### SEXC-J encoding
+
+> _NOTE: SEXC-J (pronounced "sexy-jay") is short for ‘Sango Encoding X and C using J’._
+
+The consonants **j** and **q** (both case-insensitive) do not occur in Sango and are repurposed to encode vowel pitch.
+By default, vowels have low pitch. When immediately following a vowel, `j` indicates high pitch and `q` indicates
+medium pitch.
+
+* PRO: Trivial to convert bijectively to and from UTF8 with simple rune remapping.
+* PRO: Case invariant
+* CON: String length differs from glyph length (no random access)
+
+##### SEXC-U encoding
+
+> _NOTE: SEXC-U (pronounced "sexy-you") is short for ‘Sango Encoding X and C using Uppercase’._
+
+Vowel pitch is important when humans speak or read Sango text, and humans are not good at transliterating `j`
+on the fly, nor can easily distinguish visually the small circumflex and diaeresis accent marks.
+
+Therefore, as an output format to faciliate human comprehension, uppercase is repurposed to encode vowel pitch:
+
+1. Whole syllable is lowercase ⟹ Low pitch
+   - **ngba** ⟹ `ngba`
+2. Whole syllable is uppercase ⟹ High pitch
+   - **ngbâ** ⟹ `NGBA`
+3. Consonants in lowercase, Vowel in uppercase ⟹ Medium pitch
+   - **ngbä** ⟹ `ngbA`
+
+Note that this encoding is lossy:
+
+1. Mid pitch vowel-only syllables (no consonants) are not directly representable.
    Instead, high pitch syllable-initial vowels are implicitly lowered to mid pitch:
    - in a gerund (words ending in **-ngɔ̈** except for the word **îngɔ̈**)
-   - for a closed known small fixed set of lexemes: `Apx` = **äpɛ**, not **âpɛ**.
-6. Enclosing in single angular brackets is used to render uppercase,
-   but unneed at the start of a sentence (or after final punctuation) where it is done automatically:
-   - `balaɔ̂. ïrï tî mbï <kɔ̂lïngbâ> <k>ɔ̈sï.` = **Balaɔ̂. Ïrï tî mbï KƆ̂LÏNGBÂ Kɔ̈sï.**
+   - for a closed fixed set of lexemes: `Apx` = **äpɛ**, not **âpɛ**.
+2. Case is NOT preserved in this encoding (having been repurposed for pitch),
+   and not usually needed since this encoding is not intended for subsequent processing.
+	 If needed to preserve a lossless conversion, case might be preserved as metadata.
 
-## Code switching is frequent: **Classify using phonemics and lexicon**
+#### Metadata
+
+Syntactically, metadata
+
+1. starts with an opening brace
+2. ends with a matching closing brace
+3. may contain metadata of its own, whose braces must correctly nest.
+4. all text not within braces represents literal syntax (in an encoding defined by its current context).
+
+The interpretation of metadata may be exogenous or context-dependent, and not further discussed here.
+Code which cannot interpret metadata must ignore it completely.
+
+Specific use cases include:
+
+- encoding a UTF8 literal (e.g. the glyph **x** within a SEXC encoding where `x` represents **ɛ**)
+- case (e.g. that the following word is in uppercase, in SEXC-U encoding where uppercase represents a high pitch tone)
+- segmentation into tokens
+- semantic annotations
+- set or modify the current context
+- language tags, to mark code switching
+- parsing/control directives
+- translations
+- comments
+
+## Code switching is frequent: **Classify using phonemics and lexicon, record as metadata**
 
 ### CHALLENGES
 
@@ -149,8 +211,6 @@ Phonemic solutions are fastest and preferred:
   - The letters **c**, **j**, **q**, and **x** and the diphthongs **ei**, **ie**, and **ou** are never found in Sango.
   - The letters **ɛ** and **ɔ** are not found in French (nor in the standard Sango orthography) but
     can be assumed to be open **e** and **o** in Sango.
-
-In case of ambiguity:
-
-- lexical lookup can be used as an allowlist of valid Sango lexemes
-- language annotations enclosed in braces can be added
+- In case of ambiguity:
+  - lexical lookup can be used as an allowlist of valid Sango lexemes
+  - language annotations enclosed in braces can be added
