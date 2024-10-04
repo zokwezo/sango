@@ -4,6 +4,7 @@
 package tokenize
 
 import (
+	"bytes"
 	_ "embed"
 	"io"
 	"log"
@@ -25,11 +26,29 @@ type Token = struct {
 }
 
 func TokenizeSango(in io.Reader) (*string, []Token) {
-	r := norm.NFKC.Reader(in)
+	r := norm.NFKD.Reader(in)
 	b, err := io.ReadAll(r)
 	if err != nil {
 		panic(err)
 	}
+	b = bytes.Map(func(r rune) rune {
+		switch r {
+		case 770:
+			return 'j'
+		case 776:
+			return 'q'
+		case 'Ɛ':
+			return 'X'
+		case 'Ɔ':
+			return 'C'
+		case 'ɛ':
+			return 'x'
+		case 'ɔ':
+			return 'c'
+		}
+		return r
+	}, b)
+
 	s := string(b)
 	return tokenize(&s, sangoTokenizerRegexps)
 }
@@ -53,9 +72,7 @@ var sangoTokenizerRegexps = []*regexp.Regexp{
 	regexp.MustCompile(`\p{Z}+`),                  // whitespace
 	regexp.MustCompile(`\p{Nd}+(?:[.,]\p{Nd}*)*`), // numbers
 	regexp.MustCompile(`\.{3}|\p{P}`),             // punctuation
-	regexp.MustCompile(`^(?:(?i)` +
-		`(?:n(?:[dyz]?|gb?)|m[bv]?|kp?|gb?|[bdfhlprstvwyz]?)?` +
-		`(?:(?:ä|ë|ï|ö|ü|â|ê|î|ô|û|a|e|i|o|u)n?|ɛ̂|ɛ̈|ɛ|ɔ̂|ɔ̈|ɔ))+$`), // Sango
+	regexp.MustCompile(`^(?:(?i)(?:n(?:[dyz]?|gb?)|m[bv]?|kp?|gb?|[bdfhlprstvwyz]?)?(?:[aeiouxc][jq]?n?))+$`), // Sango
 	regexp.MustCompile(`^\p{Latin}+$`), // English/French
 } // everything else
 
@@ -84,18 +101,6 @@ func getWordListFromEncodedCuckooFilter(b []byte) *cuckoo.Filter {
 	return cf
 }
 
-var toLowPitch = func() func(r rune) rune {
-	m := map[rune]rune{
-		'ä': 'a', 'â': 'a', 'ë': 'e', 'ê': 'e', 'ï': 'i',
-		'î': 'i', 'ö': 'o', 'ô': 'o', 'ü': 'u', 'û': 'u'}
-	return func(r rune) rune {
-		if c, found := m[r]; found {
-			return c
-		}
-		return r
-	}
-}()
-
 func classify(s *string, tokens []Token) []Lemma {
 	Pi := regexp.MustCompile(`\p{Pi}`)
 	Pf := regexp.MustCompile(`\p{Pf}`)
@@ -116,11 +121,10 @@ func classify(s *string, tokens []Token) []Lemma {
 		r := token.REindex
 		w := (*s)[b:e]
 		wLC := strings.ToLower(w)
-		wToneless := wLC
-		for _, p := range [...][2]string{{"ɛ̂", "e"}, {"ɛ̈", "e"}, {"ɛ", "e"}, {"ɔ̂", "o"}, {"ɔ̈", "o"}, {"ɔ", "o"}} {
-			wToneless = strings.ReplaceAll(wToneless, p[0], p[1])
-		}
-		wToneless = strings.Map(toLowPitch, wToneless)
+		wToneless := strings.ReplaceAll(wLC, "j", "")      // remove high tone
+		wToneless = strings.ReplaceAll(wToneless, "q", "") // remove mid tone
+		wToneless = strings.ReplaceAll(wToneless, "x", "e")
+		wToneless = strings.ReplaceAll(wToneless, "c", "o")
 		l := ""
 		t := "OTHER"
 		switch r {
@@ -131,8 +135,8 @@ func classify(s *string, tokens []Token) []Lemma {
 		case 2:
 			t = "PUNC"
 			if w == "..." {
-				wLC = "…"
-				wToneless = "…"
+				wLC = "..."
+				wToneless = "..."
 			}
 			if Pi.MatchString(wLC) || Ps.MatchString(wLC) {
 				l = "open"

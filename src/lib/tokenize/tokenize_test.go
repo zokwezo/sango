@@ -1,6 +1,7 @@
 package tokenize
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 )
@@ -41,20 +42,20 @@ func checkTokenize(t *testing.T, s *string, expected []Token) {
 }
 
 func TestTokenizeEmpty(t *testing.T) {
-	s := "kɔ̂lïngbâ hönndö tînli hôntï"
+	s := "kcjliqngbaj hoqnndoq tijnli hojntiq"
 	checkTokenize(t, &s, []Token{
-		{0, 13, 3},
-		{13, 14, 0},
-		{14, 22, 3},
-		{22, 23, 0},
-		{23, 29, 3},
-		{29, 30, 0},
-		{30, 37, 3},
+		{0, 11, 3},
+		{11, 12, 0},
+		{12, 20, 3},
+		{20, 21, 0},
+		{21, 27, 3},
+		{27, 28, 0},
+		{28, 35, 3},
 	})
 }
 
 func TestTokenizeSango(t *testing.T) {
-	s := "mafüta tî ngû tî  Yikes! «Mon Dieu...» mɛ9 tî 《東京》 bâgara."
+	s := "mafuqta tij nguj tij  Yikes! «Mon Dieu...» mx9 tij 《東京》 bajgara."
 	checkTokenize(t, &s, []Token{
 		{0, 7, 3},
 		{7, 8, 0},
@@ -74,17 +75,17 @@ func TestTokenizeSango(t *testing.T) {
 		{39, 42, 2},
 		{42, 44, 2},
 		{44, 45, 0},
-		{45, 48, 3},
-		{48, 49, 1},
-		{49, 50, 0},
-		{50, 53, 3},
-		{53, 54, 0},
-		{54, 57, 2},
-		{57, 63, 5},
-		{63, 66, 2},
-		{66, 67, 0},
-		{67, 74, 3},
-		{74, 75, 2},
+		{45, 47, 3},
+		{47, 48, 1},
+		{48, 49, 0},
+		{49, 52, 3},
+		{52, 53, 0},
+		{53, 56, 2},
+		{56, 62, 5},
+		{62, 65, 2},
+		{65, 66, 0},
+		{66, 73, 3},
+		{73, 74, 2},
 	})
 }
 
@@ -115,92 +116,65 @@ func checkClassify(t *testing.T, s *string, expected []Lemma) {
 		for k, lemma := range actually {
 			t.Errorf("actually[%v] = %v", k, lemma)
 		}
+		for _, l := range actually {
+			fmt.Printf("    {Token{%v, %v, %v}, %q, %q, %q, %q\n", l.Source.Begin, l.Source.End, l.Source.REindex, l.Toneless, l.Sango, l.Type, l.Lang)
+		}
 	}
 }
 
 func TestClassifyEmpty(t *testing.T) {
-	s := "kɔ̂lïngbâ hönndö tînli hôntï"
+	s := "kcjliqngbaj hoqnndoq tijnli hojntiq"
 	checkClassify(t, &s, []Lemma{
-		{Token{0, 13, 3}, "kolingba", "kɔ̂lïngbâ", "WORD", "XX"},
-		{Token{13, 14, 0}, " ", " ", "SPACE", ""},
-		{Token{14, 22, 3}, "honndo", "hönndö", "WORD", "XX"},
-		{Token{22, 23, 0}, " ", " ", "SPACE", ""},
-		{Token{23, 29, 3}, "tinli", "tînli", "WORD", "XX"},
-		{Token{29, 30, 0}, " ", " ", "SPACE", ""},
-		{Token{30, 37, 3}, "honti", "hôntï", "WORD", "sg"},
+		{Token{0, 11, 3}, "kolingba", "kcjliqngbaj", "WORD", "XX"},
+		{Token{11, 12, 0}, " ", " ", "SPACE", ""},
+		{Token{12, 20, 3}, "honndo", "hoqnndoq", "WORD", "XX"},
+		{Token{20, 21, 0}, " ", " ", "SPACE", ""},
+		{Token{21, 27, 3}, "tinli", "tijnli", "WORD", "XX"},
+		{Token{27, 28, 0}, " ", " ", "SPACE", ""},
+		{Token{28, 35, 3}, "honti", "hojntiq", "WORD", "sg"},
 	})
 }
 
 func TestClassifySango(t *testing.T) {
-	s := "mafüta tî ngû tî  Yikes! «Mon Dieu...» mɛ9 tî 《東京》 bâgara bânga."
+	s := "mafuqta tij nguj niJ atiq  Yikes! «Mon Dieu...» mx9 tij tenx txqnxqngcq txqnxq tij asdfgk《東京》."
 	checkClassify(t, &s, []Lemma{
-		{Token{0, 7, 3}, "mafuta", "mafüta", "WORD", "sg"},
+		{Token{0, 7, 3}, "mafuta", "mafuqta", "WORD", "sg"},
 		{Token{7, 8, 0}, " ", " ", "SPACE", ""},
-		{Token{8, 11, 3}, "ti", "tî", "WORD", "sg"},
+		{Token{8, 11, 3}, "ti", "tij", "WORD", "sg"},
 		{Token{11, 12, 0}, " ", " ", "SPACE", ""},
-		{Token{12, 16, 3}, "ngu", "ngû", "WORD", "sg"},
+		{Token{12, 16, 3}, "ngu", "nguj", "WORD", "sg"},
 		{Token{16, 17, 0}, " ", " ", "SPACE", ""},
-		{Token{17, 20, 3}, "ti", "tî", "WORD", "sg"},
-		{Token{20, 22, 0}, "  ", "  ", "SPACE", ""},
-		{Token{22, 27, 4}, "yikes", "yikes", "WORD", "en"},
-		{Token{27, 28, 2}, "!", "!", "PUNC", "other"},
-		{Token{28, 29, 0}, " ", " ", "SPACE", ""},
-		{Token{29, 31, 2}, "«", "«", "PUNC", "open"},
-		{Token{31, 34, 3}, "mon", "mon", "WORD", "fr"},
-		{Token{34, 35, 0}, " ", " ", "SPACE", ""},
-		{Token{35, 39, 3}, "dieu", "dieu", "WORD", "fr"},
-		{Token{39, 42, 2}, "…", "…", "PUNC", "other"},
-		{Token{42, 44, 2}, "»", "»", "PUNC", "close"},
-		{Token{44, 45, 0}, " ", " ", "SPACE", ""},
-		{Token{45, 48, 3}, "me", "mɛ", "WORD", "sg"},
-		{Token{48, 49, 1}, "9", "9", "NUM", ""},
+		{Token{17, 20, 3}, "ni", "nij", "WORD", "sg"},
+		{Token{20, 21, 0}, " ", " ", "SPACE", ""},
+		{Token{21, 25, 3}, "ati", "atiq", "WORD", "sg"},
+		{Token{25, 27, 0}, "  ", "  ", "SPACE", ""},
+		{Token{27, 32, 4}, "yikes", "yikes", "WORD", "en"},
+		{Token{32, 33, 2}, "!", "!", "PUNC", "other"},
+		{Token{33, 34, 0}, " ", " ", "SPACE", ""},
+		{Token{34, 36, 2}, "«", "«", "PUNC", "open"},
+		{Token{36, 39, 3}, "mon", "mon", "WORD", "fr"},
+		{Token{39, 40, 0}, " ", " ", "SPACE", ""},
+		{Token{40, 44, 3}, "dieu", "dieu", "WORD", "fr"},
+		{Token{44, 47, 2}, "...", "...", "PUNC", "other"},
+		{Token{47, 49, 2}, "»", "»", "PUNC", "close"},
 		{Token{49, 50, 0}, " ", " ", "SPACE", ""},
-		{Token{50, 53, 3}, "ti", "tî", "WORD", "sg"},
+		{Token{50, 52, 3}, "me", "mx", "WORD", "sg"},
+		{Token{52, 53, 1}, "9", "9", "NUM", ""},
 		{Token{53, 54, 0}, " ", " ", "SPACE", ""},
-		{Token{54, 57, 2}, "《", "《", "PUNC", "open"},
-		{Token{57, 63, 5}, "東京", "東京", "OTHER", ""},
-		{Token{63, 66, 2}, "》", "》", "PUNC", "close"},
-		{Token{66, 67, 0}, " ", " ", "SPACE", ""},
-		{Token{67, 74, 3}, "bagara", "bâgara", "WORD", "sg"},
-		{Token{74, 75, 0}, " ", " ", "SPACE", ""},
-		{Token{75, 81, 3}, "banga", "bânga", "WORD", "sg"},
-		{Token{81, 82, 2}, ".", ".", "PUNC", "other"},
-	})
-}
-
-func TestClassifyTonelessSango(t *testing.T) {
-	s := "mafuta ti ngu tî  Yikes! «Mon Dieu...» me9 ti 《東京》 bagara banga."
-	checkClassify(t, &s, []Lemma{
-		{Token{0, 7, 3}, "mafuta", "mafuta", "WORD", "SG"},
-		{Token{7, 8, 0}, " ", " ", "SPACE", ""},
-		{Token{8, 11, 3}, "ti", "ti", "WORD", "SG"},
-		{Token{11, 12, 0}, " ", " ", "SPACE", ""},
-		{Token{12, 16, 3}, "ngu", "ngu", "WORD", "SG"},
-		{Token{16, 17, 0}, " ", " ", "SPACE", ""},
-		{Token{17, 20, 3}, "ti", "tî", "WORD", "sg"},
-		{Token{20, 22, 0}, "  ", "  ", "SPACE", ""},
-		{Token{22, 27, 4}, "yikes", "yikes", "WORD", "en"},
-		{Token{27, 28, 2}, "!", "!", "PUNC", "other"},
-		{Token{28, 29, 0}, " ", " ", "SPACE", ""},
-		{Token{29, 31, 2}, "«", "«", "PUNC", "open"},
-		{Token{31, 34, 3}, "mon", "mon", "WORD", "fr"},
-		{Token{34, 35, 0}, " ", " ", "SPACE", ""},
-		{Token{35, 39, 3}, "dieu", "dieu", "WORD", "fr"},
-		{Token{39, 42, 2}, "…", "…", "PUNC", "other"},
-		{Token{42, 44, 2}, "»", "»", "PUNC", "close"},
-		{Token{44, 45, 0}, " ", " ", "SPACE", ""},
-		{Token{45, 48, 3}, "me", "me", "WORD", "SG"},
-		{Token{48, 49, 1}, "9", "9", "NUM", ""},
-		{Token{49, 50, 0}, " ", " ", "SPACE", ""},
-		{Token{50, 53, 3}, "ti", "ti", "WORD", "SG"},
-		{Token{53, 54, 0}, " ", " ", "SPACE", ""},
-		{Token{54, 57, 2}, "《", "《", "PUNC", "open"},
-		{Token{57, 63, 5}, "東京", "東京", "OTHER", ""},
-		{Token{63, 66, 2}, "》", "》", "PUNC", "close"},
-		{Token{66, 67, 0}, " ", " ", "SPACE", ""},
-		{Token{67, 74, 3}, "bagara", "bagara", "WORD", "SG"},
-		{Token{74, 75, 0}, " ", " ", "SPACE", ""},
-		{Token{75, 81, 3}, "banga", "banga", "WORD", "Sg"},
-		{Token{81, 82, 2}, ".", ".", "PUNC", "other"},
+		{Token{54, 57, 3}, "ti", "tij", "WORD", "sg"},
+		{Token{57, 58, 0}, " ", " ", "SPACE", ""},
+		{Token{58, 62, 3}, "tene", "tenx", "WORD", "SG"},
+		{Token{62, 63, 0}, " ", " ", "SPACE", ""},
+		{Token{63, 73, 3}, "tenengo", "txqnxqngcq", "WORD", "sg"},
+		{Token{73, 74, 0}, " ", " ", "SPACE", ""},
+		{Token{74, 79, 3}, "tene", "txqnxq", "WORD", "sg"},
+		{Token{79, 80, 0}, " ", " ", "SPACE", ""},
+		{Token{80, 83, 3}, "ti", "tij", "WORD", "sg"},
+		{Token{83, 84, 0}, " ", " ", "SPACE", ""},
+		{Token{84, 91, 3}, "asdfgk", "asdfgk", "WORD", "XX"},
+		{Token{91, 94, 2}, "《", "《", "PUNC", "open"},
+		{Token{94, 100, 5}, "東京", "東京", "OTHER", ""},
+		{Token{100, 103, 2}, "》", "》", "PUNC", "close"},
+		{Token{103, 104, 2}, ".", ".", "PUNC", "other"},
 	})
 }
