@@ -4,13 +4,19 @@
 package tokenize
 
 import (
+	_ "embed"
+	"io"
+	"log"
 	"regexp"
 	"strings"
 
-	_ "embed"
-
 	cuckoo "github.com/panmari/cuckoofilter"
+	"golang.org/x/text/unicode/norm"
 )
+
+func init() {
+	log.SetFlags(log.Lshortfile)
+}
 
 type Token = struct {
 	Begin   int
@@ -18,8 +24,14 @@ type Token = struct {
 	REindex int
 }
 
-func TokenizeSango(s *string) (*string, []Token) {
-	return tokenize(s, sangoTokenizerRegexps)
+func TokenizeSango(in io.Reader) (*string, []Token) {
+	r := norm.NFKC.Reader(in)
+	b, err := io.ReadAll(r)
+	if err != nil {
+		panic(err)
+	}
+	s := string(b)
+	return tokenize(&s, sangoTokenizerRegexps)
 }
 
 type Lemma struct {
@@ -30,8 +42,8 @@ type Lemma struct {
 	Lang     string
 }
 
-func ClassifySango(s *string) []Lemma {
-	return classify(TokenizeSango(s))
+func ClassifySango(in io.Reader) []Lemma {
+	return classify(TokenizeSango(in))
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -199,11 +211,7 @@ func tokenize(s *string, regexps []*regexp.Regexp) (*string, []Token) {
 		var f int = max(0, e-b)
 		spans := regexps[r].FindAllStringSubmatchIndex((*s)[b:e], -1)
 		spans = append(spans, []int{f, f}) // harmless, but makes logic easier
-		if spans == nil {
-			tokens = append(tokens, Token{b, e, nRE})
-			return tokens
-		}
-		aa := b // start of nonmatching span
+		aa := b                            // start of nonmatching span
 		for _, span := range spans {
 			bb := b + span[0] // end of nonmatching span = start of matching span
 			ee := b + span[1] // end of matching span

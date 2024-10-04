@@ -1,15 +1,35 @@
 package tokenize
 
-import "testing"
+import (
+	"strings"
+	"testing"
+)
 
 func checkTokenize(t *testing.T, s *string, expected []Token) {
-	o, actually := TokenizeSango(s)
-	if o != s {
-		t.Errorf("o (%v) != s (%v)", o, s)
+	in := strings.NewReader(*s)
+	o, actually := TokenizeSango(in)
+	if *o != *s {
 		t.Errorf("o (%v) != s (%v)", *o, *s)
-	} else if len(actually) == len(expected) {
+	} else if len(actually) != len(expected) {
+		t.Errorf("len(actually) = %v but len(expected) = %v\n", len(actually), len(expected))
+	} else {
 		for k, l := range actually {
 			r := expected[k]
+			if l.Begin != r.Begin {
+				t.Errorf("actually[%v].Begin = %v\n", k, l.Begin)
+				t.Errorf("expected[%v].Begin = %v\n", k, r.Begin)
+				break
+			}
+			if l.End != r.End {
+				t.Errorf("actually[%v].End = %v\n", k, l.End)
+				t.Errorf("expected[%v].End = %v\n", k, r.End)
+				break
+			}
+			if l.REindex != r.REindex {
+				t.Errorf("actually[%v].REindex = %v\n", k, l.REindex)
+				t.Errorf("expected[%v].REindex = %v\n", k, r.REindex)
+				break
+			}
 			if l.Begin != r.Begin || l.End != r.End || l.REindex != r.REindex {
 				t.Errorf("actually %v (%v) RE#%v != expected %v (%v) RE#%v",
 					l, (*s)[l.Begin:l.End], l.REindex, r, (*s)[r.Begin:r.End], r.REindex)
@@ -18,26 +38,19 @@ func checkTokenize(t *testing.T, s *string, expected []Token) {
 		}
 		return
 	}
-	t.Errorf("s = %v", *s)
-	if len(expected) == 0 {
-		t.Errorf("expected = %v", expected)
-	} else {
-		for k, token := range expected {
-			t.Errorf("RE #%v expected[%v]%v = %v", token.REindex, k, token, (*s)[token.Begin:token.End])
-		}
-	}
-	if len(actually) == 0 {
-		t.Errorf("actually = %v", actually)
-	} else {
-		for k, token := range actually {
-			t.Errorf("RE #%v actually[%v]%v = %v", token.REindex, k, token, (*s)[token.Begin:token.End])
-		}
-	}
 }
 
 func TestTokenizeEmpty(t *testing.T) {
-	s := ""
-	checkTokenize(t, &s, []Token{})
+	s := "kɔ̂lïngbâ hönndö tînli hôntï"
+	checkTokenize(t, &s, []Token{
+		{0, 13, 3},
+		{13, 14, 0},
+		{14, 22, 3},
+		{22, 23, 0},
+		{23, 29, 3},
+		{29, 30, 0},
+		{30, 37, 3},
+	})
 }
 
 func TestTokenizeSango(t *testing.T) {
@@ -76,7 +89,8 @@ func TestTokenizeSango(t *testing.T) {
 }
 
 func checkClassify(t *testing.T, s *string, expected []Lemma) {
-	actually := ClassifySango(s)
+	in := strings.NewReader(*s)
+	actually := ClassifySango(in)
 	if len(actually) == len(expected) {
 		for k, l := range actually {
 			r := expected[k]
@@ -105,8 +119,16 @@ func checkClassify(t *testing.T, s *string, expected []Lemma) {
 }
 
 func TestClassifyEmpty(t *testing.T) {
-	s := ""
-	checkClassify(t, &s, []Lemma{})
+	s := "kɔ̂lïngbâ hönndö tînli hôntï"
+	checkClassify(t, &s, []Lemma{
+		{Token{0, 13, 3}, "kolingba", "kɔ̂lïngbâ", "WORD", "XX"},
+		{Token{13, 14, 0}, " ", " ", "SPACE", ""},
+		{Token{14, 22, 3}, "honndo", "hönndö", "WORD", "XX"},
+		{Token{22, 23, 0}, " ", " ", "SPACE", ""},
+		{Token{23, 29, 3}, "tinli", "tînli", "WORD", "XX"},
+		{Token{29, 30, 0}, " ", " ", "SPACE", ""},
+		{Token{30, 37, 3}, "honti", "hôntï", "WORD", "sg"},
+	})
 }
 
 func TestClassifySango(t *testing.T) {

@@ -2,11 +2,9 @@ package tokenize
 
 import (
 	"bufio"
-	"io"
 	"os"
 
 	"github.com/spf13/cobra"
-	"golang.org/x/text/unicode/norm"
 )
 
 func Init(rootCmd *cobra.Command) {
@@ -20,15 +18,9 @@ var (
 		Long:  "https://github.com/zokwezo/sango/blob/main/src/lib/tokenize/README.md",
 		Run: func(cmd *cobra.Command, args []string) {
 			in := bufio.NewReader(os.Stdin)
-			r := norm.NFKC.Reader(in)
-			b, err := io.ReadAll(r)
-			if err != nil {
-				panic(err)
-			}
 			out := bufio.NewWriter(os.Stdout)
 			defer out.Flush()
-			s := string(b)
-			lemmas := ClassifySango(&s)
+			lemmas := ClassifySango(in)
 			for _, lemma := range lemmas {
 				if _, err := out.WriteString("{"); err != nil {
 					panic(err)
