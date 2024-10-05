@@ -38,14 +38,35 @@ Two big advantages to this specific encoding are that:
 
 In the table below:
 
-- where there is avertical bar, the value before it is for Sango, the value after for non-Sango
+- where there is a vertical bar, the value before it is for Sango, the value after for non-Sango
 - ∅ indicates that the component is intentionally absent
 - ✖ indicates that the value is invalid (for that Language code)
 - In non-Sango syllables, circumflex, diaeresis, and macron are used.
 
+### Component type: 1 bit
+
+| Bit F | 1                       |
+| :---: | ----------------------- |
+|   0   | Unicode (U+0000-U+7FFF) |
+|   1   | Syllable                |
+
+### Language code: 2 bits
+
+| Bits E \\ D | 0       | 1       |
+| :---------: | ------- | ------- |
+|      0      | Unknown | Sango   |
+|      1      | English | French  |
+
+### Case: 2 bits
+
+| Bits C \\ B | 0         | 1         |
+| :---------: | --------- | --------- |
+|      0      | Lowercase | Uppercase |
+|      1      | Titlecase | Hidden    |
+
 ### Consonants: 5 bits
 
-| Bits 432 \\ 10 | 00  | 01  | 10     | 11     |
+| Bits A98 \\ 76 | 00  | 01  | 10     | 11     |
 | :------------: | --- | --- | ------ | ------ |
 |      000       | ∅   | f   | r      | k      |
 |      001       | mv  | v   | ng     | g      |
@@ -58,7 +79,7 @@ In the table below:
 
 ### Vowel: 4 bits
 
-| Bits 87 \\ 65 | 00     | 01     | 10       | 11 x     |
+| Bits 54 \\ 32 | 00     | 01     | 10       | 11 x     |
 | :-----------: | ------ | ------ | -------- | -------- |
 |      00       | a      | i      | o        | e        |
 |      01       | an     | in     | on       | en       |
@@ -67,28 +88,7 @@ In the table below:
 
 ### Pitch accent: 2 bits
 
-| Bits A \\ 9 | 0                    | 1                      |
-| :---------: | -------------------- | ---------------------- |
-|      0      | Low \| ∅             | High \| circumflex (^) |
-|      1      | Mid \| diaeresis (¨) | ?? \| macron (¯)       |
-
-### Case: 2 bits
-
-| Bits C \\ B | 0         | 1         |
-| :---------: | --------- | --------- |
-|      0      | Lowercase | Uppercase |
-|      1      | Titlecase | Hidden    |
-
-### Language code: 2 bits
-
-| Bits E \\ D | 0       | 1       |
-| :---------: | ------- | ------- |
-|      0      | Sango   | French  |
-|      1      | English | Unknown |
-
-### Component type: 1 bit
-
-| Bit F | 1                       |
-| :---: | ----------------------- |
-|   0   | Unicode (U+0000-U+7FFF) |
-|   1   | Syllable                |
+| Bits 1 \\ 0 | 0                         | 1                                 |
+| :---------: | ------------------------- | --------------------------------- |
+|      0      | Unknown/None: (∅)         | Low: zero-breaking space (U+200b) |
+|      1      | Mid: diaeresis (U+0308)   | High: circumflex (U+-302)         |
