@@ -15,18 +15,18 @@ This has numerous advantages:
 
 ## Encoding format
 
-The 16-bit encoding divides up quasi-orthogonally into components (from LSB to MSB):
+The 16-bit encoding divides up quasi-orthogonally into components (from MSB to LSB):
 
 | # bits | Description                       |
 | :----: | --------------------------------- |
+|   1    | Component type                    |
+|   2    | Language code                     |
+|   2    | Typecase (capitalization)         |
 |   5    | Consonants                        |
 |   4    | Vowel (incl. height and nasality) |
 |   2    | Pitch accent                      |
-|   2    | Case (upper, lower)               |
-|   2    | Language code                     |
-|   1    | Type                              |
 
-The bit vector will thus look like a 16-bit binary integer: `0bTLLCCPPVVVVCCCCC`.
+The bit vector will thus look like a 16-bit binary integer: `0bCLLTTCCCCCVVVVPP`.
 
 Two big advantages to this specific encoding are that:
 
@@ -35,13 +35,6 @@ Two big advantages to this specific encoding are that:
   converted to or from UTF8 using the [unicode/utf8](https://pkg.go.dev/unicode/utf8) library.
 
 ## Components
-
-In the table below:
-
-- where there is a vertical bar, the value before it is for Sango, the value after for non-Sango
-- ∅ indicates that the component is intentionally absent
-- ✖ indicates that the value is invalid (for that Language code)
-- In non-Sango syllables, circumflex, diaeresis, and macron are used.
 
 ### Component type: 1 bit
 
@@ -57,7 +50,7 @@ In the table below:
 |      0      | Unknown | Sango   |
 |      1      | English | French  |
 
-### Case: 2 bits
+### Typecase: 2 bits
 
 | Bits C \\ B | 0         | 1         |
 | :---------: | --------- | --------- |
