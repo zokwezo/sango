@@ -4,14 +4,12 @@ Internally, Sango is stored as syllables (which are the basic phonemic unit).
 
 This has numerous advantages:
 
-- Easy to convert into and out of UTF8, validate syllables, and hard to inadvertently create invalid Sango lexemes
+- Easy to convert into and out of UTF8, validate syllables, and avoid invalid Sango lexemes
 - Easy to query different properties and mask unimportant properties
 - Easy to iterate over without worrying about byte boundaries, and supports random access
-- Serves as its own compact and semantically meaningful vector embedding in machine learning algorithms
-- Compact notation with low entropy: common important cases are small, but full Unicode expressibility is available when needed
-- Code switching is trivially easy: easy to ignore non-Sango or convert row format to column format by
-  masking on language for interlingual translations
-- Metadata can be easily embedded by setting Case to Hidden, allowing for preserving annotations inline as documents move through a pipleline
+- Compact notation with low entropy: suitable as vector embedding in machine learning algorithms
+- Code switching is trivially easy with Language embedded into syllable
+- Metadata can be easily embedded by setting Case to Hidden
 
 ## Encoding format
 
