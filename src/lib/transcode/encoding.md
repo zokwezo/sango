@@ -1,85 +1,83 @@
 # Sango Syllabic Encoding
 
-Internally, Sango is stored as syllables (which are the basic phonemic unit).
+Internally, tokens are used for simpler coding and manipulation, making it easy to:
 
-This has numerous advantages:
-
-- Easy to convert into and out of UTF8, validate syllables, and avoid invalid Sango lexemes
-- Easy to query different properties and mask unimportant properties
-- Easy to iterate over without worrying about byte boundaries, and supports random access
-- Compact notation with low entropy: suitable as vector embedding in machine learning algorithms
-- Code switching is trivially easy with Language embedded into syllable
-- Metadata can be easily embedded by setting Case to Hidden
+- Compactify notation with low entropy: suitable as vector embedding in machine learning algorithms
+- Easy to convert into and out of UTF8, validate syllables, and avoid invalid Sango phonemes
+- Iterate by symbol, letter (English/French), syllable (Sango), and word (both) without worrying about byte boundaries
+- Distinguish language and punctuation/whitespace just by inspecting the the high-order bits
+- Use interlinear code switching
+- Query different properties and mask or filter on unimportant ones
+- Record inline metadata by setting Case to Hidden
+- Isolate use of a hyphen, which in Sango is neither syntactically standardized nor semantically important
 
 ## Encoding format
 
-The 16-bit encoding divides up quasi-orthogonally into components (from MSB to LSB):
+The 16-bit encoding divides up quasi-orthogonally into components:
 
-| # bits | Description                       |
-| :----: | --------------------------------- |
-|   1    | Component type                    |
-|   2    | Language code                     |
-|   2    | Typecase (capitalization)         |
-|   5    | Consonants                        |
-|   4    | Vowel (incl. height and nasality) |
-|   2    | Pitch accent                      |
+| Binary bit pattern | Description                     |
+| ------------------ | ------------------------------- |
+| `00UUUUUUUUUUUUUU` | Unicode rune                    |
+| `010LLLLLAAAAAAAA` | ASCII letter in an English word |
+| `011LLLLLAAAAAAAA` | ASCII letter in a French word   |
+| `1SSXXPPCCCCCVVVV` | Syllable in a Sango word        |
 
-The bit vector will thus look like a 16-bit binary integer: `0bCLLTTCCCCCVVVVPP`.
+where the bit substrings are fixed-length binary numerals that encode various components.
+Each code is trivially convertible to a unicode rune or (after masking) ASCII character
+if the most-significant-bit (MSB) is `0`.
 
-Two big advantages to this specific encoding are that:
+| Bit | Description                                   |
+| :-: | --------------------------------------------- |
+| `U` | Unicode rune (U+0000 - U+3FFF)                |
+| `A` | ASCII character (U+00 - U+FF)                 |
+| `L` | `min(31,n)` where `n` = # letters remaining   |
+| `S` | `min( 3,m)` where `m` = # syllables remaining |
+| `X` | Case                                          |
+| `P` | Pitch                                         |
+| `C` | Consonant cluster                             |
+| `V` | Vowel                                         |
 
-- It is easy to distinguish words from punctuation/whitespace just by inspecting the the high-order bit.
-- If the high-order bit is 0, then the value is automatically a Unicode rune, easily
-  converted to or from UTF8 using the [unicode/utf8](https://pkg.go.dev/unicode/utf8) library.
+### Case
 
-## Components
+| MSB\\LSB |        0        |     1     |
+| :------: | :-------------: | :-------: |
+|    0     |     Hidden      | lowercase |
+|    1     | hyphen-prefixed | Titlecase |
 
-### Component type: 1 bit
+### Pitch
 
-| Bit F | 1                       |
-| :---: | ----------------------- |
-|   0   | Unicode (U+0000-U+7FFF) |
-|   1   | Syllable                |
+| MSB\\LSB |    0     |     1     |
+| :------: | :------: | :-------: |
+|    0     | Unknown  | Low tone  |
+|    1     | Mid tone | High tone |
 
-### Language code: 2 bits
+### Consonant cluster
 
-| Bits E \\ D | 0       | 1       |
-| :---------: | ------- | ------- |
-|      0      | Unknown | Sango   |
-|      1      | English | French  |
+| MSB \\ LSB | 00           | 01           | 10           | 11           |
+| :--------: | ------------ | ------------ | ------------ | ------------ |
+|    000     | ∅            | f            | r            | k            |
+|    001     | mv           | v            | ng           | g            |
+|    010     | m            | p            | l            | kp           |
+|    011     | mb           | b            | ngb          | gb           |
+|    100     | **reserved** | s            | y            | h            |
+|    101     | nz           | z            | ny           | w            |
+|    110     | n            | t            | nd           | d            |
+|    111     | **reserved** | **reserved** | **reserved** | **reserved** |
 
-### Typecase: 2 bits
+### Vowel
 
-| Bits C \\ B | 0         | 1         |
-| :---------: | --------- | --------- |
-|      0      | Lowercase | Uppercase |
-|      1      | Titlecase | Hidden    |
+| MSB\\LSB | 00           | 01  | 10  | 11  |
+| :------: | ------------ | --- | --- | --- |
+|    00    | **reserved** | u   | ɔ   | ɛ   |
+|    01    | a            | i   | o   | e   |
+|    10    | **reserved** | uñ  | ɔ/o | ɛ/e |
+|    11    | añ           | iñ  | oñ  | eñ  |
 
-### Consonants: 5 bits
+## Examples
 
-| Bits A98 \\ 76 | 00  | 01  | 10     | 11     |
-| :------------: | --- | --- | ------ | ------ |
-|      000       | ∅   | f   | r      | k      |
-|      001       | mv  | v   | ng     | g      |
-|      010       | m   | p   | l      | kp     |
-|      011       | mb  | b   | ngb    | gb     |
-|      100       | ç   | s   | y      | h      |
-|      101       | nz  | z   | ny     | w      |
-|      110       | n   | t   | ✖ \| c | ✖ \| x |
-|      111       | nd  | d   | ✖ \| j | ✖ \| q |
-
-### Vowel: 4 bits
-
-| Bits 54 \\ 32 | 00     | 01     | 10       | 11 x     |
-| :-----------: | ------ | ------ | -------- | -------- |
-|      00       | a      | i      | o        | e        |
-|      01       | an     | in     | on       | en       |
-|      10       | un     | u      | ɔ \| ✖   | ɛ \| ∅   |
-|      11       | ✖ \| à | ✖ \| ù | o/ɔ \| è | e/ɛ \| é |
-
-### Pitch accent: 2 bits
-
-| Bits 1 \\ 0 | 0                         | 1                                 |
-| :---------: | ------------------------- | --------------------------------- |
-|      0      | Unknown/None: (∅)         | Low: zero-breaking space (U+200b) |
-|      1      | Mid: diaeresis (U+0308)   | High: circumflex (U+-302)         |
+| Text      | Tokens                                                                     |
+| --------- | -------------------------------------------------------------------------- |
+| Hello!    | `[0x4448, 0x4365, 0x426c, 0x416c, 0x406f, 0x0021]`                         |
+| c'est ça… | `[0x6463, 0x6327, 0x6265, 0x6173, 0x6074, 0x0020, 0x61e7, 0x6061, 0x2026]` |
+| Bɛ̂-bï     | `[0xa4b3, 0xa4d5]` _(visible, known vowel pitch/height)_                   |
+| _bebi_    | `[0xa0db, 0x80d5]` _(hidden, unknown vowel pitch/height)_                  |
