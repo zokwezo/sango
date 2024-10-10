@@ -8,6 +8,7 @@ import (
 	"github.com/zokwezo/sango/src/lib/restore"
 	"github.com/zokwezo/sango/src/lib/tokenize"
 	"github.com/zokwezo/sango/src/lib/transcode"
+	"github.com/zokwezo/sango/src/lib/transliterate"
 )
 
 var (
@@ -23,6 +24,7 @@ func init() {
 	restore.Init(sangoCmd)
 	tokenize.Init(sangoCmd)
 	transcode.Init(sangoCmd)
+	transliterate.Init(sangoCmd)
 }
 
 func main() {

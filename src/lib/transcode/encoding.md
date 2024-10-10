@@ -59,25 +59,26 @@ if the most-significant-bit (MSB) is `0`.
 |    001     | mv           | v            | ng           | g            |
 |    010     | m            | p            | l            | kp           |
 |    011     | mb           | b            | ngb          | gb           |
-|    100     | **reserved** | s            | y            | h            |
+|    100     | **invalid**  | s            | y            | h            |
 |    101     | nz           | z            | ny           | w            |
 |    110     | n            | t            | nd           | d            |
 |    111     | **reserved** | **reserved** | **reserved** | **reserved** |
 
 ### Vowel
 
-| MSB\\LSB | 00           | 01  | 10  | 11  |
-| :------: | ------------ | --- | --- | --- |
-|    00    | **reserved** | u   | ɔ   | ɛ   |
-|    01    | a            | i   | o   | e   |
-|    10    | **reserved** | uñ  | ɔ/o | ɛ/e |
-|    11    | añ           | iñ  | oñ  | eñ  |
+| MSB\\LSB | 00          | 01  | 10  | 11  |
+| :------: | ----------- | --- | --- | --- |
+|    00    | **∅**       | u   | ɔ   | ɛ   |
+|    01    | a           | i   | o   | e   |
+|    10    | **invalid** | uñ  | ɔ/o | ɛ/e |
+|    11    | añ          | iñ  | oñ  | eñ  |
+
+> NOTE: Bold entries are not found in normal Sango text.
 
 ## Examples
 
-| Text      | Tokens                                                                     |
-| --------- | -------------------------------------------------------------------------- |
-| Hello!    | `[0x4448, 0x4365, 0x426c, 0x416c, 0x406f, 0x0021]`                         |
-| c'est ça… | `[0x6463, 0x6327, 0x6265, 0x6173, 0x6074, 0x0020, 0x61e7, 0x6061, 0x2026]` |
-| Bɛ̂-bï     | `[0xa4b3, 0xa4d5]` _(visible, known vowel pitch/height)_                   |
-| _bebi_    | `[0xa0db, 0x80d5]` _(hidden, unknown vowel pitch/height)_                  |
+| Text      | Tokens                                                     |
+| --------- | ---------------------------------------------------------- |
+| "Hello"   | `[0x4548, 0x4465, 0x436c, 0x426c, 0x416f]` _ASCII English_ |
+| "Bɛ̂-bïn"  | `[0xbed3, 0x94dd]` _(visible, known vowel pitch/height)_   |
+| "bebi"    | `[0xa8db, 0x88d5]` _(hidden, unknown vowel pitch/height)_  |

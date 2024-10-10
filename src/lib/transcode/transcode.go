@@ -2,595 +2,318 @@ package transcode
 
 import (
 	"bufio"
-	"fmt"
+	"bytes"
 	"io"
+	"log"
 	"regexp"
+	"slices"
 	"strings"
+	"unicode"
 
-	"github.com/rivo/uniseg"
 	"golang.org/x/text/unicode/norm"
 )
 
-func Normalize(out *bufio.Writer, in *bufio.Reader) error { return normalize(out, in) }
-func Encode(out *bufio.Writer, in *bufio.Reader, useJForPitch bool) error {
-	return encode(out, in, useJForPitch)
+func Encode(out *bufio.Writer, in *bufio.Reader) error {
+	defer out.Flush()
+	encode(in)
+	return nil
 }
-func Decode(out *bufio.Writer, in *bufio.Reader) error { return decode(out, in) }
+func Decode(out *bufio.Writer, in *bufio.Reader) error {
+	return nil
+}
 
 ////////////////////////////////////////////////////////////////////////
 // IMPLEMENTATION
 
-const (
-	lowPitch = iota
-	midPitch
-	highPitch
+// The `\b` word boundary matches the middle of
+// `(?=[0-9A-Za-z_])()(?=[^0-9A-Za-z_]|\z)` which unfortunately also
+// matches an apostrophe, and look ahead/behind is not supported in
+// RE2 syntax, so it cannot be added into the above character classes.
+// This means that e.g. the French "c'est" is mistakenly split into a
+// Sango word "c" and and separate ASCII word "est".
+// Instead, use the logic in ../tokenize/tokenize.go with recursive
+// regexps to better isolate components.
+var (
+	sangoREPattern = `(?i)(?:([-]?)((?:n(?:[dyz]?|gb?)|m[bv]?|kp?|gb?|[bdfhlprstvwyz]?)?)` +
+		`(?:([aeiouxc\x{0186}\x{0190}\x{0254}\x{025B}])([\x60jq\x{0302}\x{0306}\x{0308}]?)(n?)))`
+	sangoSyllableRE = regexp.MustCompile(sangoREPattern + `$`)
+	sangoWordRE     = regexp.MustCompile(`\b` + sangoREPattern + `+\b`)
 )
 
-type asciiAndPitch = struct {
-	ascii string
-	pitch int
+type SSE uint16
+
+const (
+	// payloadOnly       = 0b_1000_0000_0000_0000
+	payloadIsRune     = 0b_0000_0000_0000_0000
+	payloadIsSyllable = 0b_1000_0000_0000_0000
+
+	runeOnly      = 0b_1100_0000_0000_0000
+	runeIsUnicode = 0b_0000_0000_0000_0000
+	// runeIsAscii   = 0b_0100_0000_0000_0000
+
+	unicodeValueOnly  = 0b_0011_1111_1111_1111
+	unicodeValueShift = 0
+
+	// asciiOnly      = 0b_1110_0000_0000_0000
+	asciiIsEnglish = 0b_0100_0000_0000_0000
+	// asciiIsFrench  = 0b_0110_0000_0000_0000
+
+	asciiLengthOnly  = 0b_0001_1111_0000_0000
+	asciiLengthShift = 8
+	asciiValueOnly   = 0b_0000_0000_1111_1111
+	asciiValueShift  = 0
+
+	sangoLengthOnly  = 0b_0110_0000_0000_0000
+	sangoLengthShift = 13
+
+	// sangoCaseOnly   = 0b_0001_1000_0000_0000
+	// sangoCaseShift  = 11
+	sangoCaseHidden = 0b_0000_0000_0000_0000
+	sangoCaseLower  = 0b_0000_1000_0000_0000
+	sangoCaseHyphen = 0b_0001_0000_0000_0000
+	sangoCaseUpper  = 0b_0001_1000_0000_0000
+
+	// sangoPitchOnly    = 0b_0000_0110_0000_0000
+	// sangoPitchShift   = 9
+	sangoPitchUnknown = 0b_0000_0000_0000_0000
+	sangoPitchLow     = 0b_0000_0010_0000_0000
+	sangoPitchMid     = 0b_0000_0100_0000_0000
+	sangoPitchHigh    = 0b_0000_0110_0000_0000
+
+	// sangoConsonantOnly    = 0b_0000_0001_1111_0000
+	// sangoConsonantShift   = 4
+	sangoConsonantInvalid = 0b_0000_0001_0000_0000
+
+	// sangoVowelOnly    = 0b_0000_0000_0000_1111
+	// sangoVowelShift   = 0
+	sangoVowelInvalid = 0b_0000_0000_0000_1000
+)
+
+var (
+	consonantToSSE = map[string]SSE{
+		"":    SSE(0b_0000_0000_0000_0000),
+		"f":   SSE(0b_0000_0000_0001_0000),
+		"r":   SSE(0b_0000_0000_0010_0000),
+		"k":   SSE(0b_0000_0000_0011_0000),
+		"mv":  SSE(0b_0000_0000_0100_0000),
+		"v":   SSE(0b_0000_0000_0101_0000),
+		"ng":  SSE(0b_0000_0000_0110_0000),
+		"g":   SSE(0b_0000_0000_0111_0000),
+		"m":   SSE(0b_0000_0000_1000_0000),
+		"p":   SSE(0b_0000_0000_1001_0000),
+		"l":   SSE(0b_0000_0000_1010_0000),
+		"kp":  SSE(0b_0000_0000_1011_0000),
+		"mb":  SSE(0b_0000_0000_1100_0000),
+		"b":   SSE(0b_0000_0000_1101_0000),
+		"ngb": SSE(0b_0000_0000_1110_0000),
+		"gb":  SSE(0b_0000_0000_1111_0000),
+		"s":   SSE(0b_0000_0001_0001_0000),
+		"y":   SSE(0b_0000_0001_0010_0000),
+		"h":   SSE(0b_0000_0001_0011_0000),
+		"nz":  SSE(0b_0000_0001_0100_0000),
+		"z":   SSE(0b_0000_0001_0101_0000),
+		"ny":  SSE(0b_0000_0001_0110_0000),
+		"w":   SSE(0b_0000_0001_0111_0000),
+		"n":   SSE(0b_0000_0001_1000_0000),
+		"t":   SSE(0b_0000_0001_1001_0000),
+		"nd":  SSE(0b_0000_0001_1010_0000),
+		"d":   SSE(0b_0000_0001_1011_0000),
+	}
+
+	vowelToSSE = map[string]SSE{
+		"":    SSE(0b_0000_0000_0000_0000),
+		"u":   SSE(0b_0000_0000_0000_0001),
+		"c":   SSE(0b_0000_0000_0000_0010),
+		"x":   SSE(0b_0000_0000_0000_0011),
+		"a":   SSE(0b_0000_0000_0000_0100),
+		"i":   SSE(0b_0000_0000_0000_0101),
+		"o":   SSE(0b_0000_0000_0000_0110),
+		"e":   SSE(0b_0000_0000_0000_0111),
+		"un":  SSE(0b_0000_0000_0000_1001),
+		"co":  SSE(0b_0000_0000_0000_1010),
+		"xe":  SSE(0b_0000_0000_0000_1011),
+		"an":  SSE(0b_0000_0000_0000_1100),
+		"in":  SSE(0b_0000_0000_0000_1101),
+		"on":  SSE(0b_0000_0000_0000_1110),
+		"con": SSE(0b_0000_0000_0000_1110),
+		"en":  SSE(0b_0000_0000_0000_1111),
+		"xen": SSE(0b_0000_0000_0000_1111),
+	}
+)
+
+func encodeLastSyllable(word []byte, numSyllablesLeft int) (newWord []byte, sse SSE) {
+	if len(word) == 0 {
+		return
+	}
+	span := sangoSyllableRE.FindSubmatchIndex(word)
+	if span == nil || len(span) != 12 || span[0] < 0 || span[1] <= span[0] {
+		return
+	}
+	sse = payloadIsSyllable | (sangoLengthOnly & SSE(min(3, numSyllablesLeft)<<sangoLengthShift))
+	newWord = word[:span[0]]
+	syllables := bytes.Runes(word[span[0]:span[1]])
+	hyphen := string(word[span[2]:span[3]])
+
+	consonant := string(bytes.ToLower(word[span[4]:span[5]]))
+	vowel := string(bytes.ToLower(word[span[6]:span[7]]))
+	pitch := string(bytes.ToLower(word[span[8]:span[9]]))
+	nasal := string(bytes.ToLower(word[span[10]:span[11]]))
+
+	// Asciify pitch
+	if pitch == "" {
+		pitch = "q" // unknown
+	} else {
+		pitch = strings.ReplaceAll(pitch, "\u0300", "j") // low
+		pitch = strings.ReplaceAll(pitch, "\u0302", "J") // high
+		pitch = strings.ReplaceAll(pitch, "\u0306", "q") // unknown
+		pitch = strings.ReplaceAll(pitch, "\u0308", "Q") // mid
+	}
+
+	// Asciify vowel (and convert to lower case.
+	// The `syllables[0]` rune preserves the overall case.
+	vowel = strings.ReplaceAll(vowel, "Ɛ", "x")
+	vowel = strings.ReplaceAll(vowel, "Ɔ", "c")
+	vowel = strings.ReplaceAll(vowel, "ɛ", "x")
+	vowel = strings.ReplaceAll(vowel, "ɔ", "c")
+
+	// If pitch is unknown, assume that height is also unknown.
+	if pitch == "q" {
+		switch vowel {
+		case "e":
+			vowel = "xe"
+		case "o":
+			vowel = "co"
+		}
+	}
+
+	if len(syllables) == 0 {
+		return
+	}
+	if hyphen == "-" {
+		sse |= sangoCaseHyphen
+	} else if hyphen != "" {
+		sse |= sangoCaseHidden
+	} else if unicode.IsUpper(syllables[0]) {
+		sse |= sangoCaseUpper
+	} else {
+		sse |= sangoCaseLower
+	}
+
+	switch pitch {
+	case "q":
+		sse |= sangoPitchUnknown
+	case "j":
+		sse |= sangoPitchLow
+	case "Q":
+		sse |= sangoPitchMid
+	case "J":
+		sse |= sangoPitchHigh
+	default:
+		panic("Bad pitch")
+	}
+
+	if sseConsonant, isFound := consonantToSSE[consonant]; isFound {
+		sse |= sseConsonant
+	} else {
+		sse |= sangoConsonantInvalid
+	}
+
+	if sseVowel, isFound := vowelToSSE[vowel+nasal]; isFound {
+		sse |= sseVowel
+	} else {
+		sse |= sangoVowelInvalid
+	}
+
+	return
 }
 
-// TODO: Greatly simplify the logic by replacing with substring tokenization
-// over the fixed set of 7650 tokens comprised by the outer product of consonants
-// {"", "b", "d", "f", "g", "gb", "h", "k", "kp", "l", "m", "mb", "mv", "n",
-//  "nd", "ng", "ngb", "ny", "nz", "p", "r", "s", "t", "v", "w", "y", "z"},
-// vowels {a, an, e, en, ɛ, i, in, o, on, ɔ, u, un}, pitch {low, mid, high},
-// and case {lower, upper}^letter, trying longest token to shortest token.
-// This can be done efficiently with maps.
+func encodeSangoWord(word []byte) (sses []SSE) {
+	if sses != nil {
+		panic("sses starts out nonnil")
+	}
+	sses = []SSE{}
+	for numSyllablesLeft := 0; len(word) > 0; numSyllablesLeft++ {
+		var sse SSE
+		word, sse = encodeLastSyllable(word, numSyllablesLeft)
+		sses = append(sses, sse)
+	}
+	slices.Reverse(sses)
+	return
+}
 
-func normalize(out *bufio.Writer, in *bufio.Reader) error {
-	defer out.Flush()
-	r := norm.NFKC.Reader(in)
-	b, err := io.ReadAll(r)
+func encode(in io.Reader) (sses []SSE) {
+	if sses != nil {
+		panic("sses starts out nonnil")
+	}
+	phrase, err := io.ReadAll(norm.NFKD.Reader(in))
 	if err != nil {
-		return err
+		return
 	}
-	_, err = out.Write(b)
-	return err
-}
-
-func encode(out *bufio.Writer, in *bufio.Reader, useJForPitch bool) error {
-	defer out.Flush()
-	src, err := io.ReadAll(norm.NFKC.Reader(in))
-	if err != nil {
-		return err
-	}
-	state := -1
-	var dst []byte
-	consonantsWithQ := ""
-	consonantsWithoutQ := ""
-	defer func() {
-		if consonantsWithoutQ == "n" {
-			_, err = out.WriteRune('N')
-		} else {
-			_, err = out.WriteString(consonantsWithQ)
+	sses = []SSE{}
+	ePrev := 0
+	sangoSpans := sangoWordRE.FindAllIndex(phrase, -1)
+	for j, wordSpan := range sangoSpans {
+		log.Println("=================== PRE ===================")
+		if len(wordSpan) != 2 {
+			panic("Bad wordSpan")
 		}
-	}()
-
-	for len(src) > 0 {
-		dst, src, _, state = uniseg.Step(src, state)
-		dstStr := string(dst)
-		consonant := ""
-		isConsonant := false
-		if useJForPitch {
-			if a, isSangoUTF8 := utf8ToAsciiInput[dstStr]; isSangoUTF8 {
-				if _, err = out.WriteString(a); err != nil {
-					return err
-				}
-			} else if _, err = out.Write(dst); err != nil {
-				return err
-			}
-		} else if consonant, isConsonant = lowercaseAsciiConsonant[dstStr]; isConsonant {
-			if consonant == "d" || consonant == "g" || consonant == "y" || consonant == "z" {
-				if len(dstStr) > 0 && dstStr == strings.ToUpper(dstStr) {
-					consonantsWithQ += "q"
-				}
-			} else if consonantsWithoutQ == "n" {
-				if _, err = out.WriteRune('N'); err != nil {
-					return err
-				}
-				consonantsWithoutQ = ""
-				consonantsWithQ = ""
-			} else if len(dstStr) > 0 && dstStr == strings.ToUpper(dstStr) {
-				consonantsWithQ += "q"
-			}
-			consonantsWithoutQ += consonant
-			consonantsWithQ += consonant
-		} else if asciiPitch, isVowel := asciiAndPitchFromUTF8Vowel[dstStr]; isVowel {
-			if consonantsWithoutQ != "" && asciiPitch.pitch == highPitch {
-				consonantsWithQ = strings.ReplaceAll(strings.ReplaceAll(strings.ToUpper(consonantsWithQ), "Q", "q"), "J", "j")
-			} else if consonantsWithoutQ == "" && asciiPitch.pitch == midPitch {
-				consonantsWithQ += "j"
-			}
-			if len(dstStr) > 0 && dstStr == strings.ToUpper(dstStr) {
-				consonantsWithQ += "q"
-			}
-			if _, err = out.WriteString(consonantsWithQ); err != nil {
-				return err
-			}
-			if _, err = out.WriteString(asciiPitch.ascii); err != nil {
-				return err
-			}
-			consonantsWithQ = ""
-			consonantsWithoutQ = ""
-		} else if consonantsWithoutQ == "n" {
-			if _, err = out.WriteRune('N'); err != nil {
-				return err
-			}
-			if _, err = out.Write(dst); err != nil {
-				return err
-			}
-			consonantsWithQ = ""
-			consonantsWithoutQ = ""
-		} else {
-			// TODO: This is a word break. If every other glyph output is a 'q', replace with single initial 'Q'.
-			if _, err = out.WriteString(consonantsWithQ); err != nil {
-				return err
-			}
-			if _, err = out.Write(dst); err != nil {
-				return err
-			}
-			consonantsWithQ = ""
-			consonantsWithoutQ = ""
+		s, e := wordSpan[0], wordSpan[1]
+		log.Printf("word[%v] = phrase[%v:%v] = %q\n", j, ePrev, s, string(phrase[ePrev:s]))
+		for k, c := range string(phrase[ePrev:s]) {
+			log.Printf("  byte[%v] = '%c' = %02x\n", k, c, c)
 		}
-	}
-	return err
-}
-
-func decode(out *bufio.Writer, in *bufio.Reader) error {
-	defer out.Flush()
-	isUpperCaseLetter := false
-	isUpperCaseWord := false
-	numLowerCaseConsonants := 0
-	numUpperCaseConsonants := 0
-	pitch := 0
-	word := ""
-	priorLetter := ' '
-	for srcRune, _, err := in.ReadRune(); err == nil; srcRune, _, err = in.ReadRune() {
-		if srcRune == 'j' {
-			pitch = 1
-			continue
-		}
-		if srcRune == 'J' {
-			pitch = 2
-			continue
-		}
-		if srcRune == 'q' {
-			isUpperCaseLetter = true
-			continue
-		}
-		if srcRune == 'Q' {
-			isUpperCaseWord = true
-			continue
-		}
-		isUpperCase := isUpperCaseLetter || isUpperCaseWord
-		isUpperCaseLetter = false
-		srcStr := string(srcRune)
-		if consonant, isConsonant := lowercaseAsciiConsonant[srcStr]; isConsonant {
-			// If the prior letter was an 'n' or 'N', it was syllable ending (vowel nasal), not a consonant.
-			// In this case, restore the consonant count used to determine whether the vowel is high or mid.
-			if consonant != "d" && consonant != "g" && consonant != "y" && consonant != "z" {
-				if priorLetter == 'n' {
-					numLowerCaseConsonants--
-				} else if priorLetter == 'N' {
-					numUpperCaseConsonants--
-				}
+		ascii := bytes.Runes(phrase[ePrev:s])
+		n := len(ascii)
+		for k, r := range ascii {
+			numAsciisLeft := (n - 1) - k
+			if r > 0x3fff {
+				r = 0x25a1 // use white square for runes that cannot be encoded
 			}
-			if consonant == srcStr {
-				numLowerCaseConsonants++
+			sse := SSE(payloadIsRune)
+			if unicode.IsLetter(r) {
+				sse |= asciiIsEnglish
+				sse |= SSE(asciiLengthOnly & (min(31, numAsciisLeft) << asciiLengthShift))
+				sse |= SSE(asciiValueOnly & (r << asciiValueShift))
 			} else {
-				numUpperCaseConsonants++
+				sse |= runeIsUnicode
+				sse |= SSE(unicodeValueOnly & (r << unicodeValueShift))
 			}
-			if isUpperCase {
-				word += strings.ToUpper(consonant)
-			} else {
-				word += consonant
-			}
-			priorLetter = srcRune
-			continue
+			sses = append(sses, sse)
 		}
-		if asciiVowel, isAsciiVowel := lowercaseAsciiVowel[srcStr]; isAsciiVowel {
-			if pitch == 0 {
-				if numUpperCaseConsonants > 0 {
-					pitch = 2
-				} else if asciiVowel == srcStr {
-					// Leave pitch unchanged
-				} else if numLowerCaseConsonants == 0 {
-					pitch = 2
-				} else {
-					pitch = 1
-				}
-			}
-			vowel, isVowel := asciiInputToUtf8[isUpperCase][pitch][asciiVowel]
-			if !isVowel {
-				return fmt.Errorf("asciiInputToUtf8[%v][%v][%v] does not map to a UTF8 vowel", isUpperCase, pitch, asciiVowel)
-			}
-			word += vowel
-			pitch = 0
-			numLowerCaseConsonants = 0
-			numUpperCaseConsonants = 0
-			priorLetter = srcRune
-			continue
+		log.Printf("sses[%v] = %v\n", j, sses)
+		ePrev = e
+		log.Println("=================== MID ===================")
+		// Process Sango word
+		word := phrase[s:e]
+		log.Printf("word[%v] = phrase[%v:%v] = %q\n", j, s, e, string(word))
+		sses = append(sses, encodeSangoWord(word)...)
+		for k, sse := range sses {
+			log.Printf("sse[%v] = %04x = %016b\n", k, sse, sse)
 		}
-
-		// Autocorrect words starting with high pitch vowel that should actually be middle pitch.
-		if midPitch, shouldLowerPitch := highToMedPitchMap[word]; shouldLowerPitch {
-			word = midPitch
-		} else if mustGerundifyRE.MatchString(word) {
-		autocorrect:
-			for _, m := range asciiInputToUtf8 {
-				for v, mid := range m[1] {
-					hi := m[2][v]
-					if suffix, found := strings.CutPrefix(word, hi); found {
-						word = mid + suffix
-						break autocorrect
-					}
-				}
-			}
-		}
-		priorLetter = srcRune
-
-		if _, err = out.WriteString(word); err != nil {
-			return err
-		}
-		if _, err = out.WriteString(srcStr); err != nil {
-			return err
-		}
-		word = ""
-		pitch = 0
-		isUpperCaseWord = false
-		numLowerCaseConsonants = 0
-		numUpperCaseConsonants = 0
 	}
-	_, err := out.WriteString(word)
-	return err
-}
-
-var mustGerundifyRE = regexp.MustCompile(`(?i)(^|[^a-zäëïöüâêîôûɛ̂ɛ̈ɛɔ̂ɔ̈ɔ])(â|ê|î|ô|û|ɛ̂|ɔ̂)[a-zäëïöüâêîôûɛ̂ɛ̈ɛɔ̂ɔ̈ɔ]*ng(ɔ̈|ö)($|[^a-zäëïöüâêîôûɛ̂ɛ̈ɛɔ̂ɔ̈ɔ])`)
-
-var highToMedPitchMap = map[string]string{
-	// Syllable-initial high pitch that should actually be mid pitch:
-	"ÂPƐ":        "ÄPƐ",
-	"BÄÔ":        "BÄÖ",
-	"BIÔ":        "BIÖ",
-	"BUÂ":        "BUÄ",
-	"BUÂTE":      "BUÄTE",
-	"DAÂ":        "DAÄ",
-	"Ê":          "Ë",
-	"ÊKÄLÏTÏSE":  "ËKÄLÏTÏSE",
-	"ÊPÄTÎTE":    "ËPÄTÎTE",
-	"GBÏÂ":       "GBÏÄ",
-	"GÖGÜÂ":      "GÖGÜÄ",
-	"GÜÂGÜÂ":     "GÜÄGÜÄ",
-	"Î":          "Ï",
-	"ÎRÏ":        "ÏRÏ",
-	"KÜÂ":        "KÜÄ",
-	"MBÏƆ̂̈":     "MBÏƆ̈",
-	"MƐƐ̂̈":      "MƐƐ̈",
-	"MÜÂ":        "MÜÄ",
-	"MVITASIÖON": "MVITASIÖON",
-	"NDÊNDÏÂ":    "NDÊNDÏÄ",
-	"NZAÎ":       "NZAÏ",
-	"SÏƆ̂̈":      "SÏƆ̈",
-	"SÏƆ̂̈NÎ":    "SÏƆ̈NÎ",
-	"SÜÄ":        "SÜÄ",
-	"SÜÄLI":      "SÜÄLI",
-	"USÏÔ":       "USÏÖ",
-	"WAÂWA":      "WAÄWA",
-	"Âpɛ":        "Äpɛ",
-	"Bäô":        "Bäö",
-	"Biô":        "Biö",
-	"Buâ":        "Buä",
-	"Buâte":      "Buäte",
-	"Daâ":        "Daä",
-	"Êkälïtïse":  "Ëkälïtïse",
-	"Êpätîte":    "Ëpätîte",
-	"Gbïâ":       "Gbïä",
-	"Gögüâ":      "Gögüä",
-	"Güâgüâ":     "Güägüä",
-	"Îrï":        "Ïrï",
-	"Küâ":        "Küä",
-	"Mbïɔ̂̈":     "Mbïɔ̈",
-	"Mɛɛ̂̈":      "Mɛɛ̈",
-	"Müâ":        "Müä",
-	"Mvitasiöon": "Mvitasiöon",
-	"Ndêndïâ":    "Ndêndïä",
-	"Nzaî":       "Nzaï",
-	"Sïɔ̂̈":      "Sïɔ̈",
-	"Sïɔ̂̈nî":    "Sïɔ̈nî",
-	"Süä":        "Süä",
-	"Süäli":      "Süäli",
-	"Usïô":       "Usïö",
-	"Waâwa":      "Waäwa",
-	"âpɛ":        "äpɛ",
-	"bäô":        "bäö",
-	"biô":        "biö",
-	"buâ":        "buä",
-	"buâte":      "buäte",
-	"daâ":        "daä",
-	"ê":          "ë",
-	"êkälïtïse":  "ëkälïtïse",
-	"êpätîte":    "ëpätîte",
-	"gbïâ":       "gbïä",
-	"gögüâ":      "gögüä",
-	"güâgüâ":     "güägüä",
-	"î":          "ï",
-	"îrï":        "ïrï",
-	"küâ":        "küä",
-	"mbïɔ̂̈":     "mbïɔ̈",
-	"mɛɛ̂̈":      "mɛɛ̈",
-	"müâ":        "müä",
-	"mvitasiöon": "mvitasiöon",
-	"ndêndïâ":    "ndêndïä",
-	"nzaî":       "nzaï",
-	"sïɔ̂̈":      "sïɔ̈",
-	"sïɔ̂̈nî":    "sïɔ̈nî",
-	"süä":        "süä",
-	"süäli":      "süäli",
-	"usïô":       "usïö",
-	"waâwa":      "waäwa",
-	// Words that look like gerunds but aren't,
-	// and shouldn't be coerced to all mid pitch:
-	"BÄKƆNGƆ̈": "BÄKƆNGƆ̈",
-	"BƆNGƆ̈":   "BƆNGƆ̈",
-	"ÎNGƆ̈":    "ÎNGƆ̈",
-	"KONGƆ̈":   "KONGƆ̈",
-	"KƆNGƆ̈":   "KƆNGƆ̈",
-	"MƆZÏNGƆ̈": "MƆZÏNGƆ̈",
-	"YINGƆ̈":   "YINGƆ̈",
-	"Bäkɔngɔ̈": "Bäkɔngɔ̈",
-	"Bɔngɔ̈":   "Bɔngɔ̈",
-	"Îngɔ̈":    "Îngɔ̈",
-	"Kongɔ̈":   "Kongɔ̈",
-	"Kɔngɔ̈":   "Kɔngɔ̈",
-	"Mɔzïngɔ̈": "Mɔzïngɔ̈",
-	"Yingɔ̈":   "Yingɔ̈",
-	"bäkɔngɔ̈": "bäkɔngɔ̈",
-	"bɔngɔ̈":   "bɔngɔ̈",
-	"îngɔ̈":    "îngɔ̈",
-	"kongɔ̈":   "kongɔ̈",
-	"kɔngɔ̈":   "kɔngɔ̈",
-	"mɔzïngɔ̈": "mɔzïngɔ̈",
-	"yingɔ̈":   "yingɔ̈",
-}
-
-var utf8ToAsciiInput = map[string]string{
-	"A":  "qa",
-	"Ä":  "jqa",
-	"Â":  "Jqa",
-	"E":  "qe",
-	"Ë":  "jqe",
-	"Ê":  "Jqe",
-	"Ɛ":  "qx",
-	"Ɛ̈": "jqx",
-	"Ɛ̂": "Jqx",
-	"I":  "qi",
-	"Ï":  "jqi",
-	"Î":  "Jqi",
-	"O":  "qo",
-	"Ö":  "jqo",
-	"Ô":  "Jqo",
-	"Ɔ":  "qc",
-	"Ɔ̈": "jqc",
-	"Ɔ̂": "Jqc",
-	"U":  "qu",
-	"Ü":  "jqu",
-	"Û":  "Jqu",
-	"B":  "qb",
-	"D":  "qd",
-	"F":  "qf",
-	"G":  "qg",
-	"H":  "qh",
-	"K":  "qk",
-	"L":  "ql",
-	"M":  "qm",
-	"N":  "qn",
-	"P":  "qp",
-	"R":  "qr",
-	"S":  "qs",
-	"T":  "qt",
-	"V":  "qv",
-	"W":  "qw",
-	"Y":  "qy",
-	"Z":  "qz",
-	"a":  "a",
-	"ä":  "ja",
-	"â":  "Ja",
-	"e":  "e",
-	"ë":  "je",
-	"ê":  "Je",
-	"ɛ":  "x",
-	"ɛ̈": "jx",
-	"ɛ̂": "Jx",
-	"i":  "i",
-	"ï":  "ji",
-	"î":  "Ji",
-	"o":  "o",
-	"ö":  "jo",
-	"ô":  "Jo",
-	"ɔ":  "c",
-	"ɔ̈": "jc",
-	"ɔ̂": "Jc",
-	"u":  "u",
-	"ü":  "ju",
-	"û":  "Ju",
-	"b":  "b",
-	"d":  "d",
-	"f":  "f",
-	"g":  "g",
-	"h":  "h",
-	"k":  "k",
-	"l":  "l",
-	"m":  "m",
-	"n":  "n",
-	"p":  "p",
-	"r":  "r",
-	"s":  "s",
-	"t":  "t",
-	"v":  "v",
-	"w":  "w",
-	"y":  "y",
-	"z":  "z",
-}
-
-var lowercaseAsciiVowel = map[string]string{
-	"A": "a",
-	"E": "e",
-	"X": "x",
-	"I": "i",
-	"O": "o",
-	"C": "c",
-	"U": "u",
-	"a": "a",
-	"e": "e",
-	"x": "x",
-	"i": "i",
-	"o": "o",
-	"c": "c",
-	"u": "u",
-}
-
-var lowercaseAsciiConsonant = map[string]string{
-	"B": "b",
-	"D": "d",
-	"F": "f",
-	"G": "g",
-	"H": "h",
-	"K": "k",
-	"L": "l",
-	"M": "m",
-	"N": "n",
-	"P": "p",
-	"R": "r",
-	"S": "s",
-	"T": "t",
-	"V": "v",
-	"W": "w",
-	"Y": "y",
-	"Z": "z",
-	"b": "b",
-	"d": "d",
-	"f": "f",
-	"g": "g",
-	"h": "h",
-	"k": "k",
-	"l": "l",
-	"m": "m",
-	"n": "n",
-	"p": "p",
-	"r": "r",
-	"s": "s",
-	"t": "t",
-	"v": "v",
-	"w": "w",
-	"y": "y",
-	"z": "z",
-}
-
-var asciiAndPitchFromUTF8Vowel = map[string]asciiAndPitch{
-	"A":  {"a", lowPitch},
-	"Ä":  {"A", midPitch},
-	"Â":  {"A", highPitch},
-	"E":  {"e", lowPitch},
-	"Ë":  {"E", midPitch},
-	"Ê":  {"E", highPitch},
-	"Ɛ":  {"x", lowPitch},
-	"Ɛ̈": {"X", midPitch},
-	"Ɛ̂": {"X", highPitch},
-	"I":  {"i", lowPitch},
-	"Ï":  {"I", midPitch},
-	"Î":  {"I", highPitch},
-	"O":  {"o", lowPitch},
-	"Ö":  {"O", midPitch},
-	"Ô":  {"O", highPitch},
-	"Ɔ":  {"c", lowPitch},
-	"Ɔ̈": {"C", midPitch},
-	"Ɔ̂": {"C", highPitch},
-	"U":  {"u", lowPitch},
-	"Ü":  {"U", midPitch},
-	"Û":  {"U", highPitch},
-	"a":  {"a", lowPitch},
-	"ä":  {"A", midPitch},
-	"â":  {"A", highPitch},
-	"e":  {"e", lowPitch},
-	"ë":  {"E", midPitch},
-	"ê":  {"E", highPitch},
-	"ɛ":  {"x", lowPitch},
-	"ɛ̈": {"X", midPitch},
-	"ɛ̂": {"X", highPitch},
-	"i":  {"i", lowPitch},
-	"ï":  {"I", midPitch},
-	"î":  {"I", highPitch},
-	"o":  {"o", lowPitch},
-	"ö":  {"O", midPitch},
-	"ô":  {"O", highPitch},
-	"ɔ":  {"c", lowPitch},
-	"ɔ̈": {"C", midPitch},
-	"ɔ̂": {"C", highPitch},
-	"u":  {"u", lowPitch},
-	"ü":  {"U", midPitch},
-	"û":  {"U", highPitch},
-}
-
-// asciiInputToUtf8[isUpperCase][pitch] UTF8
-var asciiInputToUtf8 = map[bool]map[int]map[string]string{
-	false: {
-		0: {
-			"a": "a",
-			"e": "e",
-			"x": "ɛ",
-			"i": "i",
-			"o": "o",
-			"c": "ɔ",
-			"u": "u",
-		},
-		1: {
-			"a": "ä",
-			"e": "ë",
-			"x": "ɛ̈",
-			"i": "ï",
-			"o": "ö",
-			"c": "ɔ̈",
-			"u": "ü",
-		},
-		2: {
-			"a": "â",
-			"e": "ê",
-			"x": "ɛ̂",
-			"i": "î",
-			"o": "ô",
-			"c": "ɔ̂",
-			"u": "û",
-		},
-	},
-	true: {
-		0: {
-			"a": "A",
-			"e": "E",
-			"x": "Ɛ",
-			"i": "I",
-			"o": "O",
-			"c": "Ɔ",
-			"u": "U",
-		},
-		1: {
-			"a": "Ä",
-			"e": "Ë",
-			"x": "Ɛ̈",
-			"i": "Ï",
-			"o": "Ö",
-			"c": "Ɔ̈",
-			"u": "Ü",
-		},
-		2: {
-			"a": "Â",
-			"e": "Ê",
-			"x": "Ɛ̂",
-			"i": "Î",
-			"o": "Ô",
-			"c": "Ɔ̂",
-			"u": "Û",
-		},
-	},
+	log.Println("=================== POST ==================")
+	log.Printf("word[final] = phrase[%v:%v] = %q\n", ePrev, len(phrase), string(phrase[ePrev:]))
+	ascii := bytes.Runes(phrase[ePrev:])
+	n := len(ascii)
+	for k, r := range ascii {
+		numAsciisLeft := (n - 1) - k
+		if r > 0x3fff {
+			r = 0x25a1 // use white square for runes that cannot be encoded
+		}
+		sse := SSE(payloadIsRune)
+		if unicode.IsLetter(r) {
+			sse |= asciiIsEnglish
+			sse |= SSE(asciiLengthOnly & (min(31, numAsciisLeft) << asciiLengthShift))
+			sse |= SSE(asciiValueOnly & (r << asciiValueShift))
+		} else {
+			sse |= runeIsUnicode
+			sse |= SSE(unicodeValueOnly & (r << unicodeValueShift))
+		}
+		sses = append(sses, sse)
+	}
+	log.Printf("sses[final] = %v\n", sses)
+	for k, sse := range sses {
+		log.Printf("sse[%v] = %04x = %016b\n", k, sse, sse)
+	}
+	return sses
 }
