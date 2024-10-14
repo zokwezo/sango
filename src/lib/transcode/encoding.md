@@ -53,27 +53,29 @@ if the most-significant-bit (MSB) is `0`.
 
 ### Consonant cluster
 
-| MSB \\ LSB | 00           | 01           | 10           | 11           |
-| :--------: | ------------ | ------------ | ------------ | ------------ |
-|    000     | ∅            | f            | r            | k            |
-|    001     | mv           | v            | ng           | g            |
-|    010     | m            | p            | l            | kp           |
-|    011     | mb           | b            | ngb          | gb           |
-|    100     | **invalid**  | s            | y            | h            |
-|    101     | nz           | z            | ny           | w            |
-|    110     | n            | t            | nd           | d            |
-|    111     | **reserved** | **reserved** | **reserved** | **reserved** |
+| MSB \\ LSB | 00           | 01  | 10   | 11     |
+| :--------: | ------------ | --- | ---- | ------ |
+|    000     | missing      | f   | r    | k      |
+|    001     | mv           | v   | ng   | g      |
+|    010     | m            | p   | l    | kp     |
+|    011     | mb           | b   | ngb  | gb     |
+|    100     | **invalid**  | s   | y    | h      |
+|    101     | nz           | z   | ny   | w      |
+|    110     | n            | t   | nd   | d      |
 
 ### Vowel
 
-| MSB\\LSB | 00          | 01  | 10  | 11  |
-| :------: | ----------- | --- | --- | --- |
-|    00    | **∅**       | u   | ɔ   | ɛ   |
-|    01    | a           | i   | o   | e   |
-|    10    | **invalid** | uñ  | ɔ/o | ɛ/e |
-|    11    | añ          | iñ  | oñ  | eñ  |
+| MSB \\ LSB | 00           | 01  |  10   |  11   |
+| :--------: | ------------ | --- | ----- | ----- |
+|     00     | **missing**  | u   |   ɔ   |   ɛ   |
+|     01     | a            | i   |   o   |   e   |
+|     10     | **invalid**  | uñ  | **ø** | **ə** |
+|     11     | añ           | iñ  |  oñ   |  eñ   |
 
-> NOTE: Bold entries are not found in normal Sango text.
+* Bold entries are not found in normal Sango text.
+* **ə** is a stand-in for either **e** or **ɛ** when vowel height is unknown. On output, all three should be replace by **e**.
+* **ø** is a stand-in for either **o** or **ɔ** when vowel height is unknown. On output, all three should be replace by **o**.
+
 
 ## Examples
 
