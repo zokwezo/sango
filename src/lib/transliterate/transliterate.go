@@ -8,6 +8,26 @@ import (
 	"golang.org/x/text/unicode/norm"
 )
 
+func Normalize(out *bufio.Writer, in *bufio.Reader) error {
+	defer out.Flush()
+	b, err := io.ReadAll(norm.NFC.Reader(in))
+	if err != nil {
+		return err
+	}
+	_, err = out.Write(b)
+	return err
+}
+
+func Unnormalize(out *bufio.Writer, in *bufio.Reader) error {
+	defer out.Flush()
+	b, err := io.ReadAll(norm.NFD.Reader(in))
+	if err != nil {
+		return err
+	}
+	_, err = out.Write(b)
+	return err
+}
+
 type replacer = struct {
 	re   *regexp.Regexp
 	repl []byte
@@ -60,7 +80,7 @@ var (
 
 func Encode(out *bufio.Writer, in *bufio.Reader) error {
 	defer out.Flush()
-	b, err := io.ReadAll(norm.NFKD.Reader(in))
+	b, err := io.ReadAll(norm.NFD.Reader(in))
 	if err != nil {
 		return err
 	}
@@ -80,7 +100,7 @@ func Decode(out *bufio.Writer, in *bufio.Reader) error {
 		return err
 	}
 
-	w := norm.NFKC.Writer(out)
+	w := norm.NFC.Writer(out)
 	_, err = w.Write(b)
 	w.Close()
 	return err

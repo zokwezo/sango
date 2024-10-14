@@ -12,6 +12,8 @@ func Init(rootCmd *cobra.Command) {
 	rootCmd.AddCommand(transliterateCmd)
 	transliterateCmd.AddCommand(encodeCmd)
 	transliterateCmd.AddCommand(decodeCmd)
+	transliterateCmd.AddCommand(normalizeCmd)
+	transliterateCmd.AddCommand(unnormalizeCmd)
 }
 
 var (
@@ -41,6 +43,32 @@ var (
 			in := bufio.NewReader(os.Stdin)
 			out := bufio.NewWriter(os.Stdout)
 			if err := Decode(out, in); err != nil {
+				log.Fatal(err)
+			}
+			out.Flush()
+		},
+	}
+
+	normalizeCmd = &cobra.Command{
+		Use:   "normalize",
+		Short: "Read from stdin, normalize ASCII into UTF8 NFC format, then write to stdout",
+		Run: func(cmd *cobra.Command, args []string) {
+			in := bufio.NewReader(os.Stdin)
+			out := bufio.NewWriter(os.Stdout)
+			if err := Normalize(out, in); err != nil {
+				log.Fatal(err)
+			}
+			out.Flush()
+		},
+	}
+
+	unnormalizeCmd = &cobra.Command{
+		Use:   "unnormalize",
+		Short: "Read from stdin, unnormalize ASCII into UTF8 NFD format, then write to stdout",
+		Run: func(cmd *cobra.Command, args []string) {
+			in := bufio.NewReader(os.Stdin)
+			out := bufio.NewWriter(os.Stdout)
+			if err := Unnormalize(out, in); err != nil {
 				log.Fatal(err)
 			}
 			out.Flush()
