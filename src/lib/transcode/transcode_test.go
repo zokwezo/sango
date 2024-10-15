@@ -28,7 +28,7 @@ var (
 
 func TestEncodeWord(t *testing.T) {
 	for _, v := range encodeWordTestCases {
-		actually := encodeWord(v.lang, []byte(v.word))
+		actually := encodeWord([]byte(v.word), v.lang)
 		nActual := len(actually)
 		nExpect := len(v.expect)
 		if nActual != nExpect {
@@ -36,6 +36,9 @@ func TestEncodeWord(t *testing.T) {
 			t.Errorf("len(actual) = %v\n", nActual)
 			t.Errorf("len(expect) = %v\n", nExpect)
 		}
+		reactualWord := ""
+		reexpectWord := ""
+		prevLanguageCode := ""
 		for k := range max(nActual, nExpect) {
 			if k < nActual {
 				if k < nExpect {
@@ -53,6 +56,38 @@ func TestEncodeWord(t *testing.T) {
 				t.Errorf("word       = %q\n", v.word)
 				t.Errorf("actual[%v] not defined\n", k)
 				t.Errorf("expect[%v] = %04x = %016b\n", k, v.expect[k], v.expect[k])
+			}
+			sse := v.expect[k]
+			serialized, languageCode, numSyllablesLeft := decodeSSE(sse)
+			if languageCode != v.lang {
+				t.Errorf("reactual[%v].lang = %q\n", k, languageCode)
+				t.Errorf("reexpect[%v].lang = %q\n", k, v.lang)
+			}
+			reactualWord += string(serialized)
+			reexpectWord = v.word
+			if languageCode != "" && numSyllablesLeft > 0 ||
+				languageCode == "" && prevLanguageCode == "" {
+				prevLanguageCode = languageCode
+				continue
+			}
+			prevLanguageCode = languageCode
+			if reactualWord != v.word {
+				t.Errorf("reactual[%v].word = %q\n", k, reactualWord)
+				t.Errorf("reexpect[%v].word = %q\n", k, v.word)
+			}
+			reactualWord = ""
+		}
+		if reactualWord != "" {
+			reexpectWord = strings.ReplaceAll(reexpectWord, "...", "…")
+			reexpectWord = strings.ReplaceAll(reexpectWord, "<<", "«")
+			reexpectWord = strings.ReplaceAll(reexpectWord, ">>", "»")
+			reexpectWord = strings.ReplaceAll(reexpectWord, "``", "“")
+			reexpectWord = strings.ReplaceAll(reexpectWord, "''", "”")
+			reexpectWord = strings.ReplaceAll(reexpectWord, "---", "—")
+			reexpectWord = strings.ReplaceAll(reexpectWord, "--", "–")
+			if reactualWord != reexpectWord {
+				t.Errorf("reactual[final].word = %q\n", reactualWord)
+				t.Errorf("reexpect[final].word = %q\n", reexpectWord)
 			}
 		}
 	}

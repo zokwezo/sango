@@ -17,8 +17,8 @@ type SSE uint16
 
 // Valid language codes that can be passed into encodeAsciiWord are "sg", "en", and "fr".
 // Any other language code will encode as raw unicode runes rather than words.
-func EncodeWord(languageCode string, word []byte) (sses []SSE) {
-	return encodeWord(languageCode, word)
+func EncodeWord(word []byte, languageCode string) (sses []SSE) {
+	return encodeWord(word, languageCode)
 }
 
 func Encode(out *bufio.Writer, in *bufio.Reader) error {
@@ -73,24 +73,22 @@ var (
 
 const (
 	// SSE 16-BIT ENCODING
-	// TYPE            = 0b_T000_0000_0000_0000
+	// TYPE        = 0b_T000_0000_0000_0000
 	typeIsRune     = 0b_0000_0000_0000_0000
 	typeIsSyllable = 0b_1000_0000_0000_0000
-	// typeOnly        = 0b_1000_0000_0000_0000
+	typeOnly       = 0b_1000_0000_0000_0000
 
 	// UNICODE RUNE    = 0b_00UU_UUUU_UUUU_UUUU where
 	// UUUUUUUUUUUUUU  = Unicode rune value (U+0000 - U+3FFF)
-	runeOnly      = 0b_1100_0000_0000_0000
-	runeIsUnicode = 0b_0000_0000_0000_0000
-	// runeIsAscii     = 0b_0100_0000_0000_0000
+	runeIsUnicode     = 0b_0000_0000_0000_0000
 	unicodeValueOnly  = 0b_0011_1111_1111_1111
 	unicodeValueShift = 0
 
 	// ASCII ENGLISH   = 0b_010L_LLLL_AAAA_AAAA
 	// ASCII FRENCH    = 0b_011L_LLLL_AAAA_AAAA where
-	//   LLLLL         = min(31,n), n  = # letters left
+	//   LLLLL         = min(31,n), n   = # letters left
 	//       AAAAAAAA  = ASCII letter value (U+00 - U+FF)
-	// asciiOnly       = 0b_1110_0000_0000_0000
+	asciiOnly        = 0b_1110_0000_0000_0000
 	asciiIsEnglish   = 0b_0100_0000_0000_0000
 	asciiIsFrench    = 0b_0110_0000_0000_0000
 	asciiLengthOnly  = 0b_0001_1111_0000_0000
@@ -118,25 +116,23 @@ const (
 	// |  01 | a  | i  | o  | e  |
 	// |  10 |    | uñ | ø  | ə  |
 	// |  11 | añ | iñ | oñ | eñ |
-	sangoLengthOnly  = 0b_0110_0000_0000_0000
-	sangoLengthShift = 13
-	// sangoCaseOnly   = 0b_0001_1000_0000_0000
-	// sangoCaseShift  = 11
-	sangoCaseHidden = 0b_0000_0000_0000_0000
-	sangoCaseLower  = 0b_0000_1000_0000_0000
-	sangoCaseHyphen = 0b_0001_0000_0000_0000
-	sangoCaseUpper  = 0b_0001_1000_0000_0000
-	// sangoPitchOnly  = 0b_0000_0110_0000_0000
-	// sangoPitchShift = 9
+	sangoLengthOnly   = 0b_0110_0000_0000_0000
+	sangoLengthShift  = 13
+	sangoCaseOnly     = 0b_0001_1000_0000_0000
+	sangoCaseHidden   = 0b_0000_0000_0000_0000
+	sangoCaseLower    = 0b_0000_1000_0000_0000
+	sangoCaseHyphen   = 0b_0001_0000_0000_0000
+	sangoCaseUpper    = 0b_0001_1000_0000_0000
+	sangoPitchOnly    = 0b_0000_0110_0000_0000
 	sangoPitchUnknown = 0b_0000_0000_0000_0000
 	sangoPitchLow     = 0b_0000_0010_0000_0000
 	sangoPitchMid     = 0b_0000_0100_0000_0000
 	sangoPitchHigh    = 0b_0000_0110_0000_0000
-	// sangoConsOnly   = 0b_0000_0001_1111_0000
-	// sangoConsShift  = 4
-	sangoConsInvalid = 0b_0000_0001_0000_0000
-	// sangoVowelOnly  = 0b_0000_0000_0000_1111
-	// sangoVowelShift = 0
+	sangoConsOnly     = 0b_0000_0001_1111_0000
+	sangoConsShift    = 4
+	sangoConsInvalid  = 0b_0000_0001_0000_0000
+	sangoVowelOnly    = 0b_0000_0000_0000_1111
+	sangoVowelShift   = 0
 	sangoVowelInvalid = 0b_0000_0000_0000_1000
 )
 
@@ -189,7 +185,77 @@ var (
 		"øn": SSE(0b_0000_0000_0000_1110),
 		"en": SSE(0b_0000_0000_0000_1111),
 		"ən": SSE(0b_0000_0000_0000_1111),
+
+		".":   SSE(0b_0000_0010_0000_0000),
+		"ụ":   SSE(0b_0000_0010_0000_0001),
+		"ɔ̣":  SSE(0b_0000_0010_0000_0010),
+		"ɛ̣":  SSE(0b_0000_0010_0000_0011),
+		"ạ":   SSE(0b_0000_0010_0000_0100),
+		"ị":   SSE(0b_0000_0010_0000_0101),
+		"ọ":   SSE(0b_0000_0010_0000_0110),
+		"ẹ":   SSE(0b_0000_0010_0000_0111),
+		"ụn":  SSE(0b_0000_0010_0000_1001),
+		"ø̣":  SSE(0b_0000_0010_0000_1010),
+		"ə̣":  SSE(0b_0000_0010_0000_1011),
+		"ạn":  SSE(0b_0000_0010_0000_1100),
+		"ịn":  SSE(0b_0000_0010_0000_1101),
+		"ọn":  SSE(0b_0000_0010_0000_1110),
+		"ø̣n": SSE(0b_0000_0010_0000_1110),
+		"ẹn":  SSE(0b_0000_0010_0000_1111),
+		"ə̣n": SSE(0b_0000_0010_0000_1111),
+
+		"¨":   SSE(0b_0000_0100_0000_0000),
+		"ü":   SSE(0b_0000_0100_0000_0001),
+		"ɔ̈":  SSE(0b_0000_0100_0000_0010),
+		"ɛ̈":  SSE(0b_0000_0100_0000_0011),
+		"ä":   SSE(0b_0000_0100_0000_0100),
+		"ï":   SSE(0b_0000_0100_0000_0101),
+		"ö":   SSE(0b_0000_0100_0000_0110),
+		"ë":   SSE(0b_0000_0100_0000_0111),
+		"ün":  SSE(0b_0000_0100_0000_1001),
+		"ø̈":  SSE(0b_0000_0100_0000_1010),
+		"ə̈":  SSE(0b_0000_0100_0000_1011),
+		"än":  SSE(0b_0000_0100_0000_1100),
+		"ïn":  SSE(0b_0000_0100_0000_1101),
+		"ön":  SSE(0b_0000_0100_0000_1110),
+		"ø̈n": SSE(0b_0000_0100_0000_1110),
+		"ën":  SSE(0b_0000_0100_0000_1111),
+		"ə̈n": SSE(0b_0000_0100_0000_1111),
+
+		"^":   SSE(0b_0000_0110_0000_0000),
+		"û":   SSE(0b_0000_0110_0000_0001),
+		"ɔ̂":  SSE(0b_0000_0110_0000_0010),
+		"ɛ̂":  SSE(0b_0000_0110_0000_0011),
+		"â":   SSE(0b_0000_0110_0000_0100),
+		"î":   SSE(0b_0000_0110_0000_0101),
+		"ô":   SSE(0b_0000_0110_0000_0110),
+		"ê":   SSE(0b_0000_0110_0000_0111),
+		"ûn":  SSE(0b_0000_0110_0000_1001),
+		"ø̂":  SSE(0b_0000_0110_0000_1010),
+		"ə̂":  SSE(0b_0000_0110_0000_1011),
+		"ân":  SSE(0b_0000_0110_0000_1100),
+		"în":  SSE(0b_0000_0110_0000_1101),
+		"ôn":  SSE(0b_0000_0110_0000_1110),
+		"ø̂n": SSE(0b_0000_0110_0000_1110),
+		"ên":  SSE(0b_0000_0110_0000_1111),
+		"ə̂n": SSE(0b_0000_0110_0000_1111),
 	}
+
+	sseToCons = func() map[SSE][]rune {
+		m := make(map[SSE][]rune)
+		for cons, sse := range consToSSE {
+			m[sse] = []rune(cons)
+		}
+		return m
+	}()
+
+	sseToVowel = func() map[SSE][]rune {
+		m := make(map[SSE][]rune)
+		for vowel, sse := range vowelToSSE {
+			m[sse] = []rune(vowel)
+		}
+		return m
+	}()
 )
 
 func encodeLastSyllable(word []byte, numSyllablesLeft int) (newWord []byte, sse SSE) {
@@ -257,7 +323,7 @@ func encodeLastSyllable(word []byte, numSyllablesLeft int) (newWord []byte, sse 
 
 // Valid language codes that can be passed into encodeAsciiWord are "sg", "en", and "fr".
 // Any other language code will encode as raw unicode runes rather than words.
-func encodeWord(languageCode string, word []byte) (sses []SSE) {
+func encodeWord(word []byte, languageCode string) (sses []SSE) {
 	sses = []SSE{}
 	if languageCode == "sg" {
 		// Encode Sango by syllables, which is the fundamental phonemic unit.
@@ -320,31 +386,87 @@ func encode(phrase []byte) (sses []SSE) {
 			s += span[3]
 		}
 	}
-	for j, span := range spans {
+	for _, span := range spans {
 		if len(span) != 3 {
 			log.Fatalf("Bad span (%v) from spans (%v)", span, spans)
 		}
-		log.Printf("=================== PRE #%v ===================", j)
+		// log.Printf("=================== PRE #%v ===================", j)
 		if s, e := span[0], span[1]; s < e {
-			log.Printf("other = phrase[%v:%v] = %q\n", s, s, string(phrase[s:e]))
+			// log.Printf("other = phrase[%v:%v] = %q\n", s, s, string(phrase[s:e]))
 			// TODO: Use ../tokenize/wordlist_{en,fr,sg,sg_toneless}.cf to assign languageCode.
 			// For now, just leave blank and encode it like punctuation.
-			ssesNew := EncodeWord("", phrase[s:e])
-			for k, sse := range ssesNew {
-				log.Printf("sse[%v] = %04x = %016b\n", k, sse, sse)
-			}
+			ssesNew := EncodeWord(phrase[s:e], "")
+			// for k, sse := range ssesNew {
+			// log.Printf("sse[%v] = %04x = %016b\n", k, sse, sse)
+			// }
 			sses = append(sses, ssesNew...)
 		}
 
-		log.Printf("=================== MID #%v ===================", j)
+		// log.Printf("=================== MID #%v ===================", j)
 		if s, e := span[1], span[2]; s < e {
-			log.Printf("sango = phrase[%v:%v] = %q\n", s, e, string(phrase[s:e]))
-			ssesNew := EncodeWord("sg", phrase[s:e])
-			for k, sse := range ssesNew {
-				log.Printf("sse[%v] = %04x = %016b\n", k, sse, sse)
-			}
+			// log.Printf("sango = phrase[%v:%v] = %q\n", s, e, string(phrase[s:e]))
+			ssesNew := EncodeWord(phrase[s:e], "sg")
+			// for k, sse := range ssesNew {
+			// log.Printf("sse[%v] = %04x = %016b\n", k, sse, sse)
+			// }
 			sses = append(sses, ssesNew...)
 		}
 	}
 	return sses
 }
+
+// Valid language codes returned from decodeAsciiWord are "sg", "en", "fr", or "".
+func decodeSSE(sse SSE) (serialized []byte, languageCode string, numSyllablesLeft int) {
+	syllable := []rune{}
+	if sse&typeOnly != typeIsSyllable {
+		switch sse & asciiOnly {
+		case asciiIsEnglish:
+			syllable = append(syllable, rune(sse&asciiValueOnly>>asciiValueShift))
+			numSyllablesLeft = int(sse & asciiLengthOnly >> asciiLengthShift)
+			languageCode = "en"
+		case asciiIsFrench:
+			syllable = append(syllable, rune(sse&asciiValueOnly>>asciiValueShift))
+			numSyllablesLeft = int(sse & asciiLengthOnly >> asciiLengthShift)
+			languageCode = "fr"
+		default:
+			syllable = append(syllable, rune(sse&unicodeValueOnly>>unicodeValueShift))
+			languageCode = ""
+		}
+	} else {
+		languageCode = "sg"
+		numSyllablesLeft = int(sse & sangoLengthOnly >> sangoLengthShift)
+		if cons, found := sseToCons[sse&sangoConsOnly]; found {
+			syllable = append(syllable, cons...)
+		}
+		vowelKey := sse & (sangoPitchOnly | sangoVowelOnly)
+		if vowel, found := sseToVowel[vowelKey]; found {
+			syllable = append(syllable, vowel...)
+		}
+		if len(syllable) > 0 {
+			switch sse & sangoCaseOnly {
+			case sangoCaseHidden:
+				syllable = append([]rune("{HIDDEN|"), append(syllable, '}')...)
+			case sangoCaseLower:
+				syllable[0] = unicode.ToLower(syllable[0])
+			case sangoCaseHyphen:
+				syllable[0] = unicode.ToLower(syllable[0])
+				syllable = append([]rune{'-'}, syllable...)
+			case sangoCaseUpper:
+				syllable[0] = unicode.ToUpper(syllable[0])
+			}
+		}
+	}
+	serialized = []byte(string(syllable))
+	return
+}
+
+/*
+func decode(sses []SSE) []byte {
+	phrase := []byte{}
+	for _, sse := range sses {
+		serialized, _, _ := decodeSSE(sse)
+		phrase = append(phrase, serialized...)
+	}
+	return phrase
+}
+*/
