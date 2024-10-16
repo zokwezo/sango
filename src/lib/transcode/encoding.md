@@ -15,27 +15,28 @@ Internally, tokens are used for simpler coding and manipulation, making it easy 
 
 The 16-bit encoding divides up quasi-orthogonally into components:
 
-| Binary bit pattern | Description                     |
-| ------------------ | ------------------------------- |
-| `00UUUUUUUUUUUUUU` | Unicode rune                    |
-| `010LLLLLAAAAAAAA` | ASCII letter in an English word |
-| `011LLLLLAAAAAAAA` | ASCII letter in a French word   |
-| `1SSXXPPCCCCCVVVV` | Syllable in a Sango word        |
+| Binary bit pattern | Description                      |
+| ------------------ | -------------------------------- |
+| `00UUUUUUUUUUUUUU` | Unicode rune                     |
+| `01LNNNNNAAAAAAAA` | ASCII letter (English or French) |
+| `1WGXXPPCCCCCVVVV` | Syllable (Sango)                 |
 
-where the bit substrings are fixed-length binary numerals that encode various components.
-Each code is trivially convertible to a unicode rune or (after masking) ASCII character
-if the most-significant-bit (MSB) is `0`.
+where the bit substrings are fixed-length binary numerals when masked and shifted:
 
 | Bit | Description                                   |
 | :-: | --------------------------------------------- |
 | `U` | Unicode rune (U+0000 - U+3FFF)                |
+| `L` | Language (0=English, 1=French)                |
+| `N` | `min(31,n)` where `n` = # letters remaining   |
 | `A` | ASCII character (U+00 - U+FF)                 |
-| `L` | `min(31,n)` where `n` = # letters remaining   |
-| `S` | `min( 3,m)` where `m` = # syllables remaining |
+| `W` | Is not the last syllable of a word            |
+| `G` | Is a gerund: override pitch to Mid tone       |
 | `X` | Case                                          |
 | `P` | Pitch                                         |
 | `C` | Consonant cluster                             |
 | `V` | Vowel                                         |
+
+The 16 least-significant bits (LSB) of an encoded Sango syllable are defined as follows:
 
 ### Case
 
