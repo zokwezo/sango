@@ -10,6 +10,8 @@ import (
 	"slices"
 	"unicode"
 
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 	"golang.org/x/text/unicode/norm"
 )
 
@@ -28,35 +30,30 @@ func Encode(out *bufio.Writer, in *bufio.Reader) error {
 		return err
 	}
 	sses := encode(phrase)
-	fmt.Fprintf(out, "     There are %v tokens with one of the following binary formats:\n", len(sses))
-	fmt.Fprintf(out, "     0b_00_UUUUUUUUUUUUUU      = Unicode rune\n")
-	fmt.Fprintf(out, "     -------------------------\n")
-	fmt.Fprintf(out, "     0b 00                     = 00=Encodes a Unicode rune\n")
-	fmt.Fprintf(out, "     0b    UUUUUUUUUUUUUU      = Unicode rune value (U+0000 - U+3FFF)\n")
+	fmt.Fprintf(out, "There are %v tokens with one of the following binary formats:\n", len(sses))
+	fmt.Fprintf(out, "0b_00_UUUUUUUUUUUUUU     = Unicode rune\n")
+	fmt.Fprintf(out, "-------------------------\n")
+	fmt.Fprintf(out, "0b    UUUUUUUUUUUUUU     = Unicode rune value (U+0000 - U+3FFF)\n")
 	fmt.Fprintf(out, "\n")
-	fmt.Fprintf(out, "     0b_01_L_NNNNN_AAAAAAAA    = ASCII character (English or French only)\n")
-	fmt.Fprintf(out, "     -------------------------\n")
-	fmt.Fprintf(out, "     0b 01                     = 01=Encodes an ASCII character\n")
-	fmt.Fprintf(out, "     0b    L                   = Language: 0=English, 1=French\n")
-	fmt.Fprintf(out, "     0b      NNNNN             = Number of characters left in this word (excluding this one)\n")
-	fmt.Fprintf(out, "     0b            AAAAAAAA    = ASCII letter value (U+00 - U+FF)\n")
+	fmt.Fprintf(out, "0b_01_L_NNNNN_AAAAAAAA   = ASCII character (English or French only)\n")
+	fmt.Fprintf(out, "-------------------------\n")
+	fmt.Fprintf(out, "0b    L                  = Language: 0=English, 1=French\n")
+	fmt.Fprintf(out, "0b      NNNNN            = min(31,n), n = # runes left excluding this one\n")
+	fmt.Fprintf(out, "0b            AAAAAAAA   = ASCII letter value (U+00 - U+FF)\n")
 	fmt.Fprintf(out, "\n")
-	fmt.Fprintf(out, "     0b_1_W_G_XX_PP_CCCCC_VVVV\n")
-	fmt.Fprintf(out, "     -------------------------\n")
-	fmt.Fprintf(out, "     0b 1                      = 1=Syllable (Sango only)\n")
-	fmt.Fprintf(out, "     0b   W                    = 0=word is complete, 1=more syllables to follow\n")
-	fmt.Fprintf(out, "     0b     G                  = 1=is gerund, override pitch accent to MidTone\n")
-	fmt.Fprintf(out, "     0b       XX               = Case : 00=Hidden , 01=lowercase, 10=-prefixed, 11=Uppercase\n")
-	fmt.Fprintf(out, "     0b          PP            = Pitch: 00=Unknown, 01=LowTone  , 10=MidTone  , 11=HighTone\n")
-	fmt.Fprintf(out, "     0b             CCCCC      = Consonant (first 3 on left below, last 2 on top)\n")
-	fmt.Fprintf(out, "     0b                   VVVV = Vowel     (first 2 on left below, last 2 on top)\n")
+	fmt.Fprintf(out, "0b_1_SS_XX_PP_CCCCC_VVVV = Syllable (Sango only)\n")
+	fmt.Fprintf(out, "-------------------------\n")
+	fmt.Fprintf(out, "0b   SS                  = min(3,m), m = # syllables left excluding this one\n")
+	fmt.Fprintf(out, "0b      XX               = Case : 00=lowercase, 01=Titlecase, 10=-prefixed, 11=UPPERCASE\n")
+	fmt.Fprintf(out, "0b         PP            = Pitch: 00=Unknown, 01=LowTone  , 10=MidTone  , 11=HighTone\n")
+	fmt.Fprintf(out, "0b            CCCCC      = Consonant (first 3 on left below, last 2 on top)\n")
+	fmt.Fprintf(out, "0b                  VVVV = Vowel     (first 2 on left below, last 2 on top)\n")
 	fmt.Fprintf(out, "\n")
 	for k, sse := range sses {
 		if sse&0b1000000000000000 != 0 {
-			_, err = fmt.Fprintf(out, "#%02v: 0b_%01b_%01b_%01b_%02b_%02b_%05b_%04b\n", k,
+			_, err = fmt.Fprintf(out, "#%02v: 0b_%01b_%02b_%02b_%02b_%05b_%04b\n", k,
 				sse&0b1000000000000000>>15,
-				sse&0b0100000000000000>>14,
-				sse&0b0010000000000000>>13,
+				sse&0b0110000000000000>>13,
 				sse&0b0001100000000000>>11,
 				sse&0b0000011000000000>>9,
 				sse&0b0000000111110000>>4,
@@ -92,6 +89,10 @@ var (
 
 	// Matches whole Sango word + single rune on either side (if any) in NFC form.
 	sangoWordRE = regexp.MustCompile(`(?i)(?:^|[^a-z\xE2\xE4\xEA\xEB\xEE\xEF\xF4\xF6\xF8\xFB\xFC\x{0254}\x{0259}\x{025B}\x{0302}\x{0308}\x{0323}\x{1EA1}\x{1EB9}\x{1ECB}\x{1ECD}\x{1EE5}-])((?:(?:[-]?)(?:(?:n(?:[dyz]?|gb?)-|m[bv]?|kp?|gb?|[bdfhlprstvwyz]?)?)(?:(?:[\xE2\xE4\xEA\xEB\xEE\xEF\xF4\xF6\xFB\xFC\x{1EA1}\x{1EB9}\x{1ECB}\x{1ECD}\x{1EE5}]|[aeiou\xF8\x{0254}\x{0259}\x{025B}][\x{0302}\x{0308}\x{0323}]?)(?:n?)))+)(?:$|[^a-z\xE2\xE4\xEA\xEB\xEE\xEF\xF4\xF6\xF8\xFB\xFC\x{0254}\x{0259}\x{025B}\x{0302}\x{0308}\x{0323}\x{1EA1}\x{1EB9}\x{1ECB}\x{1ECD}\x{1EE5}-])`)
+
+	lowerCaser = cases.Lower(language.English)
+	titleCaser = cases.Title(language.English)
+	upperCaser = cases.Upper(language.English)
 )
 
 const (
@@ -120,10 +121,8 @@ const (
 	asciiValueShift  = 0
 
 	// SANGO            = 0b_1SSX_XPPC_CCCC_VVVV where
-	// 1                = Encodes a Sango syllable (not a rune)
-	//  W               = 0=word is complete, 1=more syllables to follow
-	//   G              = 1=is gerund, override pitch accent to MidTone
-	//    XX            = Case : 00=Hidden , 01=lowercase, 10=-prefixed, 11=Uppercase
+	// SS               = min(3,m), m = # syllables left excluding this one
+	//    XX            = Case : 00=lowercase, 01=Titlecase, 10=-prefixed, 11=UPPERCASE
 	//      PP          = Pitch: 00=Unknown, 01=LowTone  , 10=MidTone  , 11=HighTone
 	//        CCCCC     = Consonant (first 3 on left below, last 2 on top)
 	//             VVVV = Vowel     (first 2 on left below, last 2 on top)
@@ -142,23 +141,24 @@ const (
 	// |  01 | a  | i  | o  | e  |
 	// |  10 |    | uñ | ø  | ə  |
 	// |  11 | añ | iñ | oñ | eñ |
-	sangoWordIsIncomplete = 0b_0100_0000_0000_0000
-	sangoCaseOnly         = 0b_0001_1000_0000_0000
-	sangoCaseHidden       = 0b_0000_0000_0000_0000
-	sangoCaseLower        = 0b_0000_1000_0000_0000
-	sangoCaseHyphen       = 0b_0001_0000_0000_0000
-	sangoCaseUpper        = 0b_0001_1000_0000_0000
-	sangoPitchOnly        = 0b_0000_0110_0000_0000
-	sangoPitchUnknown     = 0b_0000_0000_0000_0000
-	sangoPitchLow         = 0b_0000_0010_0000_0000
-	sangoPitchMid         = 0b_0000_0100_0000_0000
-	sangoPitchHigh        = 0b_0000_0110_0000_0000
-	sangoConsOnly         = 0b_0000_0001_1111_0000
-	sangoConsShift        = 4
-	sangoConsInvalid      = 0b_0000_0001_0000_0000
-	sangoVowelOnly        = 0b_0000_0000_0000_1111
-	sangoVowelShift       = 0
-	sangoVowelInvalid     = 0b_0000_0000_0000_1000
+	sangoLengthOnly   = 0b_0110_0000_0000_0000
+	sangoLengthShift  = 13
+	sangoCaseOnly     = 0b_0001_1000_0000_0000
+	sangoCaseLower    = 0b_0000_0000_0000_0000
+	sangoCaseTitle    = 0b_0000_1000_0000_0000
+	sangoCaseHyphen   = 0b_0001_0000_0000_0000
+	sangoCaseUpper    = 0b_0001_1000_0000_0000
+	sangoPitchOnly    = 0b_0000_0110_0000_0000
+	sangoPitchUnknown = 0b_0000_0000_0000_0000
+	sangoPitchLow     = 0b_0000_0010_0000_0000
+	sangoPitchMid     = 0b_0000_0100_0000_0000
+	sangoPitchHigh    = 0b_0000_0110_0000_0000
+	sangoConsOnly     = 0b_0000_0001_1111_0000
+	sangoConsShift    = 4
+	sangoConsInvalid  = 0b_0000_0001_0000_0000
+	sangoVowelOnly    = 0b_0000_0000_0000_1111
+	sangoVowelShift   = 0
+	sangoVowelInvalid = 0b_0000_0000_0000_1000
 )
 
 var (
@@ -283,7 +283,7 @@ var (
 	}()
 )
 
-func encodeLastSyllable(word []byte, wordIsIncomplete bool) (newWord []byte, sse SSE) {
+func encodeLastSyllable(word []byte, numSyllablesLeft int) (newWord []byte, sse SSE) {
 	word = norm.NFD.Bytes(word)
 	if len(word) == 0 {
 		return
@@ -292,32 +292,28 @@ func encodeLastSyllable(word []byte, wordIsIncomplete bool) (newWord []byte, sse
 	if span == nil || len(span) != 12 || span[0] < 0 || span[1] <= span[0] {
 		return
 	}
-	sse = typeIsSyllable
-	if wordIsIncomplete {
-		sse |= sangoWordIsIncomplete
-	}
+	sse = typeIsSyllable | (sangoLengthOnly & SSE(min(3, numSyllablesLeft)<<sangoLengthShift))
 	newWord = word[:span[0]]
-	syllables := bytes.Runes(word[span[0]:span[1]])
+	syllable := string(word[span[0]:span[1]])
 	hyphen := string(word[span[2]:span[3]])
-
 	cons := string(bytes.ToLower(word[span[4]:span[5]]))
 	vowel := string(bytes.ToLower(word[span[6]:span[7]]))
 	pitch := string(bytes.ToLower(word[span[8]:span[9]]))
 	nasal := string(bytes.ToLower(word[span[10]:span[11]]))
 
-	// Asciify vowel (and convert to lower case.
-	// The `syllables[0]` rune preserves the overall case.
-
-	if len(syllables) == 0 {
+	if syllable == "" {
 		return
 	}
 	if hyphen == "-" {
 		sse |= sangoCaseHyphen
-	} else if hyphen != "" {
-		sse |= sangoCaseHidden
-	} else if unicode.IsUpper(syllables[0]) {
+	} else if syllable == lowerCaser.String(syllable) {
+		sse |= sangoCaseLower
+	} else if syllable == titleCaser.String(syllable) {
+		sse |= sangoCaseTitle
+	} else if syllable == upperCaser.String(syllable) {
 		sse |= sangoCaseUpper
 	} else {
+		log.Printf("Bad case of Sango syllable %q, treating as lowercase\n", syllable)
 		sse |= sangoCaseLower
 	}
 
@@ -355,9 +351,9 @@ func encodeWord(word []byte, languageCode string) (sses []SSE) {
 	sses = []SSE{}
 	if languageCode == "sg" {
 		// Encode Sango by syllables, which is the fundamental phonemic unit.
-		for wordIsIncomplete := false; len(word) > 0; wordIsIncomplete = true {
+		for numSyllablesLeft := 0; len(word) > 0; numSyllablesLeft++ {
 			var sse SSE
-			word, sse = encodeLastSyllable(word, wordIsIncomplete)
+			word, sse = encodeLastSyllable(word, numSyllablesLeft)
 			sses = append(sses, sse)
 		}
 		slices.Reverse(sses)
@@ -444,17 +440,17 @@ func encode(phrase []byte) (sses []SSE) {
 }
 
 // Valid language codes returned from decodeAsciiWord are "sg", "en", "fr", or "".
-func decodeSSE(sse SSE) (serialized []byte, languageCode string, wordIsIncomplete bool) {
+func decodeSSE(sse SSE) (serialized []byte, languageCode string, numSyllablesLeft int) {
 	syllable := []rune{}
 	if sse&typeOnly != typeIsSyllable {
 		switch sse & asciiOnly {
 		case asciiIsEnglish:
 			syllable = append(syllable, rune(sse&asciiValueOnly>>asciiValueShift))
-			wordIsIncomplete = (sse & asciiLengthOnly >> asciiLengthShift) != 0
+			numSyllablesLeft = int(sse & asciiLengthOnly >> asciiLengthShift)
 			languageCode = "en"
 		case asciiIsFrench:
 			syllable = append(syllable, rune(sse&asciiValueOnly>>asciiValueShift))
-			wordIsIncomplete = (sse & asciiLengthOnly >> asciiLengthShift) != 0
+			numSyllablesLeft = int(sse & asciiLengthOnly >> asciiLengthShift)
 			languageCode = "fr"
 		default:
 			syllable = append(syllable, rune(sse&unicodeValueOnly>>unicodeValueShift))
@@ -462,7 +458,7 @@ func decodeSSE(sse SSE) (serialized []byte, languageCode string, wordIsIncomplet
 		}
 	} else {
 		languageCode = "sg"
-		wordIsIncomplete = (sse & sangoWordIsIncomplete) != 0
+		numSyllablesLeft = int(sse & sangoLengthOnly >> sangoLengthShift)
 		if cons, found := sseToCons[sse&sangoConsOnly]; found {
 			syllable = append(syllable, cons...)
 		}
@@ -472,15 +468,21 @@ func decodeSSE(sse SSE) (serialized []byte, languageCode string, wordIsIncomplet
 		}
 		if len(syllable) > 0 {
 			switch sse & sangoCaseOnly {
-			case sangoCaseHidden:
-				syllable = append([]rune("{HIDDEN|"), append(syllable, '}')...)
 			case sangoCaseLower:
-				syllable[0] = unicode.ToLower(syllable[0])
+				for k, _ := range syllable {
+					syllable[k] = unicode.ToLower(syllable[k])
+				}
+			case sangoCaseTitle:
+				for k, _ := range syllable {
+					syllable[k] = unicode.ToLower(syllable[k])
+				}
+				syllable[0] = unicode.ToUpper(syllable[0])
 			case sangoCaseHyphen:
-				syllable[0] = unicode.ToLower(syllable[0])
 				syllable = append([]rune{'-'}, syllable...)
 			case sangoCaseUpper:
-				syllable[0] = unicode.ToUpper(syllable[0])
+				for k, _ := range syllable {
+					syllable[k] = unicode.ToUpper(syllable[k])
+				}
 			}
 		}
 	}

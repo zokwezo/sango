@@ -18,11 +18,34 @@ var (
 		word   string
 		expect []SSE
 	}{
-		{"sg", "Bɛ̂-bïn", []SSE{0xded3, 0x94dd}},
-		{"sg", "bəbị", []SSE{0xc8db, 0x8ad5}},
-		{"en", "Hello", []SSE{0x4448, 0x4365, 0x426c, 0x416c, 0x406f}},
-		{"fr", "c'est", []SSE{0x6463, 0x6327, 0x6265, 0x6173, 0x6074}},
-		{"", "?!...$", []SSE{0x003f, 0x0021, 0x2026, 0x0024}},
+		{"sg", "Bɛ̂-bïn", []SSE{
+			0b_1_01_01_11_01101_0011,
+			0b_1_00_10_10_01101_1101,
+		}},
+		{"sg", "bəbị", []SSE{
+			0b_1_01_00_00_01101_1011,
+			0b_1_00_00_01_01101_0101,
+		}},
+		{"en", "Hello", []SSE{
+			0b_01_0_00100_0100_1000,
+			0b_01_0_00011_0110_0101,
+			0b_01_0_00010_0110_1100,
+			0b_01_0_00001_0110_1100,
+			0b_01_0_00000_0110_1111,
+		}},
+		{"fr", "c'est", []SSE{
+			0b_01_1_00100_0110_0011,
+			0b_01_1_00011_0010_0111,
+			0b_01_1_00010_0110_0101,
+			0b_01_1_00001_0111_0011,
+			0b_01_1_00000_0111_0100,
+		}},
+		{"", "?!...$", []SSE{
+			0b_00_00000000111111,
+			0b_00_00000000100001,
+			0b_00_10000000100110,
+			0b_00_00000000100100,
+		}},
 	}
 )
 
@@ -58,14 +81,14 @@ func TestEncodeWord(t *testing.T) {
 				t.Errorf("expect[%v] = %04x = %016b\n", k, v.expect[k], v.expect[k])
 			}
 			sse := v.expect[k]
-			serialized, languageCode, wordIsIncomplete := decodeSSE(sse)
+			serialized, languageCode, numSyllablesLeft := decodeSSE(sse)
 			if languageCode != v.lang {
 				t.Errorf("reactual[%v].lang = %q\n", k, languageCode)
 				t.Errorf("reexpect[%v].lang = %q\n", k, v.lang)
 			}
 			reactualWord += string(serialized)
 			reexpectWord = v.word
-			if languageCode != "" && wordIsIncomplete ||
+			if languageCode != "" && numSyllablesLeft > 0 ||
 				languageCode == "" && prevLanguageCode == "" {
 				prevLanguageCode = languageCode
 				continue
@@ -103,33 +126,29 @@ func TestEncode(t *testing.T) {
 		t.Errorf("error = %v", err)
 	}
 	actual := b.String()
-	expect := `     There are 62 tokens with one of the following binary formats:
-     0b_00_UUUUUUUUUUUUUU      = Unicode rune
-     -------------------------
-     0b 00                     = 00=Encodes a Unicode rune
-     0b    UUUUUUUUUUUUUU      = Unicode rune value (U+0000 - U+3FFF)
+	expect := `There are 62 tokens with one of the following binary formats:
+0b_00_UUUUUUUUUUUUUU     = Unicode rune (each rune is its own word)
+-------------------------
+0b    UUUUUUUUUUUUUU     = Unicode rune value (U+0000 - U+3FFF)
 
-     0b_01_L_NNNNN_AAAAAAAA    = ASCII character (English or French only)
-     -------------------------
-     0b 01                     = 01=Encodes an ASCII character
-     0b    L                   = Language: 0=English, 1=French
-     0b      NNNNN             = Number of characters left in this word (excluding this one)
-     0b            AAAAAAAA    = ASCII letter value (U+00 - U+FF)
+0b_01_L_NNNNN_AAAAAAAA   = ASCII character (English or French only)
+-------------------------
+0b    L                  = Language: 0=English, 1=French
+0b      NNNNN            = min(31,n), n = # runes left excluding this one
+0b            AAAAAAAA   = ASCII letter value (U+00 - U+FF)
 
-     0b_1_W_G_XX_PP_CCCCC_VVVV
-     -------------------------
-     0b 1                      = 1=Syllable (Sango only)
-     0b   W                    = 0=word is complete, 1=more syllables to follow
-     0b     G                  = 1=is gerund, override pitch accent to MidTone
-     0b       XX               = Case : 00=Hidden , 01=lowercase, 10=-prefixed, 11=Uppercase
-     0b          PP            = Pitch: 00=Unknown, 01=LowTone  , 10=MidTone  , 11=HighTone
-     0b             CCCCC      = Consonant (first 3 on left below, last 2 on top)
-     0b                   VVVV = Vowel     (first 2 on left below, last 2 on top)
+0b_1_SS_XX_PP_CCCCC_VVVV = Syllable (Sango only)
+-------------------------
+0b   SS                  = min(3,m), m = # syllables left excluding this one
+0b      XX               = Case : 00=lowercase, 01=Titlecase, 10=-prefixed, 11=UPPERCASE
+0b         PP            = Pitch: 00=Unknown, 01=LowTone  , 10=MidTone  , 11=HighTone
+0b            CCCCC      = Consonant (first 3 on left below, last 2 on top)
+0b                  VVVV = Vowel     (first 2 on left below, last 2 on top)
 
-#00: 0b_1_0_0_11_10_01100_0101
+#00: 0b_1_00_01_10_01100_0101
 #01: 0b_00_00000000100000
-#02: 0b_1_1_0_01_01_11001_1011
-#03: 0b_1_0_0_01_00_11000_0011
+#02: 0b_1_01_00_01_11001_1011
+#03: 0b_1_00_00_00_11000_0011
 #04: 0b_00_00000000111010
 #05: 0b_00_00000000100000
 #06: 0b_00_00000001010100
@@ -144,8 +163,8 @@ func TestEncode(t *testing.T) {
 #15: 0b_00_00000001100101
 #16: 0b_00_00000000100000
 #17: 0b_00_00000010101011
-#18: 0b_1_1_0_01_00_00000_0100
-#19: 0b_1_0_0_01_10_10011_1110
+#18: 0b_1_01_00_00_00000_0100
+#19: 0b_1_00_00_10_10011_1110
 #20: 0b_00_00000000100000
 #21: 0b_00_00000001101110
 #22: 0b_00_00000001100100
@@ -183,11 +202,11 @@ func TestEncode(t *testing.T) {
 #54: 0b_00_10000000011101
 #55: 0b_00_00000000101110
 #56: 0b_00_00000000100000
-#57: 0b_1_1_0_11_00_11001_0100
-#58: 0b_1_0_0_01_11_00000_0100
+#57: 0b_1_01_01_00_11001_0100
+#58: 0b_1_00_00_11_00000_0100
 #59: 0b_00_00000000100000
-#60: 0b_1_1_0_01_10_11001_0011
-#61: 0b_1_0_0_01_00_11000_0011
+#60: 0b_1_01_00_10_11001_0011
+#61: 0b_1_00_00_00_11000_0011
 `
 	if actual != expect {
 		t.Errorf("actual: %s\n", actual)
