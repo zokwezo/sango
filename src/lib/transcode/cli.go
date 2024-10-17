@@ -25,7 +25,7 @@ var (
 		Use:   "encode",
 		Short: "Read from stdin, encode UTF8 into SSE tokens, then write to stdout",
 		Run: func(cmd *cobra.Command, args []string) {
-			if err := Encode(bufio.NewWriter(os.Stdout), bufio.NewReader(os.Stdin)); err != nil {
+			if err := EncodePhrase(bufio.NewWriter(os.Stdout), bufio.NewReader(os.Stdin)); err != nil {
 				log.Fatal(err)
 			}
 		},
@@ -35,7 +35,7 @@ var (
 		Use:   "decode",
 		Short: "Read from stdin, decode SSE tokens into UTF8, then write to stdout",
 		Run: func(cmd *cobra.Command, args []string) {
-			if err := Decode(bufio.NewWriter(os.Stdout), bufio.NewReader(os.Stdin)); err != nil {
+			if err := DecodeSSEs(bufio.NewWriter(os.Stdout), bufio.NewReader(os.Stdin)); err != nil {
 				log.Fatal(err)
 			}
 		},

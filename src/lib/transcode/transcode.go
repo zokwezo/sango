@@ -17,67 +17,10 @@ import (
 
 type SSE uint16
 
-// Valid language codes that can be passed into encodeAsciiWord are "sg", "en", and "fr".
+// Valid language codes are "sg", "en", and "fr".
 // Any other language code will encode as raw unicode runes rather than words.
 func EncodeWord(word []byte, languageCode string) (sses []SSE) {
 	return encodeWord(word, languageCode)
-}
-
-func Encode(out *bufio.Writer, in *bufio.Reader) error {
-	defer out.Flush()
-	phrase, err := io.ReadAll(norm.NFC.Reader(in))
-	if err != nil {
-		return err
-	}
-	sses := encode(phrase)
-	fmt.Fprintf(out, "There are %v tokens with one of the following binary formats:\n", len(sses))
-	fmt.Fprintf(out, "0b_00_UUUUUUUUUUUUUU     = Unicode rune\n")
-	fmt.Fprintf(out, "-------------------------\n")
-	fmt.Fprintf(out, "0b    UUUUUUUUUUUUUU     = Unicode rune value (U+0000 - U+3FFF)\n")
-	fmt.Fprintf(out, "\n")
-	fmt.Fprintf(out, "0b_01_L_NNNNN_AAAAAAAA   = ASCII character (English or French only)\n")
-	fmt.Fprintf(out, "-------------------------\n")
-	fmt.Fprintf(out, "0b    L                  = Language: 0=English, 1=French\n")
-	fmt.Fprintf(out, "0b      NNNNN            = min(31,n), n = # runes left excluding this one\n")
-	fmt.Fprintf(out, "0b            AAAAAAAA   = ASCII letter value (U+00 - U+FF)\n")
-	fmt.Fprintf(out, "\n")
-	fmt.Fprintf(out, "0b_1_SS_XX_PP_CCCCC_VVVV = Syllable (Sango only)\n")
-	fmt.Fprintf(out, "-------------------------\n")
-	fmt.Fprintf(out, "0b   SS                  = min(3,m), m = # syllables left excluding this one\n")
-	fmt.Fprintf(out, "0b      XX               = Case : 00=lowercase, 01=Titlecase, 10=-prefixed, 11=UPPERCASE\n")
-	fmt.Fprintf(out, "0b         PP            = Pitch: 00=Unknown, 01=LowTone  , 10=MidTone  , 11=HighTone\n")
-	fmt.Fprintf(out, "0b            CCCCC      = Consonant (first 3 on left below, last 2 on top)\n")
-	fmt.Fprintf(out, "0b                  VVVV = Vowel     (first 2 on left below, last 2 on top)\n")
-	fmt.Fprintf(out, "\n")
-	for k, sse := range sses {
-		if sse&0b1000000000000000 != 0 {
-			_, err = fmt.Fprintf(out, "#%02v: 0b_%01b_%02b_%02b_%02b_%05b_%04b\n", k,
-				sse&0b1000000000000000>>15,
-				sse&0b0110000000000000>>13,
-				sse&0b0001100000000000>>11,
-				sse&0b0000011000000000>>9,
-				sse&0b0000000111110000>>4,
-				sse&0b0000000000001111>>0)
-		} else if sse&0b0100000000000000 != 0 {
-			_, err = fmt.Fprintf(out, "#%02v: 0b_%02b_%01b_%05b_%08b\n", k,
-				sse&0b1100000000000000>>14,
-				sse&0b0010000000000000>>13,
-				sse&0b0001111100000000>>8,
-				sse&0b0000000011111111>>0)
-		} else {
-			_, err = fmt.Fprintf(out, "#%02v: 0b_%02b_%014b\n", k,
-				sse&0b1100000000000000>>14,
-				sse&0b0011111111111111>>0)
-		}
-		if err != nil {
-			return err
-		}
-	}
-	return err
-}
-
-func Decode(out *bufio.Writer, in *bufio.Reader) error {
-	return nil
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -395,50 +338,6 @@ func encodeWord(word []byte, languageCode string) (sses []SSE) {
 	return
 }
 
-func encode(phrase []byte) (sses []SSE) {
-	sses = []SSE{}
-	spans := [][3]int{} // [sPre, sMid, eMid]
-	for s, n := 0, len(phrase); s < n; {
-		span := sangoWordRE.FindSubmatchIndex(phrase[s:n])
-		if span == nil {
-			spans = append(spans, [3]int{s, n, n})
-			break
-		} else if len(span) != 4 {
-			panic("Bad span")
-		} else {
-			spans = append(spans, [3]int{s, s + span[2], s + span[3]})
-			s += span[3]
-		}
-	}
-	for _, span := range spans {
-		if len(span) != 3 {
-			log.Fatalf("Bad span (%v) from spans (%v)", span, spans)
-		}
-		// log.Printf("=================== PRE #%v ===================", j)
-		if s, e := span[0], span[1]; s < e {
-			// log.Printf("other = phrase[%v:%v] = %q\n", s, s, string(phrase[s:e]))
-			// TODO: Use ../tokenize/wordlist_{en,fr,sg,sg_toneless}.cf to assign languageCode.
-			// For now, just leave blank and encode it like punctuation.
-			ssesNew := EncodeWord(phrase[s:e], "")
-			// for k, sse := range ssesNew {
-			// log.Printf("sse[%v] = %04x = %016b\n", k, sse, sse)
-			// }
-			sses = append(sses, ssesNew...)
-		}
-
-		// log.Printf("=================== MID #%v ===================", j)
-		if s, e := span[1], span[2]; s < e {
-			// log.Printf("sango = phrase[%v:%v] = %q\n", s, e, string(phrase[s:e]))
-			ssesNew := EncodeWord(phrase[s:e], "sg")
-			// for k, sse := range ssesNew {
-			// log.Printf("sse[%v] = %04x = %016b\n", k, sse, sse)
-			// }
-			sses = append(sses, ssesNew...)
-		}
-	}
-	return sses
-}
-
 // Valid language codes returned from decodeAsciiWord are "sg", "en", "fr", or "".
 func decodeSSE(sse SSE) (serialized []byte, languageCode string, numSyllablesLeft int) {
 	syllable := []rune{}
@@ -490,13 +389,106 @@ func decodeSSE(sse SSE) (serialized []byte, languageCode string, numSyllablesLef
 	return
 }
 
-/*
-func decode(sses []SSE) []byte {
-	phrase := []byte{}
-	for _, sse := range sses {
-		serialized, _, _ := decodeSSE(sse)
-		phrase = append(phrase, serialized...)
+//////////////////////////////////////////////////////////////////////////////
+// UNUSED
+//////////////////////////////////////////////////////////////////////////////
+
+func EncodePhrase(out *bufio.Writer, in *bufio.Reader) error {
+	defer out.Flush()
+	phrase, err := io.ReadAll(norm.NFC.Reader(in))
+	if err != nil {
+		return err
 	}
-	return phrase
+	sses := encodePhrase(phrase)
+	fmt.Fprintf(out, "There are %v tokens with one of the following binary formats:\n", len(sses))
+	fmt.Fprintf(out, "0b_00_UUUUUUUUUUUUUU     = Unicode rune\n")
+	fmt.Fprintf(out, "-------------------------\n")
+	fmt.Fprintf(out, "0b    UUUUUUUUUUUUUU     = Unicode rune value (U+0000 - U+3FFF)\n")
+	fmt.Fprintf(out, "\n")
+	fmt.Fprintf(out, "0b_01_L_NNNNN_AAAAAAAA   = ASCII character (English or French only)\n")
+	fmt.Fprintf(out, "-------------------------\n")
+	fmt.Fprintf(out, "0b    L                  = Language: 0=English, 1=French\n")
+	fmt.Fprintf(out, "0b      NNNNN            = min(31,n), n = # runes left excluding this one\n")
+	fmt.Fprintf(out, "0b            AAAAAAAA   = ASCII letter value (U+00 - U+FF)\n")
+	fmt.Fprintf(out, "\n")
+	fmt.Fprintf(out, "0b_1_SS_XX_PP_CCCCC_VVVV = Syllable (Sango only)\n")
+	fmt.Fprintf(out, "-------------------------\n")
+	fmt.Fprintf(out, "0b   SS                  = min(3,m), m = # syllables left excluding this one\n")
+	fmt.Fprintf(out, "0b      XX               = Case : 00=lowercase, 01=Titlecase, 10=-prefixed, 11=UPPERCASE\n")
+	fmt.Fprintf(out, "0b         PP            = Pitch: 00=Unknown, 01=LowTone  , 10=MidTone  , 11=HighTone\n")
+	fmt.Fprintf(out, "0b            CCCCC      = Consonant (first 3 on left below, last 2 on top)\n")
+	fmt.Fprintf(out, "0b                  VVVV = Vowel     (first 2 on left below, last 2 on top)\n")
+	fmt.Fprintf(out, "\n")
+	for k, sse := range sses {
+		if sse&0b1000000000000000 != 0 {
+			_, err = fmt.Fprintf(out, "#%02v: 0b_%01b_%02b_%02b_%02b_%05b_%04b\n", k,
+				sse&0b1000000000000000>>15,
+				sse&0b0110000000000000>>13,
+				sse&0b0001100000000000>>11,
+				sse&0b0000011000000000>>9,
+				sse&0b0000000111110000>>4,
+				sse&0b0000000000001111>>0)
+		} else if sse&0b0100000000000000 != 0 {
+			_, err = fmt.Fprintf(out, "#%02v: 0b_%02b_%01b_%05b_%08b\n", k,
+				sse&0b1100000000000000>>14,
+				sse&0b0010000000000000>>13,
+				sse&0b0001111100000000>>8,
+				sse&0b0000000011111111>>0)
+		} else {
+			_, err = fmt.Fprintf(out, "#%02v: 0b_%02b_%014b\n", k,
+				sse&0b1100000000000000>>14,
+				sse&0b0011111111111111>>0)
+		}
+		if err != nil {
+			return err
+		}
+	}
+	return err
 }
-*/
+
+func DecodeSSEs(out *bufio.Writer, in *bufio.Reader) error {
+	return nil
+}
+
+func encodePhrase(phrase []byte) (sses []SSE) {
+	sses = []SSE{}
+	spans := [][3]int{} // [sPre, sMid, eMid]
+	for s, n := 0, len(phrase); s < n; {
+		span := sangoWordRE.FindSubmatchIndex(phrase[s:n])
+		if span == nil {
+			spans = append(spans, [3]int{s, n, n})
+			break
+		} else if len(span) != 4 {
+			panic("Bad span")
+		} else {
+			spans = append(spans, [3]int{s, s + span[2], s + span[3]})
+			s += span[3]
+		}
+	}
+	for _, span := range spans {
+		if len(span) != 3 {
+			log.Fatalf("Bad span (%v) from spans (%v)", span, spans)
+		}
+		// log.Printf("=================== RUNE #%v ===================", j)
+		if s, e := span[0], span[1]; s < e {
+			languageCode := ""
+			// log.Printf("RUNE[%s] phrase[%v:%v] = %q\n", languageCode, s, e, string(phrase[s:e]))
+			ssesNew := encodeWord(phrase[s:e], languageCode)
+			// for k, sse := range ssesNew {
+			// log.Printf("sse[%v] = %04x = %016b\n", k, sse, sse)
+			// }
+			sses = append(sses, ssesNew...)
+		}
+
+		// log.Printf("=================== SYLLABLE #%v ===================", j)
+		if s, e := span[1], span[2]; s < e {
+			// log.Printf("SYLL phrase[%v:%v] = %q\n", s, e, string(phrase[s:e]))
+			ssesNew := encodeWord(phrase[s:e], "sg")
+			// for k, sse := range ssesNew {
+			// log.Printf("sse[%v] = %04x = %016b\n", k, sse, sse)
+			// }
+			sses = append(sses, ssesNew...)
+		}
+	}
+	return sses
+}

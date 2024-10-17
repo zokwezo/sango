@@ -116,18 +116,108 @@ func TestEncodeWord(t *testing.T) {
 	}
 }
 
-func TestEncode(t *testing.T) {
+// TODO: Fix bugs:
+// 1) All English words are being encoded as symbols
+// 2) A few Sango words are being encoded as symbols
+func TestEncodeToBytes(t *testing.T) {
+	phrase := "Mbï tə̣nɛ: The phrase <<ahön ndö nî>> means...``exceeding all else''. Taâ tɛ̈nɛ"
+	actual := encodePhrase([]byte(phrase))
+	expect := []SSE{
+		0b_1_00_01_10_01100_0101, // "Mbï"
+		0b_0000000000100000,      // ' '
+		0b_1_01_00_01_11001_1011, // "tə̣"
+		0b_1_00_00_00_11000_0011, // "nɛ"
+		0b_00_00000000111010,     // ':'
+		0b_00_00000000100000,     // ' '
+		0b_00_00000001010100,     // 'T'
+		0b_00_00000001101000,     // 'h'
+		0b_00_00000001100101,     // 'e'
+		0b_00_00000000100000,     // ' '
+		0b_00_00000001110000,     // 'p'
+		0b_00_00000001101000,     // 'h'
+		0b_00_00000001110010,     // 'r'
+		0b_00_00000001100001,     // 'a'
+		0b_00_00000001110011,     // 's'
+		0b_00_00000001100101,     // 'e'
+		0b_00_00000000100000,     // ' '
+		0b_00_00000010101011,     // '«'
+		0b_1_01_00_00_00000_0100, // "a"
+		0b_1_00_00_10_10011_1110, // "hön"
+		0b_00_00000000100000,     // ' '
+		0b_00_00000001101110,     // 'n'
+		0b_00_00000001100100,     // 'd'
+		0b_00_00000011110110,     // 'ö'
+		0b_00_00000000100000,     // ' '
+		0b_00_00000001101110,     // 'n'
+		0b_00_00000011101110,     // 'î'
+		0b_00_00000010111011,     // '»'
+		0b_00_00000000100000,     // ' '
+		0b_00_00000001101101,     // 'm'
+		0b_00_00000001100101,     // 'e'
+		0b_00_00000001100001,     // 'a'
+		0b_00_00000001101110,     // 'n'
+		0b_00_00000001110011,     // 's'
+		0b_00_10000000100110,     // '…'
+		0b_00_10000000011100,     // '“'
+		0b_00_00000001100101,     // 'e'
+		0b_00_00000001111000,     // 'x'
+		0b_00_00000001100011,     // 'c'
+		0b_00_00000001100101,     // 'e'
+		0b_00_00000001100101,     // 'e'
+		0b_00_00000001100100,     // 'd'
+		0b_00_00000001101001,     // 'i'
+		0b_00_00000001101110,     // 'n'
+		0b_00_00000001100111,     // 'g'
+		0b_00_00000000100000,     // ' '
+		0b_00_00000001100001,     // 'a'
+		0b_00_00000001101100,     // 'l'
+		0b_00_00000001101100,     // 'l'
+		0b_00_00000000100000,     // ' '
+		0b_00_00000001100101,     // 'e'
+		0b_00_00000001101100,     // 'l'
+		0b_00_00000001110011,     // 's'
+		0b_00_00000001100101,     // 'e'
+		0b_00_10000000011101,     // '”'
+		0b_00_00000000101110,     // '.'
+		0b_00_00000000100000,     // ' '
+		0b_1_01_01_00_11001_0100, // "Ta"
+		0b_1_00_00_11_00000_0100, // "â"
+		0b_00_00000000100000,     // ' '
+		0b_1_01_00_10_11001_0011, // "tɛ̈"
+		0b_1_00_00_00_11000_0011, // "nɛ"
+	}
+	nActual := len(actual)
+	nExpect := len(expect)
+	nMax := max(nActual, nExpect)
+	nMin := min(nActual, nExpect)
+	for k := range nMax {
+		if k < nMin {
+			if actual[k] != expect[k] {
+				t.Errorf("actual[%v] = %016b\n", k, actual[k])
+				t.Errorf("expect[%v] = %016b\n", k, expect[k])
+			}
+		} else if k < nActual {
+			t.Errorf("actual[%v] = %016b\n", k, actual[k])
+			t.Errorf("expect[%v] undefined\n", k)
+		} else {
+			t.Errorf("actual[%v] undefined\n", k)
+			t.Errorf("expect[%v] = %016b\n", k, expect[k])
+		}
+	}
+}
+
+func TestEncodeSerialized(t *testing.T) {
 	var b bytes.Buffer
 	phrase := "Mbï tə̣nɛ: The phrase <<ahön ndö nî>> means...``exceeding all else''. Taâ tɛ̈nɛ"
 	in := bufio.NewReader(strings.NewReader(phrase))
 	out := bufio.NewWriter(&b)
-	err := Encode(out, in)
+	err := EncodePhrase(out, in)
 	if err != nil {
 		t.Errorf("error = %v", err)
 	}
 	actual := b.String()
 	expect := `There are 62 tokens with one of the following binary formats:
-0b_00_UUUUUUUUUUUUUU     = Unicode rune (each rune is its own word)
+0b_00_UUUUUUUUUUUUUU     = Unicode rune
 -------------------------
 0b    UUUUUUUUUUUUUU     = Unicode rune value (U+0000 - U+3FFF)
 
