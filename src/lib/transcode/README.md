@@ -1,216 +1,268 @@
-# Challenges and Solutions in Working with Sango Text
+# Transliterating text
 
-## Glyph UTF representations are not fixed-width: **Segment input and use syllable encoding internally**
+There are various ways to represent text in different contexts, each with its own advantages and disadvantages.
 
-### CHALLENGES
+Transliteration is the process of switching from one representation to another (with no loss of information), and code in this directory provides functions to do so.
 
-All Sango input is assumed to be in UTF8 format, but may not be in normal form, and lack of byte equality
-can mess up lexicon lookup and be impossible to diagnose visually.
+The various schemes are described in detail below.
 
-Even after normalizing input to [NFKD](https://unicode.org/reports/tr15/#Norm_Forms),
-the number of bytes and runes varies with vowel, as seen in the following table:
+## Unicode and UTF8
 
-| Graphemes | # Runes | # Bytes |
-| :-------: | :-----: | :-----: |
-|    e o    |    1    |    1    |
-|    ɛ ɔ    |    1    |    2    |
-|  ë ê ö ô  |    2    |    3    |
-|  ɛ̈ ɛ̂ ɔ̈ ɔ̂  |    2    |    4    |
+A _glyph_ (or _grapheme_) is any printable text that fits within a single-spaced column. Interlinear text can be most easily vertically aligned when encoded as sequences of glyphs.
 
-This means that graphemes in a Sango phrase cannot be randomly accessed, nor phrase length be
-immediately calculated from its byte or rune representations when e.g. aligning interlinearly
-with translations into columns.
+Each glyph is composed of one or more _runes_ (or _codepoints_) which are 32-bit indexes into Unicode table entries.
 
-Also, combining marks are separate runes that attach to their immediately preceding rune and can
-be easily separated from them during segmentation or string reversal.
+- In this library, all runes can be addressed with 14 bits, and can represent any codepoint in the range [U+0000..U+3FFF].
+- Each accented vowel may be represented with a base rune and a combining accent rune using an [NFD format](https://unicode.org/reports/tr15/#Norm_Forms).
+- For some of these, there is also a precomposed single-rune NFC format, and this is always preferred where available.
+- _Sequences of runes arise when converting between glyphs and UTF8, and are otherwise not of much use on their own._
 
-### SOLUTION
+Each rune can be serialized into a [UTF8](https://en.wikipedia.org/wiki/UTF-8) byte sequence of variable length, and these can be concatenated into strings,
+which is the internet interchange standard. Well-formed UTF8 can be uniquely decomposed back into runes when needed.
 
-#### Input and Output
-All input is first converted to [NFKD](https://unicode.org/reports/tr15/#Norm_Forms)
-for ease of handling accents separately, then reconverts to NFC on output.
+One unfortunate side effect is that different glyph representations have varying lengths, depending on the glyph:
 
-> _NOTE: Although the Go standard library (surprisingly) does not provide native functionality to iterate over whole glyphs (including combining marks), there is a third-party [Unicode Text Segmentation library](https://github.com/rivo/uniseg/blob/master/README.md) that does. However, its use increases complexity and where possible an ASCII encoding is used internally (see below)._
+| Glyph | # Glyphs | # Runes | # Bytes |
+| :---: | :------: | :-----: | :-----: |
+|   e   |    1     |    1    |    1    |
+|   ɛ   |    1     |    1    |    2    |
+|   ê   |    1     |    2    |    3    |
+|   ɛ̂   |    1     |    2    |    4    |
 
-#### Internally
+This means that whereas a sequence of glyphs in a string can be randomly accessed via index and its length determined in constant time,
+this is not possible when represented as a sequence of Unicode runes or as a UTF8 string, and these must be iterated over.
 
-The data is stored internally encoded as sequences of syllables in `[]uint16`. This is also an optimal encoding for
-use in machine learning algorithms. See the documentation on [Sango Syllabic Encoding](encoding.md) for full details.
+> Go provides native functionality to iterate over runes, but this causes problems with multirune glyphs (those with combining marks).\
+> Fortunately, there is a third-party [Unicode Text Segmentation library](https://github.com/rivo/uniseg/blob/master/README.md) that
+> does correctly iterate over glyphs, whatever the representation.
 
-## Segmentation is hard: **Parse sequence of syllables instead**
+## Alternate representations
 
-### CHALLENGES
+For particular use cases (described below), other representations are more useful.
 
-1. Non-literal translation of single words is difficult
-2. Nonspace vs hyphen vs space segmentation of morphemes is not standardized and subject to significant variation.
-3. A single English word might require a multiword phrase in Sango due to the latter's impoverished vocabulary, e.g.
-   - **mafüta tî ngû tî mɛ tî bâgara** = _oil of water of teat of cow_ = butter
-4. A period (**.**) may indicate an abbreviation in English, but this is very uncommon in Sango.
+### Internal representation
 
-### SOLUTION
+For efficiency, text is stored internally as a sequence of 16-bit tokens (called _SSE tokens_), each of which may represent one of:
 
-1. When parsing, consider most likely sequence of syllables, not words
-2. Prefer longest phrase found in lexicon
-3. Use hyphens and word breaks only for ranking parses, not filtering them
-   4 In Sango, a period can always be considered a sentence final marker.
-   - Abbreviations such as _M_, _Mme_, or _Melle_ should be rendered without period.
-4. In English translations, it is good practice to disambiguate abbreviation with a nonintrusive convention:
-   - a period followed by a single space and a (possibly uppercase) letter always signals abbreviation
-   - use two spaces to signal sentence final.
+- a single Unicode rune (U+0000..U+3FFF)
+  - For convenience, the token is defined such that when representing a Unicode rune, the token has the same numeric value as the rune value.
+- an ASCII character and its location within an English or French word
+- a Sango syllable and its syntactic properties and location within a Sango word
 
-## Inputting Unicode from the keyboard is inconvenient: **Use an ASCII encoding**
+This makes it easier to:
 
-### CHALLENGES
+- work parametrically across languages
+- access text by index without iteration
+- orthogonally query or set text properties
+- pass data through middleware without worrying about escaping or conventions
+- use directly as a dense vector embedding for use in machine learning algorithms.
 
-UTF8 is a neverending source of bugs, results in complex code, requires the use of specialty libraries,
-and makes it difficult to have random access to substrings or even determine string length.
+See the documentation on [Sango Syllabic Encoding](./encoding.md) for full details.
 
-1. It is tedious to input Sango text with accents and open vowels ɛ and ɔ from a keyboard.
-2. It is hard for the visually challenged to distingish between circumflex and diaeresis accents.
-3. The width of text hard to predict or assess when dealing with text layout.
+### Output representations
 
-### REQUIREMENTS
+Sango consonants are all ASCII, but the vowels need to reflect pitch and height and therefore require non-ASCII runes.
 
-An ASCII-only representation is much easier for keyboard input, canonicalization, internal processing,
-column alignment, and reading (especially aloud) in smaller font. Desirable encoding properties include:
+The standard orthography is insufficient to fully represent vowel height (this being supplied pragmatically by speakers
+based on context and lexicon), and also cannot encode uncertainty in pitch or height. Therefore, the following enriched
+output format is used to represent:
 
-1. use only ASCII accessible on a keyboard, ideally only lowercase letters
-   that can be typed without needing to leave the home row of a keyboard
-2. be easily stripped of vowel pitch and/or height through trivial transformations
-3. be one byte per glyph, for random access and predictable string length
-4. be human readable, and facilitate correct pronunciation by nonnative speakers
+- 4 cases: UPPERCASE, Titlecase, lowercase, and -case (pronounced "hyphencase")
+- 7 vowels of varying height (and two of unknown height), indicated in the unaccented glyph:
+  - 5 close (long) vowels written in ASCII: `a`, `e`, `i`, `o`, `u`.
+  - 2 open (short) vowels written in [IPA symbols](https://en.wikipedia.org/wiki/International_Phonetic_Alphabet): `ɛ`, `ɔ`.
+    - _This is readily understood notation, but in the standard orthography `e` and `o` represent both close and open vowels._
+  - 2 vowels of unknown height: `ə`, `ø`.
+    - _This is completely nonstandard notation, for use (and useful) only internal to this library for text in an intermediate state
+      which eventually will be resolved into `e`|`ɛ` or `o`|`ɔ`, respectively._
+- 3 pitch levels (and one of unknown pitch), indicated using accents on the vowel:
+  - Low, unmarked (e.g. `a`)
+  - Medium, marked with diaeresis (e.g. `ä`)
+  - High, marked with circumflex (e.g. `â`)
+  - Unknown, marked with dot below (e.g. `ạ`)
+    - _This is completely nonstandard notation, for use (and useful) only internal to this library for text in an intermediate state
+      which eventually will be resolved into one of the three pitches above once known._
 
-### SOLUTION
+Some vowel/accent combinations cannot be expressed as a single Unicode rune and require a second combining rune to form a single glyph.
 
-#### Punctuation
+This enriched output format can be easily post-processed into Sango standard orthography, but as this is a lossy mapping, it is done only just before export for external use.
 
-It is convenient to use ASCII to encode punctuation common in Sango text that require UTF8 glyphs:
+#### Harnessing case as a redundant pitch signal
 
-|     UTF8     | ASCII |
-| :----------: | :---: |
-|      “       |  ``   |
-|      ”       |  ''   |
-|      ‘       |  \`   |
-|      ’       |   '   |
-|      «       |  <<   |
-|      »       |  >>   |
-| ellipses (…) | . . . |
-|  hyphen (-)  |   -   |
-| en-dash (–)  |  - -  |
-| em-dash (—)  | - - - |
+Accent marks are regrettably small and difficult to see when reading written Sango text, and especially difficult both for nonnative speakers and the visually challenged.
 
-> _NOTE: the spaces within the ASCII encodings are for display purposes only and not to be added in text._
+Conversely, uppercase provides little signal beyond what punctuation already provides.
 
-#### Vowel height: SEXC encoding
+Consequently, pitch can be made more obvious by using case as a redundant pitch signal[^1]:
 
-> _NOTE: SEXC (pronounced "sexy-jay") is short for ‘Sango Encoding X and C’._
+1. Convert all text to lowercase
+2. Convert syllable-final nasal `n` to uppercase.
+3. Convert all mid or high pitch vowels to uppercase
+4. For high pitch vowels, also convert any preceding consonants to uppercase.
 
-The consonants **x** and **c** are not used in Sango, and are repurposed to represent open vowels instead:
+This format may be particularly useful for nonnative speakers when reading Sango text aloud. Anecdotally[^2], mapping visual letter size to voice pitch seems to happen at a lower level in the brain than mapping diacritics and (unlike the latter) can be readily mastered after minimal training even by those with no Sango knowledge at all.
 
-| UTF8 | ASCII |
-| :--: | :---: |
-|  ɛ   |   x   |
-|  ɔ   |   c   |
+[^1]: This format is novel and therefore completely nonstandard, but if it is found useful and adopted externally, a link back to [this page](https://github.com/zokwezo/sango/src/lib/transcode/README.md) would be appreciated.
+[^2]: This hypothesis has not been empirically verified nor the effect quantified, but I invite anyone interested to investigate this further and send me a link to your published results.
 
-#### Vowel pitch
+Compare reading the following two sentences aloud quickly using the correct pitch pattern ˧ ˥ ˥ ˩ ˧ ˥:
 
-There are two different schemes to encode vowel pitch, each with its advantages and disadvantages:
+- `Mbï yê nî ahön kûɛ̂.`
+- `mbÏ YÊ NÎ ahÖN KÛƐ̂.`
 
-##### SEXC-J encoding
+### Input representations
 
-> _NOTE: SEXC-J (pronounced "sexy-jay") is short for ‘Sango Encoding X and C using J’._
+It is tedious to input non-ASCII glyphs on a keyboard.
 
-The consonants **j** and **q** (both case-insensitive) do not occur in Sango and are repurposed to encode vowel pitch.
-By default, vowels have low pitch. When immediately following a vowel, `j` indicates high pitch and `q` indicates
-medium pitch.
+For convenience, in addition to using UTF8 directly, the ASCII characters `\`, `c`, `j`, `q`, and `x` (which are not otherwise used in Sango)
+may be used to encode unicode in any word where the result is consistent with Sango phonemics:
 
-* PRO: Trivial to convert bijectively to and from UTF8 with simple rune remapping.
-* PRO: Case invariant
-* CON: String length differs from glyph length (no random access)
+1. A backslash can be used to escape any Unicode rune
+   - `\x`_HH_ for hex digits _HH_, encodes U+00HH (where `x` is lowercase)
+   - `\X`_HHHH_ for hex digits _HHHH_, encodes U+HHHH (where `X` is uppercase)
+2. Vowels
+   - If the paragraph does not have a prior open vowel, automatically demote close vowel to unknown height:
+     - `E` ⟹ `Ə`
+     - `e` ⟹ `ə`
+     - `O` ⟹ `Ø`
+     - `o` ⟹ `ø`
+   - Transliterate open vowels:
+     - `X` ⟹ `Ɛ`
+     - `x` ⟹ `ɛ`
+     - `C` ⟹ `Ɔ`
+     - `c` ⟹ `ɔ`
+   - After any vowel _v_, transliterate mid (`q`) or high (`j`) pitch modifier to a diacritic:
+     - _v_`q` ⟹ v̈
+     - _v_`j` ⟹ v̂
+   - If the paragraph does not have a prior open vowel, automatically demote low pitch to unknown pitch:
+     - _v_ ⟹ ṿ
+3. Punctuation
+   - Double quotes:
+     - `"` ⟹ `“` (left double quote) and `”` (right double quote), alternating in a sentence.
+     - `<<` ⟹ `«` (left angular brackets)
+     - `>>` ⟹ `»` (right angular brackets)
+   - Connectors:
+     - `...` ⟹ `…` (ellipsis)
+     - `--` ⟹ `–` (n-dash)
+     - `---` ⟹ `—` (m-dash)
 
-##### SEXC-U encoding
+## Metadata
 
-> _NOTE: SEXC-U (pronounced "sexy-you") is short for ‘Sango Encoding X and C using Uppercase’._
+Sometimes, there is a need to provide metadata inline that is not intended as literal text. Use cases include:
 
-Vowel pitch is important when humans speak or read Sango text, and humans are not good at transliterating `j`
-on the fly, nor can easily distinguish visually the small circumflex and diaeresis accent marks.
-
-Therefore, as an output format to faciliate human comprehension, uppercase is repurposed to encode vowel pitch:
-
-1. Whole syllable is lowercase ⟹ Low pitch
-   - **ngba** ⟹ `ngba`
-2. Whole syllable is uppercase ⟹ High pitch
-   - **ngbâ** ⟹ `NGBA`
-3. Consonants in lowercase, Vowel in uppercase ⟹ Medium pitch
-   - **ngbä** ⟹ `ngbA`
-
-Note that this encoding is lossy:
-
-1. Mid pitch vowel-only syllables (no consonants) are not directly representable.
-   Instead, high pitch syllable-initial vowels are implicitly lowered to mid pitch:
-   - in a gerund (words ending in **-ngɔ̈** except for the word **îngɔ̈**)
-   - for a closed fixed set of lexemes: `Apx` = **äpɛ**, not **âpɛ**.
-2. Case is NOT preserved in this encoding (having been repurposed for pitch),
-   and not usually needed since this encoding is not intended for subsequent processing.
-	 If needed to preserve a lossless conversion, case might be preserved as metadata.
-
-#### Metadata
-
-Syntactically, metadata
-
-1. starts with an opening brace
-2. ends with a matching closing brace
-3. may contain metadata of its own, whose braces must correctly nest.
-4. all text not within braces represents literal syntax (in an encoding defined by its current context).
-
-The interpretation of metadata may be exogenous or context-dependent, and not further discussed here.
-Code which cannot interpret metadata must ignore it completely.
-
-Specific use cases include:
-
-- encoding a UTF8 literal (e.g. the glyph **x** within a SEXC encoding where `x` represents **ɛ**)
-- case (e.g. that the following word is in uppercase, in SEXC-U encoding where uppercase represents a high pitch tone)
-- segmentation into tokens
 - semantic annotations
-- set or modify the current context
-- language tags, to mark code switching
 - parsing/control directives
-- translations
+- changes to default behavior in the current parsing context
+- language tags or annotations, e.g. to mark code switching
+- inline translations or alternative spellings
 - comments
 
-## Code switching is frequent: **Classify using phonemics and lexicon, record as metadata**
+### Syntax
 
-### CHALLENGES
+All braces in the text must correctly nest. This is to ensure that the start and end of any metadata block can be detected lexically without backtracking.
 
-French is commonly injected into Sango, and increases with the competence of the speaker in French. This occurs because:
+- When scanning left to right, metadata starts with the first `{` and ending with its matching `}`, including both braces.
 
-- Sango is an impoverished language, and may not have a suitable replacement
-- The speaker is more fluent in French than Sango
-- As a signaling mechanism of erudition
-- In urban environments, where code switching occurs frequenty in French
-  - In villages, code switching with the local tribal language is more common
-  - However, rural Sango is rarely found in written form anyway, so this is less of a problem
+### Semantics
 
-### REQUIREMENTS
+- Brace literals can be specified with `{LEFTBRACE}` and `{RIGHTBRACE}` respectively.
+  - These do not need to nest or be paired.
+  - The intended semantics is to restore `{` and `}` literals to the text on output
+- The semantics of all other metadata may be content and context dependent, and not further specified here.
+  - Applications that do not recognize metadata are expected to retain it as an inert payload and otherwise ignore it.
+  - Text sinks may excise all metadata before exporting the text.
 
-Whereas spoken Sango often uses French loan words after retrofitting them into Sango phonemes,
-written Sango prefers to leave the French word in its original French orthography.
-Consequently, language parsing needs to recognize these, persist but otherwise
-ignore them during parsing, then reproduce them during generation.
+## APPENDIX: Unicode glyphs used in Sango text
 
-### SOLUTION
+There are many good Unicode references online, including e.g.
 
-Phonemic solutions are fastest and preferred:
+- https://www.compart.com/en/unicode/ for individual runes
+- https://util.unicode.org/UnicodeJsps/list-unicodeset.jsp when constructing regular expressions
 
-- If a syllable is not Sango, any other syllables juxtaposed or connected by hyphen are also not Sango.
-- Non-initial capitalized words are always either proper nouns or loan words, not Sango lexemes.
-- Sango has a rigid _C?V_ phonology (see [phonology.md](phonology.md) for details).
-  Any nonconforming spelling should be considered non-Sango.
-  - The acute and grave accents are never found in Sango
-    - NOTE: circumflex and diaeresis accents occur over all vowels in both French and Sango, so their presence is not dispositive.
-  - The letters **c**, **j**, **q**, and **x** and the diphthongs **ei**, **ie**, and **ou** are never found in Sango.
-  - The letters **ɛ** and **ɔ** are not found in French (nor in the standard Sango orthography) but
-    can be assumed to be open **e** and **o** in Sango.
-- In case of ambiguity:
-  - lexical lookup can be used as an allowlist of valid Sango lexemes
-  - language annotations enclosed in braces can be added
+For reference, all unicode glyphs (and their encodings) used in this library are listed below.
+
+All glyphs can be represented in an NFD form, with base rune (NFD1 column), sometimes followed by combining mark rune (NFD2 column).
+
+For many of these glyphs, there is also a single precomposed Unicode rune (NFC column), and this is always preferred when available.
+
+### Upper case
+
+| NFC UTF8 |  NFC   |  NFD1  |  NFD2  | Height  | Pitch   | ASCII |
+| :------: | :----: | :----: | :----: | :------ | :------ | :---: |
+|    A     | U+0041 | U+0041 |        | Close   | Low     |   A   |
+|    Ä     | U+00C4 | U+0041 | U+0308 | Close   | Mid     |   A   |
+|    Â     | U+00C2 | U+0041 | U+0302 | Close   | High    |   A   |
+|    Ạ     | U+1EA0 | U+0041 | U+0323 | Close   | Unknown |   A   |
+|    E     | U+0045 | U+0045 |        | Close   | Low     |   E   |
+|    Ë     | U+00CB | U+0045 | U+0308 | Close   | Mid     |   E   |
+|    Ê     | U+00CA | U+0045 | U+0302 | Close   | High    |   E   |
+|    Ẹ     | U+1EB8 | U+0045 | U+0323 | Close   | Unknown |   E   |
+|    Ɛ     | U+0190 | U+0190 |        | Open    | Low     |   E   |
+|    Ɛ̈     |   ❌   | U+0190 | U+0308 | Open    | Mid     |   E   |
+|    Ɛ̂     |   ❌   | U+0190 | U+0302 | Open    | High    |   E   |
+|    Ɛ̣     |   ❌   | U+0190 | U+0323 | Open    | Unknown |   E   |
+|    Ə     | U+018F | U+018F |        | Unknown | Low     |   E   |
+|    Ə̈     |   ❌   | U+018F | U+0308 | Unknown | Mid     |   E   |
+|    Ə̂     |   ❌   | U+018F | U+0302 | Unknown | High    |   E   |
+|    Ə̣     |   ❌   | U+018F | U+0323 | Unknown | Unknown |   E   |
+|    I     | U+0049 | U+0049 |        | Close   | Low     |   I   |
+|    Ï     | U+00CF | U+0049 | U+0308 | Close   | Mid     |   I   |
+|    Î     | U+00CE | U+0049 | U+0302 | Close   | High    |   I   |
+|    Ị     | U+1ECA | U+0049 | U+0323 | Close   | Unknown |   I   |
+|    O     | U+004F | U+004F |        | Close   | Low     |   O   |
+|    Ö     | U+00D6 | U+004F | U+0308 | Close   | Mid     |   O   |
+|    Ô     | U+00D4 | U+004F | U+0302 | Close   | High    |   O   |
+|    Ọ     | U+1ECC | U+004F | U+0323 | Close   | Unknown |   O   |
+|    Ɔ     | U+0186 | U+0186 |        | Open    | Low     |   O   |
+|    Ɔ̈     |   ❌   | U+0186 | U+0308 | Open    | Mid     |   O   |
+|    Ɔ̂     |   ❌   | U+0186 | U+0302 | Open    | High    |   O   |
+|    Ɔ     |   ❌   | U+0186 | U+0323 | Open    | Unknown |   O   |
+|    Ø     | U+00D8 | U+00D8 |        | Unknown | Low     |   O   |
+|    Ø̈     |   ❌   | U+00D8 | U+0308 | Unknown | Mid     |   O   |
+|    Ø̂     |   ❌   | U+00D8 | U+0302 | Unknown | High    |   O   |
+|    Ø̣     |   ❌   | U+00D8 | U+0323 | Unknown | Unknown |   O   |
+|    U     | U+0055 | U+0055 |        | Close   | Low     |   U   |
+|    Ü     | U+00DC | U+0055 | U+0308 | Close   | Mid     |   U   |
+|    Û     | U+00DB | U+0055 | U+0302 | Close   | High    |   U   |
+|    Ụ     | U+1EE4 | U+0055 | U+0323 | Close   | Unknown |   U   |
+
+### Lower case
+
+| NFC UTF8 |  NFC   |  NFD1  |  NFD2  | Height  | Pitch   | ASCII |
+| :------: | :----: | :----: | :----: | :------ | :------ | :---: |
+|    a     | U+0061 | U+0061 |        | Close   | Low     |   a   |
+|    ä     | U+00E4 | U+0061 | U+0308 | Close   | Mid     |   a   |
+|    â     | U+00E2 | U+0061 | U+0302 | Close   | High    |   a   |
+|    ạ     | U+1EA1 | U+0061 | U+0323 | Close   | Unknown |   a   |
+|    e     | U+0065 | U+0065 |        | Close   | Low     |   e   |
+|    ë     | U+00EB | U+0065 | U+0308 | Close   | Mid     |   e   |
+|    ê     | U+00EA | U+0065 | U+0302 | Close   | High    |   e   |
+|    ẹ     | U+1EB9 | U+0065 | U+0323 | Close   | Unknown |   e   |
+|    ɛ     | U+025B | U+025B |        | Open    | Low     |   e   |
+|    ɛ̈     |   ❌   | U+025B | U+0308 | Open    | Mid     |   e   |
+|    ɛ̂     |   ❌   | U+025B | U+0302 | Open    | High    |   e   |
+|    ɛ̣     |   ❌   | U+025B | U+0323 | Open    | Unknown |   e   |
+|    ə     | U+0259 | U+0259 |        | Unknown | Low     |   e   |
+|    ə̈     |   ❌   | U+0259 | U+0308 | Unknown | Mid     |   e   |
+|    ə̂     |   ❌   | U+0259 | U+0302 | Unknown | High    |   e   |
+|    ə̣     |   ❌   | U+0259 | U+0323 | Unknown | Unknown |   e   |
+|    i     | U+0069 | U+0069 |        | Close   | Low     |   i   |
+|    ï     | U+00EF | U+0069 | U+0308 | Close   | Mid     |   i   |
+|    î     | U+00EE | U+0069 | U+0302 | Close   | High    |   i   |
+|    ị     | U+1ECB | U+0069 | U+0323 | Close   | Unknown |   i   |
+|    o     | U+006F | U+006F |        | Close   | Low     |   o   |
+|    ö     | U+00F6 | U+006F | U+0308 | Close   | Mid     |   o   |
+|    ô     | U+00F4 | U+006F | U+0302 | Close   | High    |   o   |
+|    ọ     | U+1ECD | U+006F | U+0323 | Close   | Unknown |   o   |
+|    ɔ     | U+0254 | U+0254 |        | Open    | Low     |   o   |
+|    ɔ̈     |   ❌   | U+0254 | U+0308 | Open    | Mid     |   o   |
+|    ɔ̂     |   ❌   | U+0254 | U+0302 | Open    | High    |   o   |
+|    ɔ     |   ❌   | U+0254 | U+0323 | Open    | Unknown |   o   |
+|    ø     | U+00F8 | U+00F8 |        | Unknown | Low     |   o   |
+|    ø̈     |   ❌   | U+00F8 | U+0308 | Unknown | Mid     |   o   |
+|    ø̂     |   ❌   | U+00F8 | U+0302 | Unknown | High    |   o   |
+|    ø̣     |   ❌   | U+00F8 | U+0323 | Unknown | Unknown |   o   |
+|    u     | U+0075 | U+0075 |        | Close   | Low     |   u   |
+|    ü     | U+00FC | U+0075 | U+0308 | Close   | Mid     |   u   |
+|    û     | U+00FB | U+0075 | U+0302 | Close   | High    |   u   |
+|    ụ     | U+1EE5 | U+0075 | U+0323 | Close   | Unknown |   u   |
