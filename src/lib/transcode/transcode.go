@@ -66,7 +66,7 @@ const (
 	// SANGO            = 0b_1SSX_XPPC_CCCC_VVVV where
 	// SS               = min(3,m), m = # syllables left excluding this one
 	//    XX            = Case : 00=lowercase, 01=Titlecase, 10=-prefixed, 11=UPPERCASE
-	//      PP          = Pitch: 00=Unknown, 01=LowTone  , 10=MidTone  , 11=HighTone
+	//      PP          = Pitch: 00=Unknown, 01=LowPitch  , 10=MidPitch  , 11=HighPitch
 	//        CCCCC     = Consonant (first 3 on left below, last 2 on top)
 	//             VVVV = Vowel     (first 2 on left below, last 2 on top)
 	// where CCCCC and VVVV are set as follows (MSB on left, LSB on top):
@@ -415,7 +415,7 @@ func EncodePhrase(out *bufio.Writer, in *bufio.Reader) error {
 	fmt.Fprintf(out, "-------------------------\n")
 	fmt.Fprintf(out, "0b   SS                  = min(3,m), m = # syllables left excluding this one\n")
 	fmt.Fprintf(out, "0b      XX               = Case : 00=lowercase, 01=Titlecase, 10=-prefixed, 11=UPPERCASE\n")
-	fmt.Fprintf(out, "0b         PP            = Pitch: 00=Unknown, 01=LowTone  , 10=MidTone  , 11=HighTone\n")
+	fmt.Fprintf(out, "0b         PP            = Pitch: 00=Unknown, 01=LowPitch  , 10=MidPitch  , 11=HighPitch      \n")
 	fmt.Fprintf(out, "0b            CCCCC      = Consonant (first 3 on left below, last 2 on top)\n")
 	fmt.Fprintf(out, "0b                  VVVV = Vowel     (first 2 on left below, last 2 on top)\n")
 	fmt.Fprintf(out, "\n")

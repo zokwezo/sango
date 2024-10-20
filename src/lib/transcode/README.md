@@ -1,8 +1,10 @@
-# Transliterating text
+# Transcoding text
 
 There are various ways to represent text in different contexts, each with its own advantages and disadvantages.
 
-Transliteration is the process of switching from one representation to another (with no loss of information), and code in this directory provides functions to do so.
+_Transcoding_ is the process of switching from one representation to another (with no loss of information or meaning), and code in this directory provides functions to do so.
+
+This is distinguished from _transliteration_, which is a purely syntactic remapping that may not preserve the semantics of the text.
 
 The various schemes are described in detail below.
 

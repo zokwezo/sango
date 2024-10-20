@@ -40,8 +40,16 @@ func main() {
 	rows := l.LexiconRows()
 	cols := l.LexiconCols()
 	fmt.Printf("\n\nROWS:\n")
-	for i, row := range rows {
-		fmt.Printf("Row[%v] = %v\n", i, row)
+	for _, r := range rows {
+		fmt.Printf("\t\t{%q, %q, %q, %q, %q, %v, %q, %q},\n",
+			r.Toneless,
+			r.Sango,
+			r.UDPos,
+			r.UDFeature,
+			r.Category,
+			r.Frequency,
+			r.EnglishTranslation,
+			r.EnglishDefinition)
 	}
 	fmt.Printf("\n\nCOLS AS STRINGS:\n")
 	fmt.Printf("Cols[Frequency ] = %v\n", cols.Frequency)
