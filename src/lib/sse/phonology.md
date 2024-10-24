@@ -24,7 +24,7 @@ The following _VV_ combinations are **not** found in Sango: **ei, ɛ**_V_**, ie,
 
 Spoken Sango strictly distinguishes close and open middle vowels (**e**/**ɛ** and **o**/**ɔ**).
 
-> *Internally, the vowels (**ə**/**ø**) are used to indicate unknown vowel height,
+> Internally, the vowels (**ə**/**ø**) are used to indicate unknown vowel height,
 > but this convention is not used externally.
 
 Very unfortunately, written Sango usually does not (only because there are no keys on the typewriter for them).
