@@ -1,6 +1,7 @@
-# Sango Syllabic Encoding
+# Sango Syllabic Encoding (SSE)
 
-Internally, tokens are used for simpler coding and manipulation, making it easy to:
+[Sango phonology](./phonology.csv) is a rigid C?V format and can be efficiently encoded as
+`uint16` tokens are used for simpler coding and manipulation, making it easy to:
 
 - Compactify notation with low entropy: suitable as vector embedding in machine learning algorithms
 - Easy to convert into and out of UTF8, validate syllables, and avoid invalid Sango phonemes
@@ -19,7 +20,7 @@ The 16-bit encoding divides up quasi-orthogonally into components:
 | ------------------ | -------------------------------- |
 | `00UUUUUUUUUUUUUU` | Unicode rune                     |
 | `01LNNNNNAAAAAAAA` | ASCII letter (English or French) |
-| `1WGXXPPCCCCCVVVV` | Syllable (Sango)                 |
+| `1SSXXCCCCCVVVVPP` | Syllable (Sango)                 |
 
 where the bit substrings are fixed-length binary numerals when masked and shifted:
 
@@ -29,34 +30,33 @@ where the bit substrings are fixed-length binary numerals when masked and shifte
 | `L` | Language (0=English, 1=French)                |
 | `N` | `min(31,n)` where `n` = # letters remaining   |
 | `A` | ASCII character (U+00 - U+FF)                 |
-| `W` | Is not the last syllable of a word            |
-| `G` | Is a gerund: override pitch to Mid tone       |
+| `S` | `min(3,m)` where `m` = # syllables remaining  |
 | `X` | Case                                          |
-| `P` | Pitch                                         |
 | `C` | Consonant cluster                             |
 | `V` | Vowel                                         |
+| `P` | Pitch                                         |
 
-The 16 least-significant bits (LSB) of an encoded Sango syllable are defined as follows:
+The Sango syllable encoding is defined as follows:
 
 ### Case
 
 | MSB\\LSB |        0        |     1     |
-| :------: | :-------------: | :-------: |
-|    0     |     Hidden      | lowercase |
-|    1     | hyphen-prefixed | Titlecase |
+| :------: | :-------------- | :-------: |
+|    0     | lowercase       | Titlecase |
+|    1     | hyphen-prefixed | UPPERCASE |
 
 ### Pitch
 
-| MSB\\LSB |    0     |     1     |
-| :------: | :------: | :-------: |
-|    0     | Unknown  | Low tone  |
-|    1     | Mid tone | High tone |
+| MSB\\LSB |       0      |       1       |
+| :------: | :----------: | :-----------: |
+|    0     | Unknown  (ọ) | Low  tone (o) |
+|    1     | Mid tone (ö) | High tone (ô) |
 
 ### Consonant cluster
 
 | MSB \\ LSB | 00           | 01  | 10   | 11     |
 | :--------: | ------------ | --- | ---- | ------ |
-|    000     | missing      | f   | r    | k      |
+|    000     | *missing*    | f   | r    | k      |
 |    001     | mv           | v   | ng   | g      |
 |    010     | m            | p   | l    | kp     |
 |    011     | mb           | b   | ngb  | gb     |
@@ -74,14 +74,15 @@ The 16 least-significant bits (LSB) of an encoded Sango syllable are defined as 
 |     11     | añ           | iñ  |  oñ   |  eñ   |
 
 * Bold entries are not found in normal Sango text.
-* **ə** is a stand-in for either **e** or **ɛ** when vowel height is unknown. On output, all three should be replace by **e**.
-* **ø** is a stand-in for either **o** or **ɔ** when vowel height is unknown. On output, all three should be replace by **o**.
-
+* These are stand-in vowels when the vowel height is unknown,
+  to be replaced by the appropriate open or close vowel once known:
+  - **ə** ⟹ **e** or **ɛ**
+  - **ø** ⟹ **o** or **ɔ**
 
 ## Examples
 
-| Text      | Tokens                                                     |
-| --------- | ---------------------------------------------------------- |
-| "Hello"   | `[0x4548, 0x4465, 0x436c, 0x426c, 0x416f]` _ASCII English_ |
-| "Bɛ̂-bïn"  | `[0xbed3, 0x94dd]` _(visible, known vowel pitch/height)_   |
-| "bebi"    | `[0xa8db, 0x88d5]` _(hidden, unknown vowel pitch/height)_  |
+| Text   | Tokens                                                 |
+| ------ | ------------------------------------------------------ |
+| Hi     | `[0b_01_0_00001_01001000,   0b_01_0_00000_01101001]`   |
+| Bɛ̂-bïn | `[0b_1_01_01_01101_0011_11, 0b_1_00_10_01101_1101_10]` |
+| bə̣bị   | `[0b_1_01_11_01101_1011_00, 0b_1_00_11_01101_0101_00]` |
