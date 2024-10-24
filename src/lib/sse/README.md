@@ -1,6 +1,6 @@
 # Sango Syllabic Encoding (SSE)
 
-[Sango phonology](./phonology.csv) is a rigid C?V format and can be efficiently encoded as
+[Sango phonology](./phonology.md) is a rigid C?V format and can be efficiently encoded as
 `uint16` tokens are used for simpler coding and manipulation, making it easy to:
 
 - Compactify notation with low entropy: suitable as vector embedding in machine learning algorithms
