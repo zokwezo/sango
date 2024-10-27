@@ -18,19 +18,16 @@ func fromString(in string, transliterate func(*bufio.Writer, *bufio.Reader) erro
 }
 
 func TestTransliterate(t *testing.T) {
-	for sango, ascii := range sangoAscii {
-		if out := fromString(sango, Encode); out != ascii {
-			t.Errorf("Encode: %s", sango)
-			t.Errorf("Expect: %s", ascii)
-			t.Errorf("Actual: %s", out)
-		}
+	asciiExpect := "``He said `What...' a-b c--d e---f g==>h h<==g xJc.ej.oq XJC.Ej.Oq'' <<,C'est vrai?>>"
+	sangoExpect := "“He said ‘What…’ a-b ɔ–d e—f g⟹h h⟸g ɛ̣ɔə̂ø̈ Ɛ̣ƆƏ̂Ø̈” «Ç'est vrai?»"
+	sangoActual := fromString(asciiExpect, Decode)
+	if sangoActual != sangoExpect {
+		t.Errorf("Sango actual = %s", sangoActual)
+		t.Errorf("Sango expect = %s", sangoExpect)
 	}
-}
-
-var sangoAscii = map[string]string{
-	`.......I ~ you...said|wrote 3.25, {{Hello}}! \\@/.`: `{DOTS}I` +
-		`{SPACE| }{TILDE}{SPACE| }you{PUNC_OTHER|…}said{BAR}wrote{SPACE| }` +
-		`{NUMBER|3{PUNC_OTHER|.}25{PUNC_CLOSE|}}{PUNC_OTHER|,}{SPACE| }` +
-		`{LEFT_BRACE}{LEFT_BRACE}Hello{RIGHT_BRACE}{RIGHT_BRACE}{PUNC_OTHER|!}` +
-		`{SPACE| }{BACKSLASH}{BACKSLASH}{PUNC_OTHER|@}{SLASH}{PUNC_OTHER|.}`,
+	asciiActual := fromString(sangoExpect, Encode)
+	if asciiActual != asciiExpect {
+		t.Errorf("ASCII actual = %s", asciiActual)
+		t.Errorf("ASCII expect = %s", asciiExpect)
+	}
 }

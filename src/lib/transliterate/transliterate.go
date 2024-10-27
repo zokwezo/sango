@@ -2,8 +2,8 @@ package transliterate
 
 import (
 	"bufio"
+	"bytes"
 	"io"
-	"regexp"
 
 	"golang.org/x/text/unicode/norm"
 )
@@ -28,80 +28,73 @@ func Unnormalize(out *bufio.Writer, in *bufio.Reader) error {
 	return err
 }
 
-type replacer = struct {
-	re   *regexp.Regexp
-	repl []byte
-}
-
-var (
-	left  string = "\ufff9"
-	mid   string = "\ufffa"
-	right string = "\ufffb"
-
-	replacers = []replacer{
-		{regexp.MustCompile(`__+`), []byte(left + `UNDERSCORES` + right)},
-		{regexp.MustCompile(`_`), []byte(left + `UNDERSCORE` + right)},
-		{regexp.MustCompile(`(\p{Pc})`), []byte(left + `PUNC_CONNECTOR` + mid + `$1` + right)},
-		{regexp.MustCompile(`{`), []byte(left + `LEFT_BRACE` + right)},
-		{regexp.MustCompile(`}`), []byte(left + `RIGHT_BRACE` + right)},
-		{regexp.MustCompile(`\|`), []byte(left + `BAR` + right)},
-		{regexp.MustCompile(`(\.{4,})`), []byte(left + `DOTS` + right)},
-		{regexp.MustCompile(`\.{3}`), []byte(`…`)},
-		{regexp.MustCompile(`\.{2}`), []byte(`‥`)},
-		{regexp.MustCompile(`(\-{4,})`), []byte(left + `HLINE` + mid + `$1` + right)},
-		{regexp.MustCompile(`\-{3}`), []byte(`—`)},
-		{regexp.MustCompile(`\-{2}`), []byte(`–`)},
-		{regexp.MustCompile(`(\*{2,})`), []byte(left + `STARS` + mid + `$1` + right)},
-		{regexp.MustCompile(`\*`), []byte(left + `STAR}`)},
-		{regexp.MustCompile(`\\`), []byte(left + `BACKSLASH` + right)},
-		{regexp.MustCompile(`/`), []byte(left + `SLASH` + right)},
-		{regexp.MustCompile(`<`), []byte(left + `LT` + right)},
-		{regexp.MustCompile(`>`), []byte(left + `GT` + right)},
-		{regexp.MustCompile(`\[`), []byte(left + `LEFT_BRACKET` + right)},
-		{regexp.MustCompile(`\]`), []byte(left + `RIGHT_BRACKET` + right)},
-		{regexp.MustCompile(`=`), []byte(left + `EQ` + right)},
-		{regexp.MustCompile(`~`), []byte(left + `TILDE` + right)},
-		{regexp.MustCompile(`\+`), []byte(left + `PLUS` + right)},
-		{regexp.MustCompile(`\$`), []byte(left + `DOLLAR` + right)},
-		{regexp.MustCompile(`\^`), []byte(left + `HAT` + right)},
-		{regexp.MustCompile(`(\p{Nd}+(?:\.\p{Nd}+)?)`), []byte(left + `NUMBER` + mid + `$1}`)},
-		{regexp.MustCompile(`(\p{Pi})`), []byte(left + `PUNC_INITIAL` + mid + `$1` + right)},
-		{regexp.MustCompile(`(\p{Pf})`), []byte(left + `PUNC_FINAL` + mid + `$1` + right)},
-		{regexp.MustCompile(`(\p{Pd})`), []byte(left + `PUNC_DASH` + mid + `$1` + right)},
-		{regexp.MustCompile(`(\p{Po})`), []byte(left + `PUNC_OTHER` + mid + `$1` + right)},
-		{regexp.MustCompile(`(\p{Ps})`), []byte(left + `PUNC_OPEN` + mid + `$1` + right)},
-		{regexp.MustCompile(`(\p{Pe})`), []byte(left + `PUNC_CLOSE` + mid + `$1` + right)},
-		{regexp.MustCompile(`(\p{Z}+)`), []byte(left + `SPACE` + mid + `$1}`)},
-		{regexp.MustCompile(left), []byte(`{`)},
-		{regexp.MustCompile(mid), []byte(`|`)},
-		{regexp.MustCompile(right), []byte(`}`)},
-	}
-)
-
 func Encode(out *bufio.Writer, in *bufio.Reader) error {
 	defer out.Flush()
 	b, err := io.ReadAll(norm.NFD.Reader(in))
 	if err != nil {
 		return err
 	}
-
-	for _, r := range replacers {
-		b = r.re.ReplaceAll(b, r.repl)
-	}
-
-	_, err = out.Write(b)
+	b = bytes.ReplaceAll(b, []byte("\u0308"), []byte("q"))
+	b = bytes.ReplaceAll(b, []byte("\u0302"), []byte("j"))
+	b = bytes.ReplaceAll(b, []byte("\u0323"), []byte("J"))
+	b = bytes.ReplaceAll(b, []byte("ø"), []byte(".o"))
+	b = bytes.ReplaceAll(b, []byte("Ø"), []byte(".O"))
+	b = bytes.ReplaceAll(b, []byte("ə"), []byte(".e"))
+	b = bytes.ReplaceAll(b, []byte("Ə"), []byte(".E"))
+	b = bytes.ReplaceAll(b, []byte("ç"), []byte(",ɔ"))
+	b = bytes.ReplaceAll(b, []byte("Ç"), []byte(",Ɔ"))
+	b = bytes.ReplaceAll(b, []byte("ɔ"), []byte("c"))
+	b = bytes.ReplaceAll(b, []byte("Ɔ"), []byte("C"))
+	b = bytes.ReplaceAll(b, []byte("ɛ"), []byte("x"))
+	b = bytes.ReplaceAll(b, []byte("Ɛ"), []byte("X"))
+	b = bytes.ReplaceAll(b, []byte("⟹"), []byte("==>"))
+	b = bytes.ReplaceAll(b, []byte("⟸"), []byte("<=="))
+	b = bytes.ReplaceAll(b, []byte("–"), []byte("--"))
+	b = bytes.ReplaceAll(b, []byte("—"), []byte("---"))
+	b = bytes.ReplaceAll(b, []byte("…"), []byte("..."))
+	b = bytes.ReplaceAll(b, []byte("»"), []byte(">>"))
+	b = bytes.ReplaceAll(b, []byte("«"), []byte("<<"))
+	b = bytes.ReplaceAll(b, []byte("’ "), []byte("' "))
+	b = bytes.ReplaceAll(b, []byte(" ‘"), []byte(" \x60"))
+	b = bytes.ReplaceAll(b, []byte("”"), []byte("''"))
+	b = bytes.ReplaceAll(b, []byte("“"), []byte("\x60\x60"))
+	w := norm.NFC.Writer(out)
+	_, err = w.Write(b)
+	w.Close()
 	return err
 }
 
 func Decode(out *bufio.Writer, in *bufio.Reader) error {
 	defer out.Flush()
-	b, err := io.ReadAll(in)
+	b, err := io.ReadAll(norm.NFD.Reader(in))
 	if err != nil {
 		return err
 	}
-
-	w := norm.NFC.Writer(out)
-	_, err = w.Write(b)
-	w.Close()
+	b = bytes.ReplaceAll(b, []byte("\x60\x60"), []byte("“"))
+	b = bytes.ReplaceAll(b, []byte("''"), []byte("”"))
+	b = bytes.ReplaceAll(b, []byte(" \x60"), []byte(" ‘"))
+	b = bytes.ReplaceAll(b, []byte(" '"), []byte(" ‘"))
+	b = bytes.ReplaceAll(b, []byte("' "), []byte("’ "))
+	b = bytes.ReplaceAll(b, []byte("<<"), []byte("«"))
+	b = bytes.ReplaceAll(b, []byte(">>"), []byte("»"))
+	b = bytes.ReplaceAll(b, []byte("..."), []byte("…"))
+	b = bytes.ReplaceAll(b, []byte("---"), []byte("—"))
+	b = bytes.ReplaceAll(b, []byte("--"), []byte("–"))
+	b = bytes.ReplaceAll(b, []byte("<=="), []byte("⟸"))
+	b = bytes.ReplaceAll(b, []byte("==>"), []byte("⟹"))
+	b = bytes.ReplaceAll(b, []byte("X"), []byte("Ɛ"))
+	b = bytes.ReplaceAll(b, []byte("x"), []byte("ɛ"))
+	b = bytes.ReplaceAll(b, []byte("C"), []byte("Ɔ"))
+	b = bytes.ReplaceAll(b, []byte("c"), []byte("ɔ"))
+	b = bytes.ReplaceAll(b, []byte(",Ɔ"), []byte("Ç"))
+	b = bytes.ReplaceAll(b, []byte(",ɔ"), []byte("ç"))
+	b = bytes.ReplaceAll(b, []byte(".E"), []byte("Ə"))
+	b = bytes.ReplaceAll(b, []byte(".e"), []byte("ə"))
+	b = bytes.ReplaceAll(b, []byte(".O"), []byte("Ø"))
+	b = bytes.ReplaceAll(b, []byte(".o"), []byte("ø"))
+	b = bytes.ReplaceAll(b, []byte("J"), []byte("\u0323"))
+	b = bytes.ReplaceAll(b, []byte("j"), []byte("\u0302"))
+	b = bytes.ReplaceAll(b, []byte("q"), []byte("\u0308"))
+	_, err = out.Write(b)
 	return err
 }

@@ -25,7 +25,7 @@ var (
 
 	encodeCmd = &cobra.Command{
 		Use:   "encode",
-		Short: "Read from stdin, encode ASCII into UTF8 format, then write to stdout",
+		Short: "Read from stdin, encode UTF8 into ASCII format, then write to stdout",
 		Run: func(cmd *cobra.Command, args []string) {
 			in := bufio.NewReader(os.Stdin)
 			out := bufio.NewWriter(os.Stdout)
