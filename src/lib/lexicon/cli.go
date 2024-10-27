@@ -10,7 +10,7 @@ import (
 
 func Init(rootCmd *cobra.Command) {
 	lookupCmd.Flags().StringVar(&tonelessFlagValue, "toneless", "", "Returns values only where this regexp partially matches toneless.")
-	lookupCmd.Flags().StringVar(&sangoFlagValue, "sango", "", "Returns values only where this regexp partially matches sango.")
+	lookupCmd.Flags().StringVar(&lemmaFlagValue, "lemma", "", "Returns values only where this regexp partially matches lemma.")
 	lookupCmd.Flags().StringVar(&udPosFlagValue, "ud_os", "", "Returns values only where this regexp partially matches uDPos.")
 	lookupCmd.Flags().StringVar(&udFeatureFlagValue, "ud_feature", "", "Returns values only where this regexp partially matches uDFeature.")
 	lookupCmd.Flags().StringVar(&categoryFlagValue, "category", "", "Returns values only where this regexp partially matches category.")
@@ -24,7 +24,7 @@ func Init(rootCmd *cobra.Command) {
 
 var (
 	tonelessFlagValue           string
-	sangoFlagValue              string
+	lemmaFlagValue              string
 	udPosFlagValue              string
 	udFeatureFlagValue          string
 	categoryFlagValue           string
@@ -35,7 +35,7 @@ var (
 
 	lexiconCmd = &cobra.Command{
 		Use:   "lexicon",
-		Short: "A CLI to lexicon Sango between UTF8 and ASCII",
+		Short: "A CLI to interact with the Sango lexicon",
 		Long:  "https://github.com/zokwezo/sango/blob/main/src/lib/lexicon/README.md",
 	}
 
@@ -47,7 +47,7 @@ var (
 
 			f := DictRowRegexp{
 				TonelessRE:           regexp.MustCompile(tonelessFlagValue),
-				SangoRE:              regexp.MustCompile(sangoFlagValue),
+				LemmaRE:              regexp.MustCompile(lemmaFlagValue),
 				UDPosRE:              regexp.MustCompile(udPosFlagValue),
 				UDFeatureRE:          regexp.MustCompile(udFeatureFlagValue),
 				CategoryRE:           regexp.MustCompile(categoryFlagValue),

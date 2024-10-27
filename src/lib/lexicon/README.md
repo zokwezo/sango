@@ -6,7 +6,7 @@ The lexicon data can be extracted from code (if needed for other purposes) into 
 
 ```bash
 outfile="/tmp/lexicon.csv"
-echo '"Toneless","Sango","UDPos","UDFeature","Category","Frequency","EnglishTranslation","EnglishDefinition"' >  "${outfile}"
+echo '"Toneless","Heightless","Lemma","UDPos","UDFeature","Category","Frequency","EnglishTranslation","EnglishDefinition"' >  "${outfile}"
 cat lexicon.go | grep -E '^\s*{"[a-z]*",' | head -n -9 | sed -E 's/^\s*\{((.)*)\},/\1/' | sed -E 's/(["0-9],) /\1/g' >> "${outfile}"
 ```
 
@@ -72,8 +72,9 @@ Each lexicon row contains the following columns, intended i.a. to establish a re
 
 | Name                | Type   | Description                                                                               |
 | ------------------- | ------ | ----------------------------------------------------------------------------------------- |
-| Toneless            | string | Lexeme after omitting pitch accent, vowel height, and punctuation                         |
-| Sango               | string | Lexeme with accents and close/open vowel distinctions                                     |
+| Toneless            | string | = Heightless column, but with whitespace, hyphens, and pitch removed                      |
+| Heightless          | string | = Lemma column, but with case and height removed                                          |
+| Lemma               | string | Lemma (possibly multiword) with accents and close/open vowel distinctions                 |
 | UDPos               | string | [Universal Dependency Part-of-speech](https://universaldependencies.org/u/pos/index.html) |
 | UDFeature           | string | [Universal Dependency Feature](https://universaldependencies.org/u/feat/)                 |
 | Category            | string | Semantic cluster label                                                                    |
@@ -83,15 +84,16 @@ Each lexicon row contains the following columns, intended i.a. to establish a re
 
 Please note the following:
 
-1. All columns have a non-empty value except UDFeature and Category which are empty if unclassified.
-2. The first 6 columns (`Toneless`, `Sango`, `UDPos`, `UDFeature`, `Category`) form a unique 6-tuple primary key, and rows
-   are in strict ascending lexical key order to enable binary search and [lower, upper) bound interval lookups in the tables.
+1. The first lexicon row is a copyright and license statement, which must remain with the data (whether stored or in memory).
+   It is the only row with empty values for Toneless, Heightless, and Lemma columns.
+2. The columns (`Lemma`, `UDPos`, `UDFeature`, `Category`, `Frequency`) form a minimal 5-tuple primary key and the rows
+   are sorted in strict ascending order to enable binary search and [lower, upper) bound interval lookups in the tables.
 3. Hyphenation is used for clarity in separating Sango morphemes and is suitable for generation, but parsing
    should not depend on its presence as there is free variation in the use of punctuation in corpora.
 4. **Pitch accent is always indicated in the official orthography**
    and is important to distinguish meanings and/or parts of speech, e.g.
 
-   | Toneless | Sango | UDPos | UDFeature   | Category | English Translation             |
+   | Toneless | Lemma | UDPos | UDFeature   | Category | English Translation             |
    | -------- | ----- | ----- | ----------- | -------- | ------------------------------- |
    | iri      | îri   | VERB  | Subcat=Tran | INTERACT | call, name                      |
    | iri      | ïrï   | NOUN  |             | INTERACT | name                            |
@@ -100,17 +102,17 @@ Please note the following:
    | kua      | küä   | NOUN  |             | BODY     | hair, fur, pelt, feathers, down |
 
 5. **Vowel height is not indicated in the official orthography** but is nonetheless important in aural understanding and therefore
-   represented here in the Sango column explicitly.
+   represented here in the Lemma column explicitly.
 
    - Although easily restored from context in real time by native speakers when reading aloud, the open vowels **Ɛ** and **Ɔ** are used
-     (leaving **E** and **O** to represent close vowels) in the Sango column to aid nonnative speakers and text-to-speech applications.
+     (leaving **E** and **O** to represent close vowels) in the Lemma column to aid nonnative speakers and text-to-speech applications.
    - Conversion to the standard orthography is just a constant static many-to-one mapping and not worth persisting in the table.
    - There is a strong tendency towards internal vowel harmony, so that open and close vowels do not co-occur in the same lemma.
 
    Consider the following distinctions in vowel height (which can arise with any pitch accent and are unfortunately neither
    productive nor easily predicted with transformation rules and must be cataloged explicitly as separate lexemes):
 
-   | Sango | UDPos | UDFeature   | Category | English Translation         |
+   | Lemma | UDPos | UDFeature   | Category | English Translation         |
    | ----- | ----- | ----------- | -------- | --------------------------- |
    | de    | VERB  | Subcat=Intr | BODY     | vomit                       |
    | dɛ    | VERB  |             | STATE    | remain                      |
@@ -122,7 +124,7 @@ Please note the following:
 6. There are 8 affixes sufficiently productive that they are automatically affixed to all compatible lemmas
    (governed by UDFeature `CanPrefix=`_UDPos_) on startup to generate derived lemmas. These are:
 
-   | Sango | UDPos | UDFeature                              | Category | English Definition  |
+   | Lemma | UDPos | UDFeature                              | Category | English Definition  |
    | ----- | ----- | -------------------------------------- | -------- | ------------------- |
    | a     | VERB  | CanPrefix=VERB\|Person=3\|VerbForm=Fin | WHO      | subject marker      |
    | â     | ADJ   | CanPrefix=ADJ\|Number=Plur             | NUM      | plural marker       |
@@ -148,7 +150,7 @@ Please note the following:
 
    - initial syllable (or word) reduplication
 
-     | Sango      | UDPos | UDFeature                   | Category | English Definition                                         |
+     | Lemma      | UDPos | UDFeature                   | Category | English Definition                                         |
      | ---------- | ----- | --------------------------- | -------- | ---------------------------------------------------------- |
      | fadë       | ADV   |                             | WHEN     | [postverbal]: right now; [preverbal]: will, shall          |
      | fafadësô   | ADV   |                             | WHEN     | immediately                                                |
@@ -161,7 +163,7 @@ Please note the following:
 
    - final syllable reduplication (often presenting as **-ra**) = similar to **-nga** but as a diminuitive repetitive action, cf.
 
-     | Sango  | UDPos | UDFeature   | Category | English Definition                               |
+     | Lemma  | UDPos | UDFeature   | Category | English Definition                               |
      | ------ | ----- | ----------- | -------- | ------------------------------------------------ |
      | fâa    | VERB  | Subcat=Tran | ACT      | cross, traverse; cut, strike, break; wound, kill |
      | fângbi | VERB  | Subcat=Tran | ACT      | cut up, dissect (into large pieces)              |
@@ -169,7 +171,7 @@ Please note the following:
 
    - high pitch morphology to indicate irrealis mood (moribund, now subsumed by the subordinating conjunction **töngana**)
 
-     | Sango           | UDPos | UDFeature                                     | Category | English Definition                  |
+     | Lemma           | UDPos | UDFeature                                     | Category | English Definition                  |
      | --------------- | ----- | --------------------------------------------- | -------- | ----------------------------------- |
      | atɛnɛ           | VERB  | Mood=Ind\|Person=3\|Subcat=Tran\|VerbForm=Fin | INTERACT | one says/tells                      |
      | âtɛnɛ [rare]    | VERB  | Mood=Irr\|Person=3\|Subcat=Tran\|VerbForm=Fin | INTERACT | if one had said/told                |

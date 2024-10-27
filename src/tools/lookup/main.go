@@ -22,7 +22,8 @@ func main() {
 	getBytesFields := func(d l.DictCols) []bytesField {
 		return []bytesField{
 			bytesField{"Toneless           ", &d.Toneless},
-			bytesField{"SangoUTF8          ", &d.SangoUTF8},
+			bytesField{"Heightless         ", &d.Heightless},
+			bytesField{"LemmaUTF8          ", &d.LemmaUTF8},
 			bytesField{"UDPos              ", &d.UDPos},
 			bytesField{"UDFeature          ", &d.UDFeature},
 			bytesField{"Category           ", &d.Category},
@@ -33,7 +34,7 @@ func main() {
 
 	getRunesFields := func(d l.DictCols) []runesField {
 		return []runesField{
-			runesField{"Sango              ", &d.Sango},
+			runesField{"Lemma              ", &d.Lemma},
 		}
 	}
 
@@ -41,9 +42,10 @@ func main() {
 	cols := l.LexiconCols()
 	fmt.Printf("\n\nROWS:\n")
 	for _, r := range rows {
-		fmt.Printf("\t\t{%q, %q, %q, %q, %q, %v, %q, %q},\n",
+		fmt.Printf("\t\t{%q, %q, %q, %q, %q, %q, %v, %q, %q},\n",
 			r.Toneless,
-			r.Sango,
+			r.Heightless,
+			r.Lemma,
 			r.UDPos,
 			r.UDFeature,
 			r.Category,
@@ -64,18 +66,14 @@ func main() {
 		}
 	}
 
-	// Look for first entry <= {Toneless: "butuma" Sango: "butuma"}
 	cmpFunc := func(lhs, rhs l.DictRow) int {
-		if cmp := strings.Compare(lhs.Toneless, rhs.Toneless); cmp != 0 {
-			return cmp
-		}
-		return strings.Compare(lhs.Sango, rhs.Sango)
+		return strings.Compare(lhs.Toneless, rhs.Toneless)
 	}
-	entry := l.DictRow{Toneless: "butuma", Sango: "butuma"}
+	entry := l.DictRow{Toneless: "nzoni"}
 	nBegin, found := slices.BinarySearchFunc(l.LexiconRows(), entry, cmpFunc)
 	fmt.Printf("Looking for %v at entry[%v] (found = %v)\n", entry, nBegin, found)
-	entry = l.DictRow{Toneless: "butuma", Sango: "butumb"}
-	nEnd, _ := slices.BinarySearchFunc(l.LexiconRows(), entry, cmpFunc)
+	entryEnd := l.DictRow{Toneless: "nzoni ", Lemma: ""}
+	nEnd, _ := slices.BinarySearchFunc(l.LexiconRows(), entryEnd, cmpFunc)
 	for n := nBegin; n < nEnd; n++ {
 		fmt.Printf("entry[%v] = %v\n", n, l.LexiconRows()[n])
 	}

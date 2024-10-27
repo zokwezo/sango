@@ -7,10 +7,10 @@ import (
 	cuckoo "github.com/panmari/cuckoofilter"
 )
 
-func TestGenerateEncodedCuckooFilterOfSango(t *testing.T) {
-	cf := cuckoo.NewFilter(uint(len(LexiconCols().SangoUTF8)))
+func TestGenerateEncodedCuckooFilterOfLemma(t *testing.T) {
+	cf := cuckoo.NewFilter(uint(len(LexiconCols().LemmaUTF8)))
 	keys := map[string]struct{}{}
-	for _, sangoUTF8 := range LexiconCols().SangoUTF8 {
+	for _, sangoUTF8 := range LexiconCols().LemmaUTF8 {
 		key := string(sangoUTF8)
 		if _, found := keys[key]; !found {
 			keys[key] = struct{}{}
@@ -39,6 +39,22 @@ func TestGenerateEncodedCuckooFilterOfToneless(t *testing.T) {
 	}
 }
 
+func TestGenerateEncodedCuckooFilterOfHeightless(t *testing.T) {
+	cf := cuckoo.NewFilter(uint(len(LexiconCols().Heightless)))
+	keys := map[string]struct{}{}
+	for _, heightless := range LexiconCols().Heightless {
+		key := string(heightless)
+		if _, found := keys[key]; !found {
+			keys[key] = struct{}{}
+			cf.Insert(heightless)
+		}
+	}
+	err := os.WriteFile("/tmp/wordlist_sg_heightless.cf", cf.Encode(), 0664)
+	if err != nil {
+		t.Error(err)
+	}
+}
+
 func TestConsistencyBetweenRowAndColMajorOrder(t *testing.T) {
 	name := "Lexicon"
 	rows := LexiconRows()
@@ -52,11 +68,11 @@ func TestConsistencyBetweenRowAndColMajorOrder(t *testing.T) {
 	if nc := len(cols.Toneless); nc != nr {
 		t.Error(name, ": Toneless cols has ", nc, " entries, but rows has ", nr, " entries")
 	}
-	if nc := len(cols.Sango); nc != nr {
-		t.Error(name, ": Sango cols has ", nc, " entries, but rows has ", nr, " entries")
+	if nc := len(cols.Lemma); nc != nr {
+		t.Error(name, ": Lemma cols has ", nc, " entries, but rows has ", nr, " entries")
 	}
-	if nc := len(cols.SangoUTF8); nc != nr {
-		t.Error(name, ": SangoUTF8 cols has ", nc, " entries, but rows has ", nr, " entries")
+	if nc := len(cols.LemmaUTF8); nc != nr {
+		t.Error(name, ": LemmaUTF8 cols has ", nc, " entries, but rows has ", nr, " entries")
 	}
 	if nc := len(cols.UDPos); nc != nr {
 		t.Error(name, ": UDPos cols has ", nc, " entries, but rows has ", nr, " entries")
@@ -87,7 +103,7 @@ func TestConsistencyBetweenRowAndColMajorOrder(t *testing.T) {
 
 	for k, row := range rows {
 		if len(row.Toneless) == 0 {
-			if len(row.Sango) == 0 {
+			if len(row.Lemma) == 0 {
 				// Skip metadata header row
 				continue
 			}
@@ -97,14 +113,14 @@ func TestConsistencyBetweenRowAndColMajorOrder(t *testing.T) {
 			t.Error(name, ": Toneless[", k, "] col (", s, ") != row (", row.Toneless, ")")
 		}
 
-		if len(row.Sango) == 0 {
-			t.Error(name, ": Sango row is empty")
+		if len(row.Lemma) == 0 {
+			t.Error(name, ": Lemma row is empty")
 		}
-		if s := string(cols.Sango[k]); s != row.Sango {
-			t.Error(name, ": Sango[", k, "] col (", s, ") != row (", row.Sango, ")")
+		if s := string(cols.Lemma[k]); s != row.Lemma {
+			t.Error(name, ": Lemma[", k, "] col (", s, ") != row (", row.Lemma, ")")
 		}
-		if s := string(cols.SangoUTF8[k]); s != row.Sango {
-			t.Error(name, ": SangoUTF8[", k, "] col (", s, ") != row (", row.Sango, ")")
+		if s := string(cols.LemmaUTF8[k]); s != row.Lemma {
+			t.Error(name, ": LemmaUTF8[", k, "] col (", s, ") != row (", row.Lemma, ")")
 		}
 
 		if len(row.UDPos) == 0 {
