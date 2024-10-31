@@ -32,10 +32,12 @@ C'est ici une des facettes du comportement de ce personnage Tèrè, mais en mêm
 
 # Preface (translated into English)
 
+After a first collection of stories entitled: “Love and Violence”, we present here the second under the title “The tricks of Tèrè”.
+
 These texts have a certain number of characteristics in common, of which we will retain two: first, the mythical character, the first Man, Tɛrɛ, known by this name or others by various Central African ethnic groups, is the main hero. Then, this character uses trickery to achieve his ends, and this trickery succeeds, except once when, wanting to obtain wisdom, he triumphs perfectly over the tests imposed on him by the Great Genius of the Forest, but the latter doubtlessly finds that Tɛrɛ is rather cunning and does not grant him what he was asking for. Elsewhere, Tɛrɛ succeeds in appropriating food at the expense of a wealthy person, whether it be Pig, Man, or Crocodile. He also provokes the Geniuses by mocking and playing with them. He manages not to be buried with his deceased wife, a clause of the marriage contract imposed by his father-in-law and clearly accepted.
 
 Beyond these tricks, is there not here the contestation of the weak against the powerful, of the poor against the rich, of the inferior against the abusive superior, and is it not the latter who finds himself duped without anyone finding fault with it?
 
 This is one of the facets of the behavior of this character Tɛrɛ, but at the same time a reflection of the relationships between men, or between men and the great beyond.
 
-— Pierre Saulnier, Avril 1983, Bangui
+— Pierre Saulnier, April 1983, Bangui
