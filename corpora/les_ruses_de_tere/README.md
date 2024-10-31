@@ -8,15 +8,21 @@ and his interactions with Tɔ̈rɔ̈ ti Gbakô (Spirit of the Forest), Ngûru (P
 Unlike in Western fables, there is no suggestion that the actions of the trickster should be condemned,
 rather that the other characters should be less credulous and more shrewd.
 
+# Preprocessing
+
+I have updated the orthography to include vowel height (distinguishing short _ɛ/ɔ_ from long _e/o_) and supplemented the extant Sango and French text with my own English (and sometimes German) glosses and [Universal Dependency](https://universaldependencies.org/) parts of speech and feature annotations.
+
 # Availability
 
 It is very difficult to find these corpora in print form, and I am unaware of any other digital archive of them.
 
-This collection comes from a photocopy of a book no longer in my possession. I have only the following incomplete citation:
+This collection comes from a photocopy of a book no longer in my possession:
 
-> Saulnier, Pierre (Ed.). «CONTES: Les ruses de Tèrè». _ATENE TI BE-AFRICA (2)_. 1983. Bangui, CAR. US Library of Congress GR357.42.S33 R83 1983
+> SAULNIER P., 1983, Contes : Les ruses de Téré, Collection «Atene ti Be-Africa», (édition bilingue sangofrançais), Bangui, CAR. US Library of Congress GR357.42.S33 R83 1983
 
-I have updated the orthography and supplemented the extant Sango and French text with my own English (and sometimes German) glosses and [Universal Dependency](https://universaldependencies.org/) part of speech and feature annotations.
+I am still looking for other bilingual volumes of «Atene ti Be-Africa», and specifically:
+- _L'Amour et la Violence_ (1982)
+- _Mari et femmes_ (1985)
 
 # Préface (original French)
 
