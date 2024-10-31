@@ -5,8 +5,8 @@
 This is a collection of Central African fables about a clever trickster named Tɛrɛ (Spider)
 and his interactions with Tɔ̈rɔ̈ ti Gbakô (Spirit of the Forest), Ngûru (Pig), Tänä (Tortoise), Dɛngbɛ (Antilope), and Ngundë (Crocodile).
 
-Unlike Western fables, there is no suggestion that the actions of the trickster should be condemned,
-rather that the other animals should take better care of their possessions.
+Unlike in Western fables, there is no suggestion that the actions of the trickster should be condemned,
+rather that the other characters should be less credulous and more shrewd.
 
 # Availability
 
@@ -16,17 +16,17 @@ This collection comes from a photocopy of a book no longer in my possession. I h
 
 > Saulnier, Pierre (Ed.). «CONTES: Les ruses de Tèrè». _ATENE TI BE-AFRICA (2)_. 1983. Bangui, CAR. US Library of Congress GR357.42.S33 R83 1983
 
-The orthography has been updated, and I have supplemented the extant Sango and French text with my own English (and sometimes German) glosses as well.
+I have updated the orthography and supplemented the extant Sango and French text with my own English (and sometimes German) glosses and [Universal Dependency](https://universaldependencies.org/) part of speech and feature annotations.
 
 # Préface (original French)
 
-Aprés un premier recueil de contes intitulè : <<L'Amour et la Violence>>, nous prèsentons ici le second sous le titre <<Les ruses de Téré>>.
+Aprés un premier recueil de contes intitulé : «L'Amour et la Violence», nous présentons ici le second sous le titre «Les ruses de Tèrè».
 
-Ces textes ont en commun un certain nombre de caractèristiques dont nous retiendrons deux: d'abort le personnage mythique, le premier Homme, Téré, connu sous ce nom ou d'autres par les divers groupes ethniques centrafricains, en est le hèros principal. Ensuite, ce personnage emploie la ruse pour arriver à ses fins, et cette ruse lui rèussit, sauf une fois où voulant obtenir la sagesse, il triomphe parfaitement des èpreuves que lui impose le Grand Gènie de la Forêt, mail celui-ci trouve sans doute que Téré est assez rusè et ne lui octroie pas ce qu'il demandait. Ailleurs, Téré rèussit à s'approprier la nourriture aux dèpens d'un nanti, que ce soit Cochon, les Hommes, ou Crocodile. Il provoque aussi les Gènies en se moquant et en se jouant d'eux. Il rèussit à ne pas se faire enterrer avec sa femme dècèdèe, clause du contrat de mariage imposèe par son beau-pére et clairement acceptèe.
+Ces textes ont en commun un certain nombre de caractéristiques dont nous retiendrons deux: d'abort le personnage mythique, le premier Homme, Tèrè, connu sous ce nom ou d'autres par les divers groupes ethniques centrafricains, en est le héros principal. Ensuite, ce personnage emploie la ruse pour arriver à ses fins, et cette ruse lui réussit, sauf une fois où voulant obtenir la sagesse, il triomphe parfaitement des épreuves que lui impose le Grand Génie de la Forêt, mail celui-ci trouve sans doute que Tèrè est assez rusé et ne lui octroie pas ce qu'il demandait. Ailleurs, Tèrè réussit à s'approprier la nourriture aux dépens d'un nanti, que ce soit Cochon, les Hommes, ou Crocodile. Il provoque aussi les Génies en se moquant et en se jouant d'eux. Il réussit à ne pas se faire enterrer avec sa femme décédée, clause du contrat de mariage imposée par son beau-pére et clairement acceptée.
 
-Au-delà de ces ruses, n'y-a-t-il pas là la contestation du faible envers le puissant, du pauvre envers le riche, de l'infèrieur envers le supèrieur abusif, et n'est-ce pas ce dernier qui se trouve dupè sans qu'on y trouve à redire?
+Au-delà de ces ruses, n'y-a-t-il pas là la contestation du faible envers le puissant, du pauvre envers le riche, de l'inférieur envers le supérieur abusif, et n'est-ce pas ce dernier qui se trouve dupé sans qu'on y trouve à redire?
 
-C'est ici une des facettes du comportement de ce personnage Téré, mais en même temps un reflet des relations entre les hommes, ou entre les hommes et l'au-delà.
+C'est ici une des facettes du comportement de ce personnage Tèrè, mais en même temps un reflet des relations entre les hommes, ou entre les hommes et l'au-delà.
 
 — Pierre Saulnier, Avril 1983, Bangui
 
