@@ -1,0 +1,1894 @@
+# newdoc id = tere_na_nguru
+# newpar id = tere_na_nguru-p1
+# sent id = tere_na_nguru-p1s1
+# text = Tɛrɛ na Ngûru
+# text_en = Spider and Pig
+# text_fr = Araignée et Cochon
+# text_de = Spinne und Schwein
+1	Tɛrɛ	Tɛrɛ	PROPN	_	_	_	_	_	Gloss=spider
+2	na	na	ADP	_	_	_	_	_	Gloss=and
+3	Ngûru	Ngûru	PROPN	_	_	_	_	_	Gloss=pig
+
+# newpar id = tere_na_nguru-p2
+# sent id = tere_na_nguru-p2s1
+# text = Na mbɛ̂nî lâ ɔ̂kɔ, Tɛrɛ ahûnda na wâlï tî lo tî tɛnɛ lo sâra na lo kɔ̂bɛ, ngbanga tî sô nzara asâra lo mîngi.
+# text_en = One day, Spider asks his wife to make him something to eat, because he is very hungry.
+# text_fr = Un jour, Araignée demande à sa femme de lui préparer de la nourriture, car il a grand faim.
+# text_de = Eines Tages bittet Spinne seine Frau darum, ihm etwas zu essen vorzubereiten, denn er hat großen Hunger.
+1	Na	na	ADP	_	_	_	_	_	Gloss=on
+2	mbɛ̂nî	mbɛ̂nî	ADJ	_	_	_	_	_	Gloss=a-certain
+3	lâ	lâ	NOUN	_	_	_	_	_	Gloss=day
+4	ɔ̂kɔ	ɔ̂kɔ	NUM	_	_	_	_	_	Gloss=one
+5	,	_	PUNCT	_	_	_	_	_	Gloss=,
+6	Tɛrɛ	Tɛrɛ	PROPN	_	_	_	_	_	Gloss=spider
+7	a	a	PRON	_	Case=Nom|Person=3|Prefix=Yes|PronType=Art	_	_	_	Gloss=he
+8	hûnda	hûnda	VERB	_	Subcat=Tran	_	_	_	Gloss=ask
+9	na	na	ADP	_	_	_	_	_	Gloss=to
+10	wâlï	wâlï	NOUN	_	Gender=Fem	_	_	_	Gloss=wife
+11	tî	tî	ADP	_	_	_	_	_	Gloss=of
+12	lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=he
+13	tî	tî	PART	_	_	_	_	_	Gloss=to
+14	tɛnɛ	tɛnɛ	VERB	_	Subcat=Tran	_	_	_	Gloss=say
+15	lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=she
+16	sâra	sâra	VERB	_	_	_	_	_	Gloss=make
+17	na	na	ADP	_	_	_	_	_	Gloss=for
+18	lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=he
+19	kɔ̂bɛ	kɔ̂bɛ	NOUN	_	_	_	_	_	Gloss=food
+20	,	_	PUNCT	_	_	_	_	_	Gloss=,
+21	ngbanga	ngbanga	NOUN	_	_	_	_	_	Gloss=reason
+22	tî	tî	ADP	_	_	_	_	_	Gloss=of
+23	sô	sô	DET	_	PronType=Art,Rel	_	_	_	Gloss=this
+24	nzara	nzara	NOUN	_	_	_	_	_	Gloss=hunger
+25	a	a	PRON	_	Case=Nom|Person=3|Prefix=Yes|PronType=Art	_	_	_	Gloss=it
+26	sâra	sâra	VERB	_	_	_	_	_	Gloss=make
+27	lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=him
+28	mîngi	mîngi	ADV	_	_	_	_	_	Gloss=very
+29	.	_	PUNCT	_	_	_	_	_	Gloss=.
+
+# newpar id = tere_na_nguru-p3
+# sent id = tere_na_nguru-p3s1
+# text = Wâlï tî Tɛrɛ atɛnɛ na lo, tanga tî fûku tî gɔzɔ sô sï angbâ fadë kɛ̂tɛ̂ kɛ̂tɛ̂ sô, lo sâra na pɔtɔpɔ̂tɔ na môlɛngê tî lo awɛ; sï mbɛ̂nî yê ɔ̂kɔ tî tɛnɛ lo mû na lo ayɛkɛ daä pɛ̈pɛ.
+# text_en = His wife replies, the little cassava that remained she boiled up into porridge for her child; and so there is nothing left that she can give him.
+# text_fr = Sa femme lui répond que le peu de manioc qui restait elle s'en suit servi pour préparer la bouillie de son enfant; et pour cette raison il n'y a plus rien à lui donner.
+# text_de = Seine Frau erwidert, dass das wenige Manioc, das übrig bleibt, hat sie in einen Brei für ihr Kind gekocht, und dass für ihn also nichts übrig bleibt.
+1	Wâlï	wâlï	NOUN	_	Gender=Fem	_	_	_	Gloss=wife
+2	tî	tî	ADP	_	_	_	_	_	Gloss=of
+3	Tɛrɛ	Tɛrɛ	PROPN	_	_	_	_	_	Gloss=spider
+4	a	a	PRON	_	Case=Nom|Person=3|Prefix=Yes|PronType=Art	_	_	_	Gloss=she
+5	tɛnɛ	tɛnɛ	VERB	_	Subcat=Tran	_	_	_	Gloss=say
+6	na	na	ADP	_	_	_	_	_	Gloss=to
+7	lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=he
+8	,	_	PUNCT	_	_	_	_	_	Gloss=,
+9	tanga	tanga	NOUN	_	_	_	_	_	Gloss=remaining-portion
+10	tî	tî	ADP	_	_	_	_	_	Gloss=of
+11	fûku	fûku	NOUN	_	_	_	_	_	Gloss=flour
+12	tî	tî	ADP	_	_	_	_	_	Gloss=of
+13	gɔzɔ	gɔzɔ	NOUN	_	_	_	_	_	Gloss=manioc-root
+14	sô	sô	DET	_	PronType=Art,Rel	_	_	_	Gloss=this
+15	sï	sï	ADV	_	_	_	_	_	Gloss=first
+16	a	a	PRON	_	Case=Nom|Person=3|Prefix=Yes|PronType=Art	_	_	_	Gloss=it
+17	ngbâ	ngbâ	VERB	_	Subcat=Intr	_	_	_	Gloss=remain
+18	fadë	fadë	ADV	_	_	_	_	_	Gloss=right-now
+19	kɛ̂tɛ̂	kɛ̂tɛ̂	NOUN	_	_	_	_	_	Gloss=little-bit
+20	kɛ̂tɛ̂	kɛ̂tɛ̂	NOUN	_	_	_	_	_	Gloss=little-bit
+21	sô	sô	DET	_	PronType=Art,Rel	_	_	_	Gloss=this
+22	,	_	PUNCT	_	_	_	_	_	Gloss=,
+23	lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=she
+24	sâra	sâra	VERB	_	_	_	_	_	Gloss=make
+25	na	na	ADP	_	_	_	_	_	Gloss=into
+26	pɔtɔpɔ̂tɔ	pɔtɔpɔ̂tɔ	NOUN	_	_	_	_	_	Gloss=mud
+27	na	na	ADP	_	_	_	_	_	Gloss=for
+28	môlɛngê	môlɛngɛ̂	NOUN	_	_	_	_	_	Gloss=child
+29	tî	tî	ADP	_	_	_	_	_	Gloss=of
+30	lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=her
+31	awɛ	awɛ	PART	_	_	_	_	_	Gloss=already
+32	;	_	PUNCT	_	_	_	_	_	Gloss=;
+33	sï	sï	ADV	_	_	_	_	_	Gloss=first
+34	mbɛ̂nî	mbɛ̂nî	ADJ	_	_	_	_	_	Gloss=any
+35	yê	yê	NOUN	_	_	_	_	_	Gloss=thing
+36	ɔ̂kɔ	ɔ̂kɔ	NUM	_	_	_	_	_	Gloss=one
+37	tî	tî	PART	_	_	_	_	_	Gloss=to
+38	tɛnɛ	tɛnɛ	VERB	_	Subcat=Tran	_	_	_	Gloss=say
+39	lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=she
+40	mû	mû	VERB	_	Subcat=Tran	_	_	_	Gloss=give
+41	na	na	ADP	_	_	_	_	_	Gloss=to
+42	lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=him
+43	a	a	PRON	_	Case=Nom|Person=3|Prefix=Yes|PronType=Art	_	_	_	Gloss=it
+44	yɛkɛ	yɛkɛ	VERB	_	_	_	_	_	Gloss=is
+45	daä	daä	PART	_	_	_	_	_	Gloss=there
+46	pɛ̈pɛ	pɛ̈pɛ	PART	_	Polarity=Neg	_	_	_	Gloss=not
+47	.	_	PUNCT	_	_	_	_	_	Gloss=.
+
+# newpar id = tere_na_nguru-p4
+# sent id = tere_na_nguru-p4s1
+# text = Tɛrɛ agbï yä tî lo ngangü; lɛ̂ tî lo avûkɔ na nzara.
+# text_en = Spider can only tighten his belt; his face is darkened with hunger.
+# text_fr = Il ne reste plus alors à Araignée qu'à se serrer la ceinture; il a le visage noirâtre de faim.
+# text_de = Spinne kann nur noch seinen Gürtel enger ziehen; sein Gesicht ist finster von Hunger.
+1	Tɛrɛ	Tɛrɛ	PROPN	_	_	_	_	_	Gloss=spider
+2	a	a	PRON	_	Case=Nom|Person=3|Prefix=Yes|PronType=Art	_	_	_	Gloss=he
+3	gbï	gbï	VERB	_	_	_	_	_	Gloss=burn
+4	yä	yä	NOUN	_	_	_	_	_	Gloss=inside
+5	tî	tî	ADP	_	_	_	_	_	Gloss=of
+6	lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=him
+7	ngangü	ngangü	ADV	_	_	_	_	_	Gloss=powerfully
+8	;	_	PUNCT	_	_	_	_	_	Gloss=;
+9	lɛ̂	lɛ̂	NOUN	_	_	_	_	_	Gloss=face
+10	tî	tî	ADP	_	_	_	_	_	Gloss=of
+11	lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=him
+12	a	a	PRON	_	Case=Nom|Person=3|Prefix=Yes|PronType=Art	_	_	_	Gloss=it
+13	vûkɔ	vûkɔ	VERB	_	Subcat=Intr	_	_	_	Gloss=is-black
+14	na	na	ADP	_	_	_	_	_	Gloss=with
+15	nzara	nzara	NOUN	_	_	_	_	_	Gloss=hunger
+16	.	_	PUNCT	_	_	_	_	_	Gloss=.
+
+# sent id = tere_na_nguru-p4s2
+# text = Tambûla kûɛ̂ akara lo.
+# text_en = Even walking is difficult for him.
+# text_fr = Il marche avec beaucoup de peine.
+# text_de = Sogar das Gehen ist ihm schwierig.
+1	Tambûla	tambûla	NOUN	_	_	_	_	_	Gloss=walk
+2	kûɛ̂	kûɛ̂	DET	_	PronType=Tot	_	_	_	Gloss=all
+3	a	a	PRON	_	Case=Nom|Person=3|Prefix=Yes|PronType=Art	_	_	_	Gloss=it
+4	kara	kara	VERB	_	Subcat=Tran	_	_	_	Gloss=embarrass
+5	lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=him
+6	.	_	PUNCT	_	_	_	_	_	Gloss=.
+
+# newpar id = tere_na_nguru-p5
+# sent id = tere_na_nguru-p5s1
+# text = Asî na lâkûî nî, lo bi konza tî lo na sêse sï lo längɔ̈ na ndo nî.
+# text_en = When night falls, he throws down his mat and lies down.
+# text_fr = A la tombée de la nuit, il étend sa natte par terre et se couche.
+# text_de = Bei Sonnenuntergang wirft er seine Matte auf den Boden und legt sich.
+1	A	a	PRON	_	Case=Nom|Person=3|Prefix=Yes|PronType=Art	_	_	_	Gloss=it
+2	sî	sî	VERB	_	Subcat=Intr	_	_	_	Gloss=arrive
+3	na	na	ADP	_	_	_	_	_	Gloss=at
+4	lâkûî	lâkûî	NOUN	_	_	_	_	_	Gloss=evening
+5	nî	nî	DET	_	PronType=Art	_	_	_	Gloss=the
+6	,	_	PUNCT	_	_	_	_	_	Gloss=,
+7	lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=he
+8	bi	bi	VERB	_	Subcat=Tran	_	_	_	Gloss=throw-down
+9	konza	konza	NOUN	_	_	_	_	_	Gloss=mat
+10	tî	tî	ADP	_	_	_	_	_	Gloss=of
+11	lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=him
+12	na	na	ADP	_	_	_	_	_	Gloss=on
+13	sêse	sêse	NOUN	_	_	_	_	_	Gloss=ground
+14	sï	sï	ADV	_	_	_	_	_	Gloss=first
+15	lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=he
+16	längɔ̈	längɔ̈	VERB	_	Subcat=Intr	_	_	_	Gloss=lie-down
+17	na	na	ADP	_	_	_	_	_	Gloss=at
+18	ndo	ndo	NOUN	_	_	_	_	_	Gloss=place
+19	nî	nî	DET	_	PronType=Art	_	_	_	Gloss=the
+20	.	_	PUNCT	_	_	_	_	_	Gloss=.
+
+# sent id = tere_na_nguru-p5s2
+# text = Lo yê tî bi lɛ̂ tî lo töngasô, lo bâa na yä tî vükɔ̈ngɔ̈ ndo yingɔ̈ tî mbɛ̂nî zo sô ayɛkɛ gä na mbâgë tî lo.
+# text_en = He looks up and in the darkness sees the silhouette of a man coming towards him.
+# text_fr = Il jette un coup d'oeil, et dans l'obscurité il voit la silhouette d'un homme qui vient vers lui.
+# text_de = Er schaut nach oben und sieht in der Dunkelheit die Silhouette eines Mannes, der auf ihn zukommt.
+1	Lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=he
+2	yê	yê	VERB	_	_	_	_	_	Gloss=want
+3	tî	tî	PART	_	_	_	_	_	Gloss=to
+4	bi	bi	VERB	_	Subcat=Tran	_	_	_	Gloss=cast
+5	lɛ̂	lɛ̂	NOUN	_	_	_	_	_	Gloss=eye
+6	tî	tî	ADP	_	_	_	_	_	Gloss=of
+7	lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=him
+8	töngasô	töngasô	ADV	_	_	_	_	_	Gloss=thus
+9	,	_	PUNCT	_	_	_	_	_	Gloss=,
+10	lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=he
+11	bâa	bâa	VERB	_	_	_	_	_	Gloss=see
+12	na	na	ADP	_	_	_	_	_	Gloss=to
+13	yä	yä	NOUN	_	_	_	_	_	Gloss=inside
+14	tî	tî	ADP	_	_	_	_	_	Gloss=of
+15	vükɔ̈ngɔ̈	vûkɔ	VERB	_	Subcat=Intr|VerbForm=Vnoun	_	_	_	Gloss=darkening
+16	ndo	ndo	NOUN	_	_	_	_	_	Gloss=place
+17	yingɔ̈	yingɔ̈	NOUN	_	_	_	_	_	Gloss=shadow
+18	tî	tî	ADP	_	_	_	_	_	Gloss=of
+19	mbɛ̂nî	mbɛ̂nî	ADJ	_	_	_	_	_	Gloss=some
+20	zo	zo	NOUN	_	_	_	_	_	Gloss=person
+21	sô	sô	DET	_	PronType=Art,Rel	_	_	_	Gloss=this
+22	a	a	PRON	_	Case=Nom|Person=3|Prefix=Yes|PronType=Art	_	_	_	Gloss=he
+23	yɛkɛ	yɛkɛ	AUX	_	_	_	_	_	Gloss=is
+24	gä	gä	VERB	_	_	_	_	_	Gloss=come
+25	na	na	ADP	_	_	_	_	_	Gloss=in
+26	mbâgë	mbâgë	NOUN	_	_	_	_	_	Gloss=direction
+27	tî	tî	ADP	_	_	_	_	_	Gloss=of
+28	lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=him
+29	.	_	PUNCT	_	_	_	_	_	Gloss=.
+
+# newpar id = tere_na_nguru-p6
+# sent id = tere_na_nguru-p6s1
+# text = Tɛrɛ alöndö sï lo hûnda yê nî:
+# text_en = He gets up and asks:
+# text_fr = Il se lève et demande:
+# text_de = Er steht auf und fragt:
+1	Tɛrɛ	Tɛrɛ	PROPN	_	_	_	_	_	Gloss=spider
+2	a	a	PRON	_	Case=Nom|Person=3|Prefix=Yes|PronType=Art	_	_	_	Gloss=they
+3	löndö	löndö	VERB	_	Subcat=Intr	_	_	_	Gloss=stand-up
+4	sï	sï	ADV	_	_	_	_	_	Gloss=first
+5	lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=he
+6	hûnda	hûnda	VERB	_	Subcat=Tran	_	_	_	Gloss=ask
+7	yê	yê	NOUN	_	_	_	_	_	Gloss=thing
+8	nî	nî	DET	_	PronType=Art	_	_	_	Gloss=the
+9	:	_	PUNCT	_	_	_	_	_	Gloss=:
+
+# newpar id = tere_na_nguru-p7
+# sent id = tere_na_nguru-p7s1
+# text = «Sô zo wa?»
+# text_en = “Who is there?”
+# text_fr = «Qui est-ce?»
+# text_de = „Wer ist das?“
+1	«	_	PUNCT	_	_	_	_	_	Gloss=«
+2	Sô	sô	DET	_	PronType=Art,Rel	_	_	_	Gloss=this
+3	zo	zo	NOUN	_	_	_	_	_	Gloss=person
+4	wa	wa	DET	_	PronType=Int	_	_	_	Gloss=which
+5	?	_	PUNCT	_	_	_	_	_	Gloss=?
+6	»	_	PUNCT	_	_	_	_	_	Gloss=»
+
+# newpar id = tere_na_nguru-p8
+# sent id = tere_na_nguru-p8s1
+# text = «Sô mbï kôya tî mɔ Bäkɔngɔ̈.»
+# text_en = “I am Turtle, your uncle.”
+# text_fr = «Je suis ton parent, Tortue.»
+# text_de = „Ich bin dein Onkel, Schildkröte.“
+1	«	_	PUNCT	_	_	_	_	_	Gloss=«
+2	Sô	sô	DET	_	PronType=Art,Rel	_	_	_	Gloss=this
+3	mbï	mbï	PRON	_	Num=Sing|Person=1|PronType=Prs	_	_	_	Gloss=i
+4	kôya	kôya	NOUN	_	Gender=Masc	_	_	_	Gloss=uncle
+5	tî	tî	ADP	_	_	_	_	_	Gloss=of
+6	mɔ	mɔ	PRON	_	Num=Sing|Person=2|PronType=Prs	_	_	_	Gloss=you
+7	Bäkɔngɔ̈	Bäkɔngɔ̈	PROPN	_	_	_	_	_	Gloss=turtle
+8	.	_	PUNCT	_	_	_	_	_	Gloss=.
+9	»	_	PUNCT	_	_	_	_	_	Gloss=»
+
+# newpar id = tere_na_nguru-p9
+# sent id = tere_na_nguru-p9s1
+# text = «Mɔ yɛkɛ gue na ndo wa na bï sô?»
+# text_en = “Where are you going in the middle of the night?”
+# text_fr = «Où vas-tu en pleine nuit?»
+# text_de = „Wohin gehst du denn so in der Mitte der Nacht?“
+1	«	_	PUNCT	_	_	_	_	_	Gloss=«
+2	Mɔ	mɔ	PRON	_	Num=Sing|Person=2|PronType=Prs	_	_	_	Gloss=you
+3	yɛkɛ	yɛkɛ	AUX	_	_	_	_	_	Gloss=is
+4	gue	gue	VERB	_	Subcat=Intr	_	_	_	Gloss=go
+5	na	na	ADP	_	_	_	_	_	Gloss=to
+6	ndo	ndo	NOUN	_	_	_	_	_	Gloss=place
+7	wa	wa	DET	_	PronType=Int	_	_	_	Gloss=which
+8	na	na	ADP	_	_	_	_	_	Gloss=at
+9	bï	bï	NOUN	_	_	_	_	_	Gloss=night
+10	sô	sô	DET	_	PronType=Art,Rel	_	_	_	Gloss=this
+11	?	_	PUNCT	_	_	_	_	_	Gloss=?
+12	»	_	PUNCT	_	_	_	_	_	Gloss=»
+
+# newpar id = tere_na_nguru-p10
+# sent id = tere_na_nguru-p10s1
+# text = «Asâra längɔ̈ otâ laä sï mbï yɛkɛ fɔnɔ na yä tî ngonda, tî gi kɔ̂bɛ tî yângâ tî mbï.
+# text_en = “I've been walking for three days now through the forest in search of food.
+# text_fr = «Ça fait trois jours que je marche à travers la forêt en quête de nourriture.
+# text_de = „Ich gehe schon drei Tage durch den Wald auf der Suche nach Nahrung.
+1	«	_	PUNCT	_	_	_	_	_	Gloss=«
+2	A	a	PRON	_	Case=Nom|Person=3|Prefix=Yes|PronType=Art	_	_	_	Gloss=it
+3	sâra	sâra	VERB	_	_	_	_	_	Gloss=do
+4	längɔ̈	längɔ̈	NOUN	_	_	_	_	_	Gloss=days-duration
+5	otâ	otâ	NUM	_	_	_	_	_	Gloss=three
+6	laä	laä	PART	_	_	_	_	_	Gloss=behold
+7	sï	sï	ADV	_	_	_	_	_	Gloss=then
+8	mbï	mbï	PRON	_	Num=Sing|Person=1|PronType=Prs	_	_	_	Gloss=i
+9	yɛkɛ	yɛkɛ	AUX	_	_	_	_	_	Gloss=am
+10	fɔnɔ	fɔnɔ	VERB	_	_	_	_	_	Gloss=walk
+11	na	na	ADP	_	_	_	_	_	Gloss=to
+12	yä	yä	NOUN	_	_	_	_	_	Gloss=inside
+13	tî	tî	ADP	_	_	_	_	_	Gloss=of
+14	ngonda	ngonda	NOUN	_	_	_	_	_	Gloss=wilderness
+15	,	_	PUNCT	_	_	_	_	_	Gloss=,
+16	tî	tî	PART	_	_	_	_	_	Gloss=to
+17	gi	gi	VERB	_	Subcat=Tran	_	_	_	Gloss=seek
+18	kɔ̂bɛ	kɔ̂bɛ	NOUN	_	_	_	_	_	Gloss=food
+19	tî	tî	ADP	_	_	_	_	_	Gloss=of
+20	yângâ	yângâ	NOUN	_	_	_	_	_	Gloss=mouth
+21	tî	tî	ADP	_	_	_	_	_	Gloss=of
+22	mbï	mbï	PRON	_	Num=Sing|Person=1|PronType=Prs	_	_	_	Gloss=me
+21	tî	tî	ADP	_	_	_	_	_	Gloss=of
+22	mbï	mbï	PRON	_	Num=Sing|Person=1|PronType=Prs	_	_	_	Gloss=me
+23	.	_	PUNCT	_	_	_	_	_	Gloss=.
+
+# sent id = tere_na_nguru-p10s2
+# text = Mbï wôko kûɛ̂ awɛ sï mbï yɛkɛ kîri na kɔ̈dɔ̈rɔ̈ tî mbï.»
+# text_en = I am tired and am returning home to the village.”
+# text_fr = Je suis fatigué et je rentre au village.»
+# text_de = Ich bin müde und kehre zum Dorf zurück.“
+1	Mbï	mbï	PRON	_	Num=Sing|Person=1|PronType=Prs	_	_	_	Gloss=i
+2	wôko	wôko	VERB	_	Subcat=Intr	_	_	_	Gloss=become-weak
+3	kûɛ̂	kûɛ̂	ADV	_	_	_	_	_	Gloss=completely
+4	awɛ	awɛ	PART	_	_	_	_	_	Gloss=already
+5	sï	sï	ADV	_	_	_	_	_	Gloss=then
+6	mbï	mbï	PRON	_	Num=Sing|Person=1|PronType=Prs	_	_	_	Gloss=i
+7	yɛkɛ	yɛkɛ	AUX	_	_	_	_	_	Gloss=am
+8	kîri	kîri	VERB	_	Subcat=Intr	_	_	_	Gloss=return
+9	na	na	ADP	_	_	_	_	_	Gloss=to
+10	kɔ̈dɔ̈rɔ̈	kɔ̈dɔ̈rɔ̈	NOUN	_	_	_	_	_	Gloss=village
+11	tî	tî	ADP	_	_	_	_	_	Gloss=of
+12	mbï	mbï	PRON	_	Num=Sing|Person=1|PronType=Prs	_	_	_	Gloss=me
+13	.	_	PUNCT	_	_	_	_	_	Gloss=.
+14	»	_	PUNCT	_	_	_	_	_	Gloss=»
+
+# newpar id = tere_na_nguru-p11
+# sent id = tere_na_nguru-p11s1
+# text = «Töngana tî tɛnɛ tî nzara, mɔ sâra na mbï tɛ̈nɛ̈ nî pɛ̈pɛ.
+# text_en = “Don't talk to me about hunger!
+# text_fr = «Ne me parle pas de la faim!
+# text_de = „Rede doch nicht zu mir von Hunger!
+1	«	_	PUNCT	_	_	_	_	_	Gloss=«
+2	Töngana	töngana	SCONJ	_	_	_	_	_	Gloss=if
+3	tî	tî	PART	_	_	_	_	_	Gloss=to
+4	tɛnɛ	tɛnɛ	VERB	_	Subcat=Tran	_	_	_	Gloss=talk
+5	tî	tî	ADP	_	_	_	_	_	Gloss=of
+6	nzara	nzara	NOUN	_	_	_	_	_	Gloss=hunger
+7	,	_	PUNCT	_	_	_	_	_	Gloss=,
+8	mɔ	mɔ	PRON	_	Num=Sing|Person=2|PronType=Prs	_	_	_	Gloss=you
+9	sâra	sâra	VERB	_	_	_	_	_	Gloss=make
+10	na	na	ADP	_	_	_	_	_	Gloss=to
+11	mbï	mbï	PRON	_	Num=Sing|Person=1|PronType=Prs	_	_	_	Gloss=me
+12	tɛ̈nɛ̈	tɛ̈nɛ̈	NOUN	_	_	_	_	_	Gloss=words
+13	nî	nî	DET	_	PronType=Art	_	_	_	Gloss=the
+14	pɛ̈pɛ	pɛ̈pɛ	PART	_	Polarity=Neg	_	_	_	Gloss=not
+15	.	_	PUNCT	_	_	_	_	_	Gloss=.
+
+# sent id = tere_na_nguru-p11s2
+# text = Bâa, mbï kûîi tî mbï nzara nî awɛ, mɔ yɛkɛ mä gɔ̂ tî mbï sɛ̂ngɛ̂.»
+# text_en = Look, I too am dying of hunger; you can hear it in my voice.”
+# text_fr = Regarde! Moi aussi, je meurs de faim; tu n'entends plus que ma voix.»
+# text_de = Sieh doch, ich sterbe auch vor Hunger, das spürst du gerade in meiner Stimme.“
+1	Bâa	bâa	VERB	_	_	_	_	_	Gloss=look
+2	,	_	PUNCT	_	_	_	_	_	Gloss=,
+3	mbï	mbï	PRON	_	Num=Sing|Person=1|PronType=Prs	_	_	_	Gloss=i
+4	kûîi	kûîi	VERB	_	_	_	_	_	Gloss=die
+5	tî	tî	ADP	_	_	_	_	_	Gloss=of
+6	mbï	mbï	PRON	_	Num=Sing|Person=1|PronType=Prs	_	_	_	Gloss=me
+7	nzara	nzara	NOUN	_	_	_	_	_	Gloss=hunger
+8	nî	nî	DET	_	PronType=Art	_	_	_	Gloss=the
+9	awɛ	awɛ	PART	_	_	_	_	_	Gloss=already
+10	,	_	PUNCT	_	_	_	_	_	Gloss=,
+11	mɔ	mɔ	PRON	_	Num=Sing|Person=2|PronType=Prs	_	_	_	Gloss=you
+12	yɛkɛ	yɛkɛ	AUX	_	_	_	_	_	Gloss=is
+13	mä	mä	VERB	_	_	_	_	_	Gloss=hear
+14	gɔ̂	gɔ̂	NOUN	_	_	_	_	_	Gloss=voice
+15	tî	tî	ADP	_	_	_	_	_	Gloss=of
+16	mbï	mbï	PRON	_	Num=Sing|Person=1|PronType=Prs	_	_	_	Gloss=me
+17	sɛ̂ngɛ̂	sɛ̂ngɛ̂	ADV	_	_	_	_	_	Gloss=simply
+18	.	_	PUNCT	_	_	_	_	_	Gloss=.
+19	»	_	PUNCT	_	_	_	_	_	Gloss=»
+
+# newpar id = tere_na_nguru-p12
+# sent id = tere_na_nguru-p12s1
+# text = «Âyi âzo, âmbɛ̂nî ayɛkɛ toto nzara, âmbɛ̂nî ayɛkɛ tɛ.»
+# text_en = “Funny how things are, some cry of hunger while others eat.”
+# text_fr = «Bon sang, certains crient de faim, tandis que d'autres mangent.»
+# text_de = „Komisch wie die Lage ist, wo manche weinen vor Hunger während andere essen.“
+1	«	_	PUNCT	_	_	_	_	_	Gloss=«
+2	Âyi	âyi	INTJ	_	_	_	_	_	Gloss=ow
+3	â	â	PART	_	Prefix=Yes	_	_	_	Gloss=[plural]
+4	zo	zo	NOUN	_	_	_	_	_	Gloss=person
+5	,	_	PUNCT	_	_	_	_	_	Gloss=,
+6	â	â	PART	_	Prefix=Yes	_	_	_	Gloss=[plural]
+7	mbɛ̂nî	mbɛ̂nî	ADJ	_	_	_	_	_	Gloss=some
+8	a	a	PRON	_	Case=Nom|Person=3|Prefix=Yes|PronType=Art	_	_	_	Gloss=they
+9	yɛkɛ	yɛkɛ	AUX	_	_	_	_	_	Gloss=is
+10	toto	toto	VERB	_	Subcat=Intr	_	_	_	Gloss=cry
+11	nzara	nzara	NOUN	_	_	_	_	_	Gloss=hunger
+12	,	_	PUNCT	_	_	_	_	_	Gloss=,
+13	â	â	PART	_	Prefix=Yes	_	_	_	Gloss=[plural]
+14	mbɛ̂nî	mbɛ̂nî	ADJ	_	_	_	_	_	Gloss=other
+15	a	a	PRON	_	Case=Nom|Person=3|Prefix=Yes|PronType=Art	_	_	_	Gloss=they
+16	yɛkɛ	yɛkɛ	AUX	_	_	_	_	_	Gloss=is
+17	tɛ	tɛ	VERB	_	_	_	_	_	Gloss=eat
+18	.	_	PUNCT	_	_	_	_	_	Gloss=.
+19	»	_	PUNCT	_	_	_	_	_	Gloss=»
+
+# newpar id = tere_na_nguru-p13
+# sent id = tere_na_nguru-p13s1
+# text = «Âzo wa laä sï nzara sô asî na kɔ̈dɔ̈rɔ̈ tî âla äpɛ sô?»
+# text_en = “What people do not know hunger in their village?”
+# text_fr = «Quels sont ceux qui ne connaissent pas la faim dans leur village?»
+# text_de = „Welche Leute kennen keinen Hunger in ihrem Dorf?“
+1	«	_	PUNCT	_	_	_	_	_	Gloss=«
+2	Â	â	PART	_	Prefix=Yes	_	_	_	Gloss=[plural]
+3	zo	zo	NOUN	_	_	_	_	_	Gloss=person
+4	wa	wa	DET	_	PronType=Int	_	_	_	Gloss=which
+5	laä	laä	PART	_	_	_	_	_	Gloss=behold
+6	sï	sï	ADV	_	_	_	_	_	Gloss=first
+7	nzara	nzara	NOUN	_	_	_	_	_	Gloss=hunger
+8	sô	sô	DET	_	PronType=Art,Rel	_	_	_	Gloss=this
+9	a	a	PRON	_	Case=Nom|Person=3|Prefix=Yes|PronType=Art	_	_	_	Gloss=they
+10	sî	sî	VERB	_	Subcat=Intr	_	_	_	Gloss=arrive
+11	na	na	ADP	_	_	_	_	_	Gloss=in
+12	kɔ̈dɔ̈rɔ̈	kɔ̈dɔ̈rɔ̈	NOUN	_	_	_	_	_	Gloss=village
+13	tî	tî	ADP	_	_	_	_	_	Gloss=of
+14	âla	âla	PRON	_	Num=Plur|Person=3|PronType=Prs	_	_	_	Gloss=them
+15	äpɛ	äpɛ	PART	_	Polarity=Neg	_	_	_	Gloss=not
+16	sô	sô	DET	_	PronType=Art,Rel	_	_	_	Gloss=this
+17	?	_	PUNCT	_	_	_	_	_	Gloss=?
+18	»	_	PUNCT	_	_	_	_	_	Gloss=»
+
+# newpar id = tere_na_nguru-p14
+# sent id = tere_na_nguru-p14s1
+# text = «Mɔ mä tî mɔ tɛ̈nɛ̈ nî pɛ̈pɛ, na ndo tî Ngûru nyama asî da tî lo?
+# text_en = “Haven't you heard that Pig has a lot of meat?
+# text_fr = «N'as-tu pas entendu dire que chez Cochon il y a beaucoup de viande?
+# text_de = „Hast du etwa nicht gehört, dass Schwein viel Fleisch hat?
+1	«	_	PUNCT	_	_	_	_	_	Gloss=«
+2	Mɔ	mɔ	PRON	_	Num=Sing|Person=2|PronType=Prs	_	_	_	Gloss=you
+3	mä	mä	VERB	_	_	_	_	_	Gloss=hear
+4	tî	tî	ADP	_	_	_	_	_	Gloss=of
+5	mɔ	mɔ	PRON	_	Num=Sing|Person=2|PronType=Prs	_	_	_	Gloss=you
+6	tɛ̈nɛ̈	tɛ̈nɛ̈	NOUN	_	_	_	_	_	Gloss=words
+7	nî	nî	DET	_	PronType=Art	_	_	_	Gloss=the
+8	pɛ̈pɛ	pɛ̈pɛ	PART	_	Polarity=Neg	_	_	_	Gloss=not
+9	,	_	PUNCT	_	_	_	_	_	Gloss=,
+10	na	na	ADP	_	_	_	_	_	Gloss=at
+11	ndo	ndo	NOUN	_	_	_	_	_	Gloss=place
+12	tî	tî	ADP	_	_	_	_	_	Gloss=of
+13	Ngûru	Ngûru	PROPN	_	_	_	_	_	Gloss=pig
+14	nyama	nyama	NOUN	_	_	_	_	_	Gloss=animal
+15	a	a	PRON	_	Case=Nom|Person=3|Prefix=Yes|PronType=Art	_	_	_	Gloss=he
+16	sî	sî	VERB	_	Subcat=Intr	_	_	_	Gloss=arrive
+17	da	da	NOUN	_	_	_	_	_	Gloss=house
+18	tî	tî	ADP	_	_	_	_	_	Gloss=of
+19	lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=him
+20	?	_	PUNCT	_	_	_	_	_	Gloss=?
+
+# sent id = tere_na_nguru-p14s2
+# text = Lo yɛkɛ tɛ bï na lâ.»
+# text_en = He eats night and day.”
+# text_fr = Jour et nuit il mange.»
+# text_de = Er isst Tag und Nacht.“
+1	Lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=he
+2	yɛkɛ	yɛkɛ	AUX	_	_	_	_	_	Gloss=is
+3	tɛ	tɛ	VERB	_	_	_	_	_	Gloss=eat
+4	bï	bï	NOUN	_	_	_	_	_	Gloss=night
+5	na	na	ADP	_	_	_	_	_	Gloss=and
+6	lâ	lâ	NOUN	_	_	_	_	_	Gloss=day
+7	.	_	PUNCT	_	_	_	_	_	Gloss=.
+8	»	_	PUNCT	_	_	_	_	_	Gloss=»
+
+# newpar id = tere_na_nguru-p15
+# sent id = tere_na_nguru-p15s1
+# text = «Kü mbï kɛ̂tɛ̂ sï, kôya, mbï mû bozö tî mbï, mbï na mɔ ë gue ë tɛ kɔ̂bɛ na ndo tî Ngûru.»
+# text_en = “Wait for me a second, uncle, I'll get my sack, and together we will go and eat at Pig's place.”
+# text_fr = «Attends-moi un peu, parent, je prends mon sac, et ensemble nous allons manger chez lui.»
+# text_de = „Warte mal einen Augenblick auf mich, Onkel, ich hole meinen Sack herbei, dann gehen wir zusammen zu Schwein zu essen.“
+1	«	_	PUNCT	_	_	_	_	_	Gloss=«
+2	Kü	kü	VERB	_	_	_	_	_	Gloss=wait-for
+3	mbï	mbï	PRON	_	Num=Sing|Person=1|PronType=Prs	_	_	_	Gloss=me
+4	kɛ̂tɛ̂	kɛ̂tɛ̂	ADV	_	_	_	_	_	Gloss=little-bit
+5	sï	sï	ADV	_	_	_	_	_	Gloss=first
+6	,	_	PUNCT	_	_	_	_	_	Gloss=,
+7	kôya	kôya	NOUN	_	Gender=Masc	_	_	_	Gloss=uncle
+8	,	_	PUNCT	_	_	_	_	_	Gloss=,
+9	mbï	mbï	PRON	_	Num=Sing|Person=1|PronType=Prs	_	_	_	Gloss=i
+10	mû	mû	VERB	_	Subcat=Tran	_	_	_	Gloss=take
+11	bozö	bozö	NOUN	_	_	_	_	_	Gloss=pocket
+12	tî	tî	ADP	_	_	_	_	_	Gloss=of
+13	mbï	mbï	PRON	_	Num=Sing|Person=1|PronType=Prs	_	_	_	Gloss=me
+14	,	_	PUNCT	_	_	_	_	_	Gloss=,
+15	mbï	mbï	PRON	_	Num=Sing|Person=1|PronType=Prs	_	_	_	Gloss=i
+16	na	na	ADP	_	_	_	_	_	Gloss=and
+17	mɔ	mɔ	PRON	_	Num=Sing|Person=2|PronType=Prs	_	_	_	Gloss=you
+18	ë	ë	PRON	_	Num=Plur|Person=1|PronType=Prs	_	_	_	Gloss=we
+19	gue	gue	VERB	_	Subcat=Intr	_	_	_	Gloss=go
+20	ë	ë	PRON	_	Num=Plur|Person=1|PronType=Prs	_	_	_	Gloss=we
+21	tɛ	tɛ	VERB	_	_	_	_	_	Gloss=eat
+22	kɔ̂bɛ	kɔ̂bɛ	NOUN	_	_	_	_	_	Gloss=food
+23	na	na	ADP	_	_	_	_	_	Gloss=at
+24	ndo	ndo	NOUN	_	_	_	_	_	Gloss=place
+25	tî	tî	ADP	_	_	_	_	_	Gloss=of
+26	Ngûru	Ngûru	PROPN	_	_	_	_	_	Gloss=pig
+27	.	_	PUNCT	_	_	_	_	_	Gloss=.
+28	»	_	PUNCT	_	_	_	_	_	Gloss=»
+
+# newpar id = tere_na_nguru-p16
+# sent id = tere_na_nguru-p16s1
+# text = «Fadë lo yê daä tî mû mbâgë tî kɔ̂bɛ tî lo nî sô na ë?»
+# text_en = “Will he be willing to give us something to eat?”
+# text_fr = «Acceptera-t-il de nous offrir un peu de nourriture?»
+# text_de = „Wird er uns etwas zu essen geben wollen?“
+1	«	_	PUNCT	_	_	_	_	_	Gloss=«
+2	Fadë	fadë	AUX	_	_	_	_	_	Gloss=shall
+3	lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=he
+4	yê	yê	VERB	_	_	_	_	_	Gloss=want
+5	daä	daä	PART	_	_	_	_	_	Gloss=there
+6	tî	tî	PART	_	_	_	_	_	Gloss=to
+7	mû	mû	VERB	_	Subcat=Tran	_	_	_	Gloss=give
+8	mbâgë	mbâgë	NOUN	_	_	_	_	_	Gloss=portion
+9	tî	tî	ADP	_	_	_	_	_	Gloss=of
+10	kɔ̂bɛ	kɔ̂bɛ	NOUN	_	_	_	_	_	Gloss=food
+11	tî	tî	ADP	_	_	_	_	_	Gloss=of
+12	lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=him
+13	nî	nî	DET	_	PronType=Art	_	_	_	Gloss=the
+14	sô	sô	DET	_	PronType=Art,Rel	_	_	_	Gloss=this
+15	na	na	ADP	_	_	_	_	_	Gloss=for
+16	ë	ë	PRON	_	Num=Plur|Person=1|PronType=Prs	_	_	_	Gloss=us
+17	?	_	PUNCT	_	_	_	_	_	Gloss=?
+18	»	_	PUNCT	_	_	_	_	_	Gloss=»
+
+# newpar id = tere_na_nguru-p17
+# sent id = tere_na_nguru-p17s1
+# text = «Dutï kpɔ̂, mbï ɔ̂kɔ mbï hînga yê sô mbï yɛkɛ sâra.»
+# text_en = “Keep calm, I for one know what I am going to do.”
+# text_fr = «Sois tranquille! Moi, je sais ce que je vais faire.»
+# text_de = „Mach dir keine Sorgen, ich weiß, was ich tun werde.“
+1	«	_	PUNCT	_	_	_	_	_	Gloss=«
+2	Dutï	dutï	VERB	_	Subcat=Intr	_	_	_	Gloss=sit
+3	kpɔ̂	kpɔ̂	ADJ	_	_	_	_	_	Gloss=calm
+4	,	_	PUNCT	_	_	_	_	_	Gloss=,
+5	mbï	mbï	PRON	_	Num=Sing|Person=1|PronType=Prs	_	_	_	Gloss=i
+6	ɔ̂kɔ	ɔ̂kɔ	NUM	_	_	_	_	_	Gloss=for-one
+7	mbï	mbï	PRON	_	Num=Sing|Person=1|PronType=Prs	_	_	_	Gloss=i
+8	hînga	hînga	VERB	_	_	_	_	_	Gloss=know
+9	yê	yê	NOUN	_	_	_	_	_	Gloss=thing
+10	sô	sô	DET	_	PronType=Art,Rel	_	_	_	Gloss=this
+11	mbï	mbï	PRON	_	Num=Sing|Person=1|PronType=Prs	_	_	_	Gloss=i
+12	yɛkɛ	yɛkɛ	AUX	_	_	_	_	_	Gloss=is
+13	sâra	sâra	VERB	_	_	_	_	_	Gloss=do
+14	.	_	PUNCT	_	_	_	_	_	Gloss=.
+15	»	_	PUNCT	_	_	_	_	_	Gloss=»
+
+# newpar id = tere_na_nguru-p18
+# sent id = tere_na_nguru-p18s1
+# text = Tɛrɛ na Bäkɔngɔ̈ atï na lêgë, sï âla gue, asî na ndo tî Ngûru.
+# text_en = Spider and Turtle set off along the road to Pig's place.
+# text_fr = Araignée et Tortue se mettent en route et s'en vont chez Cochon.
+# text_de = Spinne und Schildkröte machten sich auf den Weg zu Schwein.
+1	Tɛrɛ	Tɛrɛ	PROPN	_	_	_	_	_	Gloss=spider
+2	na	na	ADP	_	_	_	_	_	Gloss=and
+3	Bäkɔngɔ̈	Bäkɔngɔ̈	PROPN	_	_	_	_	_	Gloss=turtle
+4	a	a	PRON	_	Case=Nom|Person=3|Prefix=Yes|PronType=Art	_	_	_	Gloss=they
+5	tï	tï	VERB	_	_	_	_	_	Gloss=fall
+6	na	na	ADP	_	_	_	_	_	Gloss=on
+7	lêgë	lêgë	NOUN	_	_	_	_	_	Gloss=way
+8	,	_	PUNCT	_	_	_	_	_	Gloss=,
+9	sï	sï	ADV	_	_	_	_	_	Gloss=first
+10	âla	âla	PRON	_	Num=Plur|Person=3|PronType=Prs	_	_	_	Gloss=they
+11	gue	gue	VERB	_	Subcat=Intr	_	_	_	Gloss=go
+12	,	_	PUNCT	_	_	_	_	_	Gloss=,
+13	a	a	PRON	_	Case=Nom|Person=3|Prefix=Yes|PronType=Art	_	_	_	Gloss=they
+14	sî	sî	VERB	_	Subcat=Intr	_	_	_	Gloss=arrive
+15	na	na	ADP	_	_	_	_	_	Gloss=at
+16	ndo	ndo	NOUN	_	_	_	_	_	Gloss=place
+17	tî	tî	ADP	_	_	_	_	_	Gloss=of
+18	Ngûru	Ngûru	PROPN	_	_	_	_	_	Gloss=pig
+19	.	_	PUNCT	_	_	_	_	_	Gloss=.
+
+# sent id = tere_na_nguru-p18s2
+# text = Sô sï âla sî awɛ, Tɛrɛ amû Bäkɔngɔ̈, azîa lo na yä tî kötä bozö tî lo, sï lo fa na Bäkɔngɔ̈ yê sô lo lîngbi tî sâra nî ândɛ.
+# text_en = When they arrive, Spider takes Turtle and puts him into his little sack, and then instructs Turtle what he is to do later.
+# text_fr = Juste avant d'arriver, Araignée prend Tortue, le fourre dans son sac, et lui indique ce qu'il doit faire.
+# text_de = Als sie ankamen, packte Spinne Schildkröte in sein Säckchen ein und erklärte Schildkröte, was er später zu tun hatte.
+1	Sô	sô	DET	_	PronType=Art,Rel	_	_	_	Gloss=this
+2	sï	sï	ADV	_	_	_	_	_	Gloss=first
+3	âla	âla	PRON	_	Num=Plur|Person=3|PronType=Prs	_	_	_	Gloss=they
+4	sî	sî	VERB	_	Subcat=Intr	_	_	_	Gloss=arrive
+5	awɛ	awɛ	PART	_	_	_	_	_	Gloss=already
+6	,	_	PUNCT	_	_	_	_	_	Gloss=,
+7	Tɛrɛ	Tɛrɛ	PROPN	_	_	_	_	_	Gloss=spider
+8	a	a	PRON	_	Case=Nom|Person=3|Prefix=Yes|PronType=Art	_	_	_	Gloss=he
+9	mû	mû	VERB	_	Subcat=Tran	_	_	_	Gloss=take
+10	Bäkɔngɔ̈	Bäkɔngɔ̈	PROPN	_	_	_	_	_	Gloss=turtle
+11	,	_	PUNCT	_	_	_	_	_	Gloss=,
+12	a	a	PRON	_	Case=Nom|Person=3|Prefix=Yes|PronType=Art	_	_	_	Gloss=he
+13	zîa	zîa	VERB	_	Subcat=Tran	_	_	_	Gloss=put
+14	lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=him
+15	na	na	ADP	_	_	_	_	_	Gloss=into
+16	yä	yä	NOUN	_	_	_	_	_	Gloss=inside
+17	tî	tî	ADP	_	_	_	_	_	Gloss=of
+18	kötä	kötä	ADJ	_	_	_	_	_	Gloss=big
+19	bozö	bozö	NOUN	_	_	_	_	_	Gloss=pocket
+20	tî	tî	ADP	_	_	_	_	_	Gloss=of
+21	lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=him
+22	,	_	PUNCT	_	_	_	_	_	Gloss=,
+23	sï	sï	ADV	_	_	_	_	_	Gloss=first
+24	lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=he
+25	fa	fa	VERB	_	Subcat=Tran	_	_	_	Gloss=show
+26	na	na	ADP	_	_	_	_	_	Gloss=to
+27	Bäkɔngɔ̈	Bäkɔngɔ̈	PROPN	_	_	_	_	_	Gloss=turtle
+28	yê	yê	NOUN	_	_	_	_	_	Gloss=thing
+29	sô	sô	DET	_	PronType=Art,Rel	_	_	_	Gloss=this
+30	lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=he
+31	lîngbi	lîngbi	VERB	_	Subcat=Intr	_	_	_	Gloss=suffice
+32	tî	tî	PART	_	_	_	_	_	Gloss=to
+33	sâra	sâra	VERB	_	_	_	_	_	Gloss=do
+34	nî	nî	PRON	_	Animacy=Inan|Num=Sing|Person=3|PronType=Det|Case=Abs,Acc	_	_	_	Gloss=it
+35	ândɛ	ândɛ	ADV	_	_	_	_	_	Gloss=later
+36	.	_	PUNCT	_	_	_	_	_	Gloss=.
+
+# newpar id = tere_na_nguru-p19
+# sent id = tere_na_nguru-p19s1
+# text = Tɛrɛ apûsu ndurü na tɛrɛ̂ tî da nî, sï lo îri ndo:
+# text_en = Spider approaches close to the house and calls out:
+# text_fr = Araignée alors s'approche tout près de la maison et appelle:
+# text_de = Spinne nähert sich ans Haus und ruft aus:
+1	Tɛrɛ	Tɛrɛ	PROPN	_	_	_	_	_	Gloss=spider
+2	a	a	PRON	_	Case=Nom|Person=3|Prefix=Yes|PronType=Art	_	_	_	Gloss=he
+3	pûsu	pûsu	VERB	_	Subcat=Tran	_	_	_	Gloss=push
+4	ndurü	ndurü	ADJ	_	_	_	_	_	Gloss=near
+5	na	na	ADP	_	_	_	_	_	Gloss=to
+6	tɛrɛ̂	tɛrɛ̂	NOUN	_	_	_	_	_	Gloss=body
+7	tî	tî	ADP	_	_	_	_	_	Gloss=of
+8	da	da	NOUN	_	_	_	_	_	Gloss=house
+9	nî	nî	DET	_	PronType=Art	_	_	_	Gloss=the
+10	,	_	PUNCT	_	_	_	_	_	Gloss=,
+11	sï	sï	ADV	_	_	_	_	_	Gloss=first
+12	lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=he
+13	îri	îri	VERB	_	Subcat=Tran	_	_	_	Gloss=call
+14	ndo	ndo	NOUN	_	_	_	_	_	Gloss=place
+15	:	_	PUNCT	_	_	_	_	_	Gloss=:
+
+# newpar id = tere_na_nguru-p20
+# sent id = tere_na_nguru-p20s1
+# text = «Îtä tî mbï, Ngûru, ndo avûkɔ na mbï awɛ sï mbï lîngbi tî gue na bï sô na kɔ̈dɔ̈rɔ̈ pɛ̈pɛ.
+# text_en = “Pig, my brother, it's pitch black out and I can't go home to the village tonight.
+# text_fr = «Cochon, mon frère, il fait nuit noire, et je ne puis rentrer au village.
+# text_de = „Schwein, mein Bruder, est ist pechschwarz und ich kann diese Nacht nicht zum Dorf zurückkehren.
+1	«	_	PUNCT	_	_	_	_	_	Gloss=«
+2	Îtä	îtä	NOUN	_	_	_	_	_	Gloss=sibling
+3	tî	tî	ADP	_	_	_	_	_	Gloss=of
+4	mbï	mbï	PRON	_	Num=Sing|Person=1|PronType=Prs	_	_	_	Gloss=me
+5	,	_	PUNCT	_	_	_	_	_	Gloss=,
+6	Ngûru	Ngûru	PROPN	_	_	_	_	_	Gloss=pig
+7	,	_	PUNCT	_	_	_	_	_	Gloss=,
+8	ndo	ndo	NOUN	_	_	_	_	_	Gloss=place
+9	a	a	PRON	_	Case=Nom|Person=3|Prefix=Yes|PronType=Art	_	_	_	Gloss=it
+10	vûkɔ	vûkɔ	VERB	_	Subcat=Intr	_	_	_	Gloss=is-black
+11	na	na	ADP	_	_	_	_	_	Gloss=to
+12	mbï	mbï	PRON	_	Num=Sing|Person=1|PronType=Prs	_	_	_	Gloss=me
+13	awɛ	awɛ	PART	_	_	_	_	_	Gloss=already
+14	sï	sï	ADV	_	_	_	_	_	Gloss=first
+15	mbï	mbï	PRON	_	Num=Sing|Person=1|PronType=Prs	_	_	_	Gloss=i
+16	lîngbi	lîngbi	VERB	_	Subcat=Intr	_	_	_	Gloss=suffice
+17	tî	tî	PART	_	_	_	_	_	Gloss=to
+18	gue	gue	VERB	_	Subcat=Intr	_	_	_	Gloss=go
+19	na	na	ADP	_	_	_	_	_	Gloss=at
+20	bï	bï	NOUN	_	_	_	_	_	Gloss=night
+21	sô	sô	DET	_	PronType=Art,Rel	_	_	_	Gloss=this
+22	na	na	ADP	_	_	_	_	_	Gloss=to
+23	kɔ̈dɔ̈rɔ̈	kɔ̈dɔ̈rɔ̈	NOUN	_	_	_	_	_	Gloss=village
+24	pɛ̈pɛ	pɛ̈pɛ	PART	_	Polarity=Neg	_	_	_	Gloss=not
+25	.	_	PUNCT	_	_	_	_	_	Gloss=.
+
+# sent id = tere_na_nguru-p20s2
+# text = Mû na mbï kɛ̂tɛ̂ ndo tî längɔ̈, fadë mbï hɔ̈n na ndäpêrêrê.»
+# text_en = Give me a little place to sleep, and tomorrow morning I will continue on.”
+# text_fr = Donne-moi une petite place pour dormir et je m'en irai demain matin.»
+# text_de = Gib mir ein Plätzchen, wo ich schlafen kann, dann gehe ich morgen weiter.“
+1	Mû	mû	VERB	_	Subcat=Tran	_	_	_	Gloss=give
+2	na	na	ADP	_	_	_	_	_	Gloss=to
+3	mbï	mbï	PRON	_	Num=Sing|Person=1|PronType=Prs	_	_	_	Gloss=me
+4	kɛ̂tɛ̂	kɛ̂tɛ̂	ADJ	_	_	_	_	_	Gloss=small
+5	ndo	ndo	NOUN	_	_	_	_	_	Gloss=place
+6	tî	tî	ADP	_	_	_	_	_	Gloss=of
+7	längɔ̈	längɔ̈	NOUN	_	_	_	_	_	Gloss=sleep
+8	,	_	PUNCT	_	_	_	_	_	Gloss=,
+9	fadë	fadë	AUX	_	_	_	_	_	Gloss=shall
+10	mbï	mbï	PRON	_	Num=Sing|Person=1|PronType=Prs	_	_	_	Gloss=i
+11	hɔ̈n	hɔ̈n	VERB	_	_	_	_	_	Gloss=pass
+12	na	na	ADP	_	_	_	_	_	Gloss=in
+13	ndäpêrêrê	ndäpêrêrê	NOUN	_	_	_	_	_	Gloss=morning
+14	.	_	PUNCT	_	_	_	_	_	Gloss=.
+15	»	_	PUNCT	_	_	_	_	_	Gloss=»
+
+# newpar id = tere_na_nguru-p21
+# sent id = tere_na_nguru-p21s1
+# text = «Mɔ yɛkɛ hûnda mbï na ndo tî längɔ̈ töngana nyɛ, Tɛrɛ?
+# text_en = “How is it, Spider, that you ask me for a place to sleep?
+# text_fr = «Comment, Araignée, tu me demandes une place pour dormir?
+# text_de = „Wie kommt es vor, Spinne, dass du mich um einen Platz zu schlafen bittest?
+1	«	_	PUNCT	_	_	_	_	_	Gloss=«
+2	Mɔ	mɔ	PRON	_	Num=Sing|Person=2|PronType=Prs	_	_	_	Gloss=you
+3	yɛkɛ	yɛkɛ	AUX	_	_	_	_	_	Gloss=is
+4	hûnda	hûnda	VERB	_	Subcat=Tran	_	_	_	Gloss=ask
+5	mbï	mbï	PRON	_	Num=Sing|Person=1|PronType=Prs	_	_	_	Gloss=me
+6	na	na	ADP	_	_	_	_	_	Gloss=in
+7	ndo	ndo	NOUN	_	_	_	_	_	Gloss=place
+8	tî	tî	ADP	_	_	_	_	_	Gloss=of
+9	längɔ̈	längɔ̈	NOUN	_	_	_	_	_	Gloss=sleep
+10	töngana	töngana	ADP	_	_	_	_	_	Gloss=like
+11	nyɛ	nyɛ	NOUN	_	_	_	_	_	Gloss=what
+12	,	_	PUNCT	_	_	_	_	_	Gloss=,
+13	Tɛrɛ	Tɛrɛ	PROPN	_	_	_	_	_	Gloss=spider
+14	?	_	PUNCT	_	_	_	_	_	Gloss=?
+
+# sent id = tere_na_nguru-p21s2
+# text = Gä, fadë wâlï tî mbï alɛkɛ na mɔ gbogbo.
+# text_en = Come, my wife will make up a bed for you.
+# text_fr = Viens, ma femme va te préparer un lit.
+# text_de = Komm, meine Frau bereitet dir ein Bett vor.
+1	Gä	gä	VERB	_	_	_	_	_	Gloss=come
+2	,	_	PUNCT	_	_	_	_	_	Gloss=,
+3	fadë	fadë	AUX	_	_	_	_	_	Gloss=shall
+4	wâlï	wâlï	NOUN	_	Gender=Fem	_	_	_	Gloss=wife
+5	tî	tî	ADP	_	_	_	_	_	Gloss=of
+6	mbï	mbï	PRON	_	Num=Sing|Person=1|PronType=Prs	_	_	_	Gloss=me
+7	a	a	PRON	_	Case=Nom|Person=3|Prefix=Yes|PronType=Art	_	_	_	Gloss=she
+8	lɛkɛ	lɛkɛ	VERB	_	Subcat=Tran	_	_	_	Gloss=prepare
+9	na	na	ADP	_	_	_	_	_	Gloss=for
+10	mɔ	mɔ	PRON	_	Num=Sing|Person=2|PronType=Prs	_	_	_	Gloss=you
+11	gbogbo	gbogbo	NOUN	_	_	_	_	_	Gloss=bed
+12	.	_	PUNCT	_	_	_	_	_	Gloss=.
+
+# sent id = tere_na_nguru-p21s3
+# text = Mbï, mbï yɛkɛ tɛ kɔ̂bɛ; töngana mɔ yê tî tɛ, mɔ gä hîo.»
+# text_en = I am in the middle of eating; if you want to eat, come quickly.”
+# text_fr = Je suis en train de manger; si tu veux, viens vite!»
+# text_de = Ich bin jetzt beim Essen; willst du etwas essen, so komm doch schnell.“
+1	Mbï	mbï	PRON	_	Num=Sing|Person=1|PronType=Prs	_	_	_	Gloss=i
+2	,	_	PUNCT	_	_	_	_	_	Gloss=,
+3	mbï	mbï	PRON	_	Num=Sing|Person=1|PronType=Prs	_	_	_	Gloss=i
+4	yɛkɛ	yɛkɛ	AUX	_	_	_	_	_	Gloss=is
+5	tɛ	tɛ	VERB	_	_	_	_	_	Gloss=eat
+6	kɔ̂bɛ	kɔ̂bɛ	NOUN	_	_	_	_	_	Gloss=food
+7	;	_	PUNCT	_	_	_	_	_	Gloss=;
+8	töngana	töngana	SCONJ	_	_	_	_	_	Gloss=if
+9	mɔ	mɔ	PRON	_	Num=Sing|Person=2|PronType=Prs	_	_	_	Gloss=you
+10	yê	yê	VERB	_	_	_	_	_	Gloss=want
+11	tî	tî	PART	_	_	_	_	_	Gloss=to
+12	tɛ	tɛ	VERB	_	_	_	_	_	Gloss=eat
+13	,	_	PUNCT	_	_	_	_	_	Gloss=,
+14	mɔ	mɔ	PRON	_	Num=Sing|Person=2|PronType=Prs	_	_	_	Gloss=you
+15	gä	gä	VERB	_	_	_	_	_	Gloss=come
+16	hîo	hîo	ADV	_	_	_	_	_	Gloss=fast
+17	.	_	PUNCT	_	_	_	_	_	Gloss=.
+18	»	_	PUNCT	_	_	_	_	_	Gloss=»
+
+# newpar id = tere_na_nguru-p22
+# sent id = tere_na_nguru-p22s1
+# text = «Mɔ yɛkɛ taä îtä tî mbï tî mɛ̂nɛ̈ bîanî; mbï mû na mɔ singîla mîngi.»
+# text_en = “You are a true blood brother, that's for sure; I thank you very much.”
+# text_fr = «Tu es un frère pour moi; je te remercie beaucoup.»
+# text_de = „Du bist ja ein echter Blutsbruder, ich danke dir herzlich.“
+1	«	_	PUNCT	_	_	_	_	_	Gloss=«
+2	Mɔ	mɔ	PRON	_	Num=Sing|Person=2|PronType=Prs	_	_	_	Gloss=you
+3	yɛkɛ	yɛkɛ	VERB	_	_	_	_	_	Gloss=is
+4	taä	taä	ADJ	_	_	_	_	_	Gloss=true
+5	îtä	îtä	NOUN	_	_	_	_	_	Gloss=sibling
+6	tî	tî	ADP	_	_	_	_	_	Gloss=of
+7	mbï	mbï	PRON	_	Num=Sing|Person=1|PronType=Prs	_	_	_	Gloss=me
+8	tî	tî	ADP	_	_	_	_	_	Gloss=of
+9	mɛ̂nɛ̈	mɛ̂nɛ̈	NOUN	_	_	_	_	_	Gloss=blood
+10	bîanî	bîanî	ADV	_	_	_	_	_	Gloss=certainly
+11	;	_	PUNCT	_	_	_	_	_	Gloss=;
+12	mbï	mbï	PRON	_	Num=Sing|Person=1|PronType=Prs	_	_	_	Gloss=i
+13	mû	mû	VERB	_	Subcat=Tran	_	_	_	Gloss=give
+14	na	na	ADP	_	_	_	_	_	Gloss=to
+15	mɔ	mɔ	PRON	_	Num=Sing|Person=2|PronType=Prs	_	_	_	Gloss=you
+16	singîla	singîla	NOUN	_	_	_	_	_	Gloss=thanks
+17	mîngi	mîngi	ADV	_	_	_	_	_	Gloss=very
+18	.	_	PUNCT	_	_	_	_	_	Gloss=.
+19	»	_	PUNCT	_	_	_	_	_	Gloss=»
+
+# newpar id = tere_na_nguru-p23
+# sent id = tere_na_nguru-p23s1
+# text = Tɛrɛ atɛ kɔ̂bɛ sô na lɔ̈rɔ̈.
+# text_en = Spider races to eat the food.
+# text_fr = Araignée mange à toute vitesse.
+# text_de = Spinne isst in Eile.
+1	Tɛrɛ	Tɛrɛ	PROPN	_	_	_	_	_	Gloss=spider
+2	a	a	PRON	_	Case=Nom|Person=3|Prefix=Yes|PronType=Art	_	_	_	Gloss=he
+3	tɛ	tɛ	VERB	_	_	_	_	_	Gloss=eat
+4	kɔ̂bɛ	kɔ̂bɛ	NOUN	_	_	_	_	_	Gloss=food
+5	sô	sô	DET	_	PronType=Art,Rel	_	_	_	Gloss=this
+6	na	na	ADP	_	_	_	_	_	Gloss=in
+7	lɔ̈rɔ̈	lɔ̈rɔ̈	NOUN	_	_	_	_	_	Gloss=race
+8	.	_	PUNCT	_	_	_	_	_	Gloss=.
+
+# sent id = tere_na_nguru-p23s2
+# text = Ndurü tî nyama sô wâlï tî Ngûru azîa balë ɔ̂kɔ na kɔ̂lï tî lo sô, Tɛrɛ atɛ daä miɔmbe.
+# text_en = Of the ten pieces of meat that Pig's wife puts out for her husband, Spider eats eight.
+# text_fr = De la dezaine de moceaux de viande que la femme de Cochon a préparés pour son mari, Araignée en mange huit.
+# text_de = Von den zehn Stück Fleisch, die die Frau von Spinne vor deren Mann legt, isst  Spinne acht davon.
+1	Ndurü	ndurü	ADJ	_	_	_	_	_	Gloss=proximity
+2	tî	tî	ADP	_	_	_	_	_	Gloss=of
+3	nyama	nyama	NOUN	_	_	_	_	_	Gloss=animal
+4	sô	sô	DET	_	PronType=Art,Rel	_	_	_	Gloss=this
+5	wâlï	wâlï	NOUN	_	Gender=Fem	_	_	_	Gloss=wife
+6	tî	tî	ADP	_	_	_	_	_	Gloss=of
+7	Ngûru	Ngûru	PROPN	_	_	_	_	_	Gloss=pig
+8	a	a	PRON	_	Case=Nom|Person=3|Prefix=Yes|PronType=Art	_	_	_	Gloss=she
+9	zîa	zîa	VERB	_	Subcat=Tran	_	_	_	Gloss=put
+10	balë ɔ̂kɔ	_	NUM	_	_	_	_	_	Gloss=ten
+11	na	na	ADP	_	_	_	_	_	Gloss=for
+12	kɔ̂lï	kɔ̂lï	NOUN	_	Gender=Masc	_	_	_	Gloss=husband
+13	tî	tî	ADP	_	_	_	_	_	Gloss=of
+14	lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=her
+15	sô	sô	DET	_	PronType=Art,Rel	_	_	_	Gloss=this
+16	,	_	PUNCT	_	_	_	_	_	Gloss=,
+17	Tɛrɛ	Tɛrɛ	PROPN	_	_	_	_	_	Gloss=spider
+18	a	a	PRON	_	Case=Nom|Person=3|Prefix=Yes|PronType=Art	_	_	_	Gloss=he
+19	tɛ	tɛ	VERB	_	_	_	_	_	Gloss=eat
+20	daä	daä	PART	_	_	_	_	_	Gloss=there
+21	miɔmbe	miɔmbe	NUM	_	_	_	_	_	Gloss=eight
+22	.	_	PUNCT	_	_	_	_	_	Gloss=.
+
+# sent id = tere_na_nguru-p23s3
+# text = Lo mû ɔ̂kɔ lo bi na yä tî bozö tî lo, sï lo tɛnɛ fadë lo gue na nî töngana pekö tî yângâ tî Ngûru, na môlɛngê tî lo.
+# text_en = He takes one and drops it into his sack, saying he will take it to his child as a sign of friendship from the Pig.
+# text_fr = Il en prend un qu'il met dans son sac, en disant qu'il l'emporte pour son enfant en signe d'amitié de la part de son hôte.
+# text_de = Er nimmt eins und lässt es in seinen Sack fallen, indem er sagt, er wird es als Freundschaftszeichen von Schwein, zu seinem Kinde bringen.
+1	Lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=he
+2	mû	mû	VERB	_	Subcat=Tran	_	_	_	Gloss=take
+3	ɔ̂kɔ	ɔ̂kɔ	NUM	_	_	_	_	_	Gloss=one
+4	lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=he
+5	bi	bi	VERB	_	Subcat=Tran	_	_	_	Gloss=throw
+6	na	na	ADP	_	_	_	_	_	Gloss=into
+7	yä	yä	NOUN	_	_	_	_	_	Gloss=inside
+8	tî	tî	ADP	_	_	_	_	_	Gloss=of
+9	bozö	bozö	NOUN	_	_	_	_	_	Gloss=pocket
+10	tî	tî	ADP	_	_	_	_	_	Gloss=of
+11	lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=him
+12	,	_	PUNCT	_	_	_	_	_	Gloss=,
+13	sï	sï	ADV	_	_	_	_	_	Gloss=first
+14	lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=he
+15	tɛnɛ	tɛnɛ	VERB	_	Subcat=Tran	_	_	_	Gloss=say
+16	fadë	fadë	AUX	_	_	_	_	_	Gloss=shall
+17	lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=he
+18	gue	gue	VERB	_	Subcat=Intr	_	_	_	Gloss=go
+19	na	na	ADP	_	_	_	_	_	Gloss=with
+20	nî	nî	PRON	_	Animacy=Inan|Num=Sing|Person=3|PronType=Det|Case=Abs,Acc	_	_	_	Gloss=it
+21	töngana	töngana	ADP	_	_	_	_	_	Gloss=like
+22	pekö	pekö	NOUN	_	_	_	_	_	Gloss=back
+23	tî	tî	ADP	_	_	_	_	_	Gloss=of
+24	yângâ	yângâ	NOUN	_	_	_	_	_	Gloss=mouth
+25	tî	tî	ADP	_	_	_	_	_	Gloss=of
+26	Ngûru	Ngûru	PROPN	_	_	_	_	_	Gloss=pig
+27	,	_	PUNCT	_	_	_	_	_	Gloss=,
+28	na	na	ADP	_	_	_	_	_	Gloss=to
+29	môlɛngê	môlɛngɛ̂	NOUN	_	_	_	_	_	Gloss=child
+30	tî	tî	ADP	_	_	_	_	_	Gloss=of
+31	lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=him
+32	.	_	PUNCT	_	_	_	_	_	Gloss=.
+
+# newpar id = tere_na_nguru-p24
+# sent id = tere_na_nguru-p24s1
+# text = Na pekö tî tɛ̈ngɔ̈ kɔ̂bɛ nî, Tɛrɛ ahûnda na wâlï tî Ngûru tî tɛnɛ lo bata na lo bozö tî lo sô, tɛ̂nɛ̈ tî nïkängɔ̈ na kpë ayɛkɛ na yä nî.
+# text_en = After eating, Spider asks Pig's wife to keep his sack for safekeeping, because there is a millstone inside which he is bringing to his wife.
+# text_fr = Après avoir mangé, Araignée demande à la femme de Cochon de lui garder son sac, il y a mis une pierre à moudre qu'il veut emporter à sa femme.
+# text_de = Nachdem er das Mahl aß, bittet Spinne die Frau von Schwein darum, sie solle seinen Sack aufbewahren, denn es gibt ein Mühlstein darin, das er zu seiner Frau bringt.
+1	Na	na	ADP	_	_	_	_	_	Gloss=in
+2	pekö	pekö	NOUN	_	_	_	_	_	Gloss=back
+3	tî	tî	ADP	_	_	_	_	_	Gloss=of
+4	tɛ̈ngɔ̈	tɛ	VERB	_	VerbForm=Vnoun	_	_	_	Gloss=eating
+5	kɔ̂bɛ	kɔ̂bɛ	NOUN	_	_	_	_	_	Gloss=food
+6	nî	nî	DET	_	PronType=Art	_	_	_	Gloss=the
+7	,	_	PUNCT	_	_	_	_	_	Gloss=,
+8	Tɛrɛ	Tɛrɛ	PROPN	_	_	_	_	_	Gloss=spider
+9	a	a	PRON	_	Case=Nom|Person=3|Prefix=Yes|PronType=Art	_	_	_	Gloss=he
+10	hûnda	hûnda	VERB	_	Subcat=Tran	_	_	_	Gloss=ask
+11	na	na	ADP	_	_	_	_	_	Gloss=to
+12	wâlï	wâlï	NOUN	_	Gender=Fem	_	_	_	Gloss=wife
+13	tî	tî	ADP	_	_	_	_	_	Gloss=of
+14	Ngûru	Ngûru	PROPN	_	_	_	_	_	Gloss=pig
+15	tî	tî	PART	_	_	_	_	_	Gloss=to
+16	tɛnɛ	tɛnɛ	VERB	_	Subcat=Tran	_	_	_	Gloss=say
+17	lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=he
+18	bata	bata	VERB	_	Subcat=Tran	_	_	_	Gloss=guard
+19	na	na	ADP	_	_	_	_	_	Gloss=for
+20	lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=him
+21	bozö	bozö	NOUN	_	_	_	_	_	Gloss=pocket
+22	tî	tî	ADP	_	_	_	_	_	Gloss=of
+23	lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=him
+24	sô	sô	DET	_	PronType=Art,Rel	_	_	_	Gloss=this
+25	,	_	PUNCT	_	_	_	_	_	Gloss=,
+26	tɛ̂nɛ̈	tɛ̂nɛ̈	NOUN	_	_	_	_	_	Gloss=rock
+27	tî	tî	ADP	_	_	_	_	_	Gloss=of
+28	nïkängɔ̈	nika	VERB	_	Subcat=Tran|VerbForm=Vnoun	_	_	_	Gloss=grinding
+29	na	na	ADP	_	_	_	_	_	Gloss=into
+30	kpë	kpë	NOUN	_	_	_	_	_	Gloss=nut-butter
+31	a	a	PRON	_	Case=Nom|Person=3|Prefix=Yes|PronType=Art	_	_	_	Gloss=it
+32	yɛkɛ	yɛkɛ	VERB	_	_	_	_	_	Gloss=is
+33	na	na	ADP	_	_	_	_	_	Gloss=with
+34	yä	yä	NOUN	_	_	_	_	_	Gloss=inside
+35	nî	nî	DET	_	PronType=Art	_	_	_	Gloss=the
+36	.	_	PUNCT	_	_	_	_	_	Gloss=.
+
+# sent id = tere_na_nguru-p24s2
+# text = Sï lo yɛkɛ gue na nî na wâlï tî lo.
+# text_en = Then he takes it to his wife.
+# text_fr = Puis il l'apporte à sa femme.
+# text_de = Dann bringt er ihn zu seiner Frau.
+1	Sï	sï	ADV	_	_	_	_	_	Gloss=first
+2	lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=he
+3	yɛkɛ	yɛkɛ	AUX	_	_	_	_	_	Gloss=is
+4	gue	gue	VERB	_	Subcat=Intr	_	_	_	Gloss=go
+5	na	na	ADP	_	_	_	_	_	Gloss=with
+6	nî	nî	PRON	_	Animacy=Inan|Num=Sing|Person=3|PronType=Det|Case=Abs,Acc	_	_	_	Gloss=it
+7	na	na	ADP	_	_	_	_	_	Gloss=to
+8	wâlï	wâlï	NOUN	_	Gender=Fem	_	_	_	Gloss=wife
+9	tî	tî	ADP	_	_	_	_	_	Gloss=of
+10	lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=him
+11	.	_	PUNCT	_	_	_	_	_	Gloss=.
+
+# sent id = tere_na_nguru-p24s3
+# text = Wâlï tî Ngûru amû bozö nî, lo gue lo zîa na yä tî da sô âla yɛkɛ bata kɔ̂bɛ na kûngbâ tî âla daä.
+# text_en = She puts it into the room where they keep their food and belongings.
+# text_fr = Ell le dépose dans la pièce où elle garde la nourriture et leurs affaires.
+# text_de = Sie legt ihn ins Zimmer, wo sie deren Nahrungsmittel und Habseligkeiten aufbewahren.
+1	Wâlï	wâlï	NOUN	_	Gender=Fem	_	_	_	Gloss=wife
+2	tî	tî	ADP	_	_	_	_	_	Gloss=of
+3	Ngûru	Ngûru	PROPN	_	_	_	_	_	Gloss=pig
+4	a	a	PRON	_	Case=Nom|Person=3|Prefix=Yes|PronType=Art	_	_	_	Gloss=she
+5	mû	mû	VERB	_	Subcat=Tran	_	_	_	Gloss=take
+6	bozö	bozö	NOUN	_	_	_	_	_	Gloss=pocket
+7	nî	nî	DET	_	PronType=Art	_	_	_	Gloss=the
+8	,	_	PUNCT	_	_	_	_	_	Gloss=,
+9	lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=she
+10	gue	gue	VERB	_	Subcat=Intr	_	_	_	Gloss=go
+11	lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=she
+12	zîa	zîa	VERB	_	Subcat=Tran	_	_	_	Gloss=put
+13	na	na	ADP	_	_	_	_	_	Gloss=into
+14	yä	yä	NOUN	_	_	_	_	_	Gloss=inside
+15	tî	tî	ADP	_	_	_	_	_	Gloss=of
+16	da	da	NOUN	_	_	_	_	_	Gloss=house
+17	sô	sô	DET	_	PronType=Art,Rel	_	_	_	Gloss=this
+18	âla	âla	PRON	_	Num=Plur|Person=3|PronType=Prs	_	_	_	Gloss=they
+19	yɛkɛ	yɛkɛ	AUX	_	_	_	_	_	Gloss=is
+20	bata	bata	VERB	_	Subcat=Tran	_	_	_	Gloss=guard
+21	kɔ̂bɛ	kɔ̂bɛ	NOUN	_	_	_	_	_	Gloss=food
+22	na	na	ADP	_	_	_	_	_	Gloss=and
+23	kûngbâ	kûngbâ	NOUN	_	_	_	_	_	Gloss=baggage
+24	tî	tî	ADP	_	_	_	_	_	Gloss=of
+25	âla	âla	PRON	_	Num=Plur|Person=3|PronType=Prs	_	_	_	Gloss=them
+26	daä	daä	PART	_	_	_	_	_	Gloss=there
+27	.	_	PUNCT	_	_	_	_	_	Gloss=.
+
+# newpar id = tere_na_nguru-p25
+# sent id = tere_na_nguru-p25s1
+# text = Asî na bɛ̂ tî bï, Bäkɔngɔ̈ azî yângâ tî bozö nî sï lo sî gîgî, lo mû tanga tî kɔ̂bɛ sô wâlï tî Ngûru azîa tî tɛnɛ âla tɛ na ndäpêrêrê sô; lo tɛ nî kûɛ̂.
+# text_en = In the middle of the night, Turtle opens the sack and goes out and, taking the rest of the food that Pig's wife set aside for breakfast, eats it all.
+# text_fr = En pleine nuit, Tortue ouvre le sac, sort et s'empare du reste de nourriture que la femme de Cochon a mis de côté pour leur repas du matin; il mange tout.
+# text_de = In der Mitte der Nacht, öffnet Schildkröte den Sack und steigt aus, nimmt zu sich den Rest der Nahrung, die die Frau von Schwein zum Frühstück beiseite gesetzt hat, und isst alles auf.
+1	A	a	PRON	_	Case=Nom|Person=3|Prefix=Yes|PronType=Art	_	_	_	Gloss=it
+2	sî	sî	VERB	_	Subcat=Intr	_	_	_	Gloss=arrive
+3	na	na	ADP	_	_	_	_	_	Gloss=at
+4	bɛ̂	bɛ̂	NOUN	_	_	_	_	_	Gloss=middle
+5	tî	tî	ADP	_	_	_	_	_	Gloss=of
+6	bï	bï	NOUN	_	_	_	_	_	Gloss=night
+7	,	_	PUNCT	_	_	_	_	_	Gloss=,
+8	Bäkɔngɔ̈	Bäkɔngɔ̈	PROPN	_	_	_	_	_	Gloss=turtle
+9	a	a	PRON	_	Case=Nom|Person=3|Prefix=Yes|PronType=Art	_	_	_	Gloss=he
+10	zî	zî	VERB	_	Subcat=Tran	_	_	_	Gloss=open
+11	yângâ	yângâ	NOUN	_	_	_	_	_	Gloss=mouth
+12	tî	tî	ADP	_	_	_	_	_	Gloss=of
+13	bozö	bozö	NOUN	_	_	_	_	_	Gloss=pocket
+14	nî	nî	DET	_	PronType=Art	_	_	_	Gloss=the
+15	sï	sï	ADV	_	_	_	_	_	Gloss=first
+16	lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=he
+17	sî	sî	VERB	_	Subcat=Intr	_	_	_	Gloss=arrive
+18	gîgî	gîgî	NOUN	_	_	_	_	_	Gloss=outside
+19	,	_	PUNCT	_	_	_	_	_	Gloss=,
+20	lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=he
+21	mû	mû	VERB	_	Subcat=Tran	_	_	_	Gloss=take
+22	tanga	tanga	NOUN	_	_	_	_	_	Gloss=remaining-portion
+23	tî	tî	ADP	_	_	_	_	_	Gloss=of
+24	kɔ̂bɛ	kɔ̂bɛ	NOUN	_	_	_	_	_	Gloss=food
+25	sô	sô	DET	_	PronType=Art,Rel	_	_	_	Gloss=this
+26	wâlï	wâlï	NOUN	_	Gender=Fem	_	_	_	Gloss=wife
+27	tî	tî	ADP	_	_	_	_	_	Gloss=of
+28	Ngûru	Ngûru	PROPN	_	_	_	_	_	Gloss=pig
+29	a	a	PRON	_	Case=Nom|Person=3|Prefix=Yes|PronType=Art	_	_	_	Gloss=she
+30	zîa	zîa	VERB	_	Subcat=Tran	_	_	_	Gloss=put
+31	tî	tî	PART	_	_	_	_	_	Gloss=to
+32	tɛnɛ	tɛnɛ	VERB	_	Subcat=Tran	_	_	_	Gloss=say
+33	âla	âla	PRON	_	Num=Plur|Person=3|PronType=Prs	_	_	_	Gloss=they
+34	tɛ	tɛ	VERB	_	_	_	_	_	Gloss=eat
+35	na	na	ADP	_	_	_	_	_	Gloss=in
+36	ndäpêrêrê	ndäpêrêrê	NOUN	_	_	_	_	_	Gloss=morning
+37	sô	sô	DET	_	PronType=Art,Rel	_	_	_	Gloss=this
+38	;	_	PUNCT	_	_	_	_	_	Gloss=;
+39	lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=he
+40	tɛ	tɛ	VERB	_	_	_	_	_	Gloss=eat
+41	nî	nî	PRON	_	Animacy=Inan|Num=Sing|Person=3|PronType=Det|Case=Abs,Acc	_	_	_	Gloss=it
+42	kûɛ̂	kûɛ̂	ADV	_	_	_	_	_	Gloss=completely
+43	.	_	PUNCT	_	_	_	_	_	Gloss=.
+
+# sent id = tere_na_nguru-p25s2
+# text = Lo kamâta hölɛ̈ngɔ̈ gɛrɛ̂ tî ngbä sï lo zî yângâ tî da, lo kpɛ̈ na nî.
+# text_en = He seizes a dried leg of buffalo and opening the door of the house, runs off with it.
+# text_fr = Il prend aussi un cuissot sêché de buffle, ouvre la porte et s'enfuit avec.
+# text_de = Dann ergreift er ein getrocknetes Schenkel eines Büffels, macht die Haustür auf, und verschwindet damit.
+1	Lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=he
+2	kamâta	kamâta	VERB	_	_	_	_	_	Gloss=arrest
+3	hölɛ̈ngɔ̈	hɔ̂lɛ	VERB	_	Subcat=Intr|VerbForm=Vnoun	_	_	_	Gloss=drying
+4	gɛrɛ̂	gɛrɛ̂	NOUN	_	_	_	_	_	Gloss=leg-foot-support-chapter
+5	tî	tî	ADP	_	_	_	_	_	Gloss=of
+6	ngbä	ngbä	NOUN	_	_	_	_	_	Gloss=buffalo
+7	sï	sï	ADV	_	_	_	_	_	Gloss=first
+8	lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=he
+9	zî	zî	VERB	_	Subcat=Tran	_	_	_	Gloss=open
+10	yângâ	yângâ	NOUN	_	_	_	_	_	Gloss=mouth
+11	tî	tî	ADP	_	_	_	_	_	Gloss=of
+12	da	da	NOUN	_	_	_	_	_	Gloss=house
+13	,	_	PUNCT	_	_	_	_	_	Gloss=,
+14	lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=he
+15	kpɛ̈	kpɛ̈	VERB	_	_	_	_	_	Gloss=honor-or-escape
+16	na	na	ADP	_	_	_	_	_	Gloss=with
+17	nî	nî	PRON	_	Animacy=Inan|Num=Sing|Person=3|PronType=Det|Case=Abs,Acc	_	_	_	Gloss=it
+18	.	_	PUNCT	_	_	_	_	_	Gloss=.
+
+# newpar id = tere_na_nguru-p26
+# sent id = tere_na_nguru-p26s1
+# text = Asî na yângâ tî ndäpêrêrê, Tɛrɛ ahûnda na wâlï tî Ngûru tî tɛnɛ lo mû na lo bozö tî lo nî sï lo lîngbi tî gue.
+# text_en = At dawn, Spider asks Pig's wife to bring him his sack so he can leave.
+# text_fr = A l'aube, Araignée demande à la femme de Cochon de lui apporter son sac pour partir.
+# text_de = Bei Sonnenaufgang bittet Spinne die Frau von Schwein, ihm seinen Sack zu bringen, so dass er gehen kann.
+1	A	a	PRON	_	Case=Nom|Person=3|Prefix=Yes|PronType=Art	_	_	_	Gloss=it
+2	sî	sî	VERB	_	Subcat=Intr	_	_	_	Gloss=arrive
+3	na	na	ADP	_	_	_	_	_	Gloss=at
+4	yângâ	yângâ	NOUN	_	_	_	_	_	Gloss=mouth
+5	tî	tî	ADP	_	_	_	_	_	Gloss=of
+6	ndäpêrêrê	ndäpêrêrê	NOUN	_	_	_	_	_	Gloss=morning
+7	,	_	PUNCT	_	_	_	_	_	Gloss=,
+8	Tɛrɛ	Tɛrɛ	PROPN	_	_	_	_	_	Gloss=spider
+9	a	a	PRON	_	Case=Nom|Person=3|Prefix=Yes|PronType=Art	_	_	_	Gloss=he
+10	hûnda	hûnda	VERB	_	Subcat=Tran	_	_	_	Gloss=ask
+11	na	na	ADP	_	_	_	_	_	Gloss=to
+12	wâlï	wâlï	NOUN	_	Gender=Fem	_	_	_	Gloss=wife
+13	tî	tî	ADP	_	_	_	_	_	Gloss=of
+14	Ngûru	Ngûru	PROPN	_	_	_	_	_	Gloss=pig
+15	tî	tî	PART	_	_	_	_	_	Gloss=to
+16	tɛnɛ	tɛnɛ	VERB	_	Subcat=Tran	_	_	_	Gloss=say
+17	lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=she
+18	mû	mû	VERB	_	Subcat=Tran	_	_	_	Gloss=give
+19	na	na	ADP	_	_	_	_	_	Gloss=to
+20	lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=him
+21	bozö	bozö	NOUN	_	_	_	_	_	Gloss=pocket
+22	tî	tî	ADP	_	_	_	_	_	Gloss=of
+23	lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=him
+24	nî	nî	DET	_	PronType=Art	_	_	_	Gloss=the
+25	sï	sï	ADV	_	_	_	_	_	Gloss=first
+26	lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=he
+27	lîngbi	lîngbi	VERB	_	Subcat=Intr	_	_	_	Gloss=suffice
+28	tî	tî	PART	_	_	_	_	_	Gloss=to
+29	gue	gue	VERB	_	Subcat=Intr	_	_	_	Gloss=go
+30	.	_	PUNCT	_	_	_	_	_	Gloss=.
+
+# sent id = tere_na_nguru-p26s2
+# text = Wâlï tî Ngûru amû bozö nî, sï bozö nî ayâpu.
+# text_en = Pig's wife gets the sack but finds that is has gotten lighter.
+# text_fr = La femme de Cochon prend le sac mais elle le trouve bien léger.
+# text_de = Die Frau von Spinne nimmt den Sack, der aber inzwischen leichter geworden ist.
+1	Wâlï	wâlï	NOUN	_	Gender=Fem	_	_	_	Gloss=wife
+2	tî	tî	ADP	_	_	_	_	_	Gloss=of
+3	Ngûru	Ngûru	PROPN	_	_	_	_	_	Gloss=pig
+4	a	a	PRON	_	Case=Nom|Person=3|Prefix=Yes|PronType=Art	_	_	_	Gloss=she
+5	mû	mû	VERB	_	Subcat=Tran	_	_	_	Gloss=give
+6	bozö	bozö	NOUN	_	_	_	_	_	Gloss=pocket
+7	nî	nî	DET	_	PronType=Art	_	_	_	Gloss=the
+8	,	_	PUNCT	_	_	_	_	_	Gloss=,
+9	sï	sï	ADV	_	_	_	_	_	Gloss=first
+10	bozö	bozö	NOUN	_	_	_	_	_	Gloss=pocket
+11	nî	nî	DET	_	PronType=Art	_	_	_	Gloss=the
+12	a	a	PRON	_	Case=Nom|Person=3|Prefix=Yes|PronType=Art	_	_	_	Gloss=it
+13	yâpu	yâpu	VERB	_	Subcat=Intr	_	_	_	Gloss=is-light-in-weight
+14	.	_	PUNCT	_	_	_	_	_	Gloss=.
+
+# sent id = tere_na_nguru-p26s3
+# text = Lo ndüru mabɔ̂kɔ tî lo na yä tî bozö nî, sï lo wara tɛ̂nɛ̈ tî nïkängɔ̈ na bäkpä tî wâlï tî Tɛrɛ daä pɛ̈pɛ.
+# text_en = She sticks her hand into the sack but doesn't find Spider's millstone.
+# text_fr = Elle y met la main, mais ell n'y trouve pas la pierre à moudre de la femme d'Araignée.
+# text_de = Sie steckt die Hand in den Sack, doch sie findet das Mühlstein von Spinne nicht.
+1	Lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=she
+2	ndüru	ndüru	VERB	_	_	_	_	_	Gloss=poke
+3	mabɔ̂kɔ	mabɔ̂kɔ	NOUN	_	_	_	_	_	Gloss=hand
+4	tî	tî	ADP	_	_	_	_	_	Gloss=of
+5	lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=her
+6	na	na	ADP	_	_	_	_	_	Gloss=into
+7	yä	yä	NOUN	_	_	_	_	_	Gloss=inside
+8	tî	tî	ADP	_	_	_	_	_	Gloss=of
+9	bozö	bozö	NOUN	_	_	_	_	_	Gloss=pocket
+10	nî	nî	DET	_	PronType=Art	_	_	_	Gloss=the
+11	,	_	PUNCT	_	_	_	_	_	Gloss=,
+12	sï	sï	ADV	_	_	_	_	_	Gloss=first
+13	lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=she
+14	wara	wara	VERB	_	Subcat=Tran	_	_	_	Gloss=find
+15	tɛ̂nɛ̈	tɛ̂nɛ̈	NOUN	_	_	_	_	_	Gloss=rock
+16	tî	tî	ADP	_	_	_	_	_	Gloss=of
+17	nïkängɔ̈	nika	VERB	_	Subcat=Tran|VerbForm=Vnoun	_	_	_	Gloss=grinding
+18	na	na	ADP	_	_	_	_	_	Gloss=into
+19	bäkpä	bäkpä	NOUN	_	_	_	_	_	Gloss=nut-butter
+20	tî	tî	ADP	_	_	_	_	_	Gloss=of
+21	wâlï	wâlï	NOUN	_	Gender=Fem	_	_	_	Gloss=wife
+22	tî	tî	ADP	_	_	_	_	_	Gloss=of
+23	Tɛrɛ	Tɛrɛ	PROPN	_	_	_	_	_	Gloss=spider
+24	daä	daä	PART	_	_	_	_	_	Gloss=there
+25	pɛ̈pɛ	pɛ̈pɛ	PART	_	Polarity=Neg	_	_	_	Gloss=not
+26	.	_	PUNCT	_	_	_	_	_	Gloss=.
+
+# newpar id = tere_na_nguru-p27
+# sent id = tere_na_nguru-p27s1
+# text = Lo gä na lɔ̈rɔ̈ sï lo tɛnɛ na Tɛrɛ:
+# text_en = She comes running and tells Spider:
+# text_fr = Elle revient en courant et dit à Araignée:
+# text_de = Sie kommt gelaufen und sagt zu Spinne:
+1	Lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=she
+2	gä	gä	VERB	_	_	_	_	_	Gloss=come
+3	na	na	ADP	_	_	_	_	_	Gloss=in
+4	lɔ̈rɔ̈	lɔ̈rɔ̈	NOUN	_	_	_	_	_	Gloss=race
+5	sï	sï	ADV	_	_	_	_	_	Gloss=first
+6	lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=she
+7	tɛnɛ	tɛnɛ	VERB	_	Subcat=Tran	_	_	_	Gloss=say
+8	na	na	ADP	_	_	_	_	_	Gloss=to
+9	Tɛrɛ	Tɛrɛ	PROPN	_	_	_	_	_	Gloss=spider
+10	:	_	PUNCT	_	_	_	_	_	Gloss=:
+
+# newpar id = tere_na_nguru-p28
+# sent id = tere_na_nguru-p28s1
+# text = «Bîrï sô, bozö sô anɛ, asî na ndäpêrêrê sô ayâpu töngana nyɛ?
+# text_en = “How is it that yesterday the sack was heavy but this morning is light?
+# text_fr = «Hier le sac était lourd, comment se fait-il que ce matin il soit si léger?
+# text_de = „Gestern war der Sack schwer, wieso ist er heute morgen leicht?
+1	«	_	PUNCT	_	_	_	_	_	Gloss=«
+2	Bîrï	bîrï	ADV	_	_	_	_	_	Gloss=yesterday
+3	sô	sô	DET	_	PronType=Art,Rel	_	_	_	Gloss=this
+4	,	_	PUNCT	_	_	_	_	_	Gloss=,
+5	bozö	bozö	NOUN	_	_	_	_	_	Gloss=pocket
+6	sô	sô	DET	_	PronType=Art,Rel	_	_	_	Gloss=this
+7	a	a	PRON	_	Case=Nom|Person=3|Prefix=Yes|PronType=Art	_	_	_	Gloss=it
+8	nɛ	nɛ	VERB	_	Subcat=Intr	_	_	_	Gloss=is-heavy
+9	,	_	PUNCT	_	_	_	_	_	Gloss=,
+10	a	a	PRON	_	Case=Nom|Person=3|Prefix=Yes|PronType=Art	_	_	_	Gloss=it
+11	sî	sî	VERB	_	Subcat=Intr	_	_	_	Gloss=arrive
+12	na	na	ADP	_	_	_	_	_	Gloss=in
+13	ndäpêrêrê	ndäpêrêrê	NOUN	_	_	_	_	_	Gloss=morning
+14	sô	sô	DET	_	PronType=Art,Rel	_	_	_	Gloss=this
+15	a	a	PRON	_	Case=Nom|Person=3|Prefix=Yes|PronType=Art	_	_	_	Gloss=it
+16	yâpu	yâpu	VERB	_	Subcat=Intr	_	_	_	Gloss=is-light-in-weight
+17	töngana	töngana	ADP	_	_	_	_	_	Gloss=like
+18	nyɛ	nyɛ	NOUN	_	_	_	_	_	Gloss=what
+19	?	_	PUNCT	_	_	_	_	_	Gloss=?
+
+# sent id = tere_na_nguru-p28s2
+# text = Tî ûse nî, yângâ tî da tî bätängɔ̈ kɔ̂bɛ sô, mbï kânga bîrï, azî na ndäpêrêrê sô töngana nyɛ?»
+# text_en = Also, how is it that the door to the food storage room which I locked up yesterday is open this morning?”
+# text_fr = Ensuite, la porte de la pièce où je laisse la nourriture, hier je l'ai fermée, comment se fait-il que ce matin elle soit ouverte?»
+# text_de = Zweitens, wie kommt es vor, dass die Tür zum Nahrungsstaufach, die ich gestern geschlossen habe, ist heute nun geöffnet?“
+1	Tî	tî	ADP	_	_	_	_	_	Gloss=of
+2	ûse	ûse	NUM	_	_	_	_	_	Gloss=two
+3	nî	nî	DET	_	PronType=Art	_	_	_	Gloss=the
+4	,	_	PUNCT	_	_	_	_	_	Gloss=,
+5	yângâ	yângâ	NOUN	_	_	_	_	_	Gloss=mouth
+6	tî	tî	ADP	_	_	_	_	_	Gloss=of
+7	da	da	NOUN	_	_	_	_	_	Gloss=house
+8	tî	tî	ADP	_	_	_	_	_	Gloss=of
+9	bätängɔ̈	bata	VERB	_	Subcat=Tran|VerbForm=Vnoun	_	_	_	Gloss=guarding
+10	kɔ̂bɛ	kɔ̂bɛ	NOUN	_	_	_	_	_	Gloss=food
+11	sô	sô	DET	_	PronType=Art,Rel	_	_	_	Gloss=this
+12	,	_	PUNCT	_	_	_	_	_	Gloss=,
+13	mbï	mbï	PRON	_	Num=Sing|Person=1|PronType=Prs	_	_	_	Gloss=i
+14	kânga	kânga	VERB	_	_	_	_	_	Gloss=lock-up
+15	bîrï	bîrï	ADV	_	_	_	_	_	Gloss=yesterday
+16	,	_	PUNCT	_	_	_	_	_	Gloss=,
+17	a	a	PRON	_	Case=Nom|Person=3|Prefix=Yes|PronType=Art	_	_	_	Gloss=it
+18	zî	zî	VERB	_	Subcat=Tran	_	_	_	Gloss=is-open
+19	na	na	ADP	_	_	_	_	_	Gloss=in
+20	ndäpêrêrê	ndäpêrêrê	NOUN	_	_	_	_	_	Gloss=morning
+21	sô	sô	DET	_	PronType=Art,Rel	_	_	_	Gloss=this
+22	töngana	töngana	ADP	_	_	_	_	_	Gloss=like
+23	nyɛ	nyɛ	NOUN	_	_	_	_	_	Gloss=what
+24	?	_	PUNCT	_	_	_	_	_	Gloss=?
+25	»	_	PUNCT	_	_	_	_	_	Gloss=»
+
+# newpar id = tere_na_nguru-p29
+# sent id = tere_na_nguru-p29s1
+# text = «Mɔ yê tî tɛnɛ nyɛ?
+# text_en = “What do you mean?
+# text_fr = «Que veux-tu dire?
+# text_de = „Was willst Du damit sagen?
+1	«	_	PUNCT	_	_	_	_	_	Gloss=«
+2	Mɔ	mɔ	PRON	_	Num=Sing|Person=2|PronType=Prs	_	_	_	Gloss=you
+3	yê	yê	VERB	_	_	_	_	_	Gloss=want
+4	tî	tî	PART	_	_	_	_	_	Gloss=to
+5	tɛnɛ	tɛnɛ	VERB	_	Subcat=Tran	_	_	_	Gloss=say
+6	nyɛ	nyɛ	NOUN	_	_	_	_	_	Gloss=what
+7	?	_	PUNCT	_	_	_	_	_	Gloss=?
+
+# sent id = tere_na_nguru-p29s2
+# text = Tɛ̈nɛ̈ tî nïkängɔ̈ na bäkpä tî wâlï tî mbï ayɛkɛ daä mbɛ̂nî pɛ̈pɛ?»
+# text_en = My wife's millstone is no longer there?”
+# text_fr = La pierre à moudre de ma femme n'est plus là?»
+# text_de = Das Mühlstein meiner Frau ist denn nicht mehr da?“
+1	Tɛ̈nɛ̈	tɛ̈nɛ̈	NOUN	_	_	_	_	_	Gloss=on-the-subject
+2	tî	tî	ADP	_	_	_	_	_	Gloss=of
+3	nïkängɔ̈	nika	VERB	_	Subcat=Tran|VerbForm=Vnoun	_	_	_	Gloss=grinding
+4	na	na	ADP	_	_	_	_	_	Gloss=into
+5	bäkpä	bäkpä	NOUN	_	_	_	_	_	Gloss=nut-butter
+6	tî	tî	ADP	_	_	_	_	_	Gloss=of
+7	wâlï	wâlï	NOUN	_	Gender=Fem	_	_	_	Gloss=wife
+8	tî	tî	ADP	_	_	_	_	_	Gloss=of
+9	mbï	mbï	PRON	_	Num=Sing|Person=1|PronType=Prs	_	_	_	Gloss=me
+10	a	a	PRON	_	Case=Nom|Person=3|Prefix=Yes|PronType=Art	_	_	_	Gloss=it
+11	yɛkɛ	yɛkɛ	VERB	_	_	_	_	_	Gloss=is
+12	daä	daä	PART	_	_	_	_	_	Gloss=there
+13	mbɛ̂nî	mbɛ̂nî	ADJ	_	_	_	_	_	Gloss=any-longer
+14	pɛ̈pɛ	pɛ̈pɛ	PART	_	Polarity=Neg	_	_	_	Gloss=not
+15	?	_	PUNCT	_	_	_	_	_	Gloss=?
+16	»	_	PUNCT	_	_	_	_	_	Gloss=»
+
+# newpar id = tere_na_nguru-p30
+# sent id = tere_na_nguru-p30s1
+# text = «Yê sô mbï yɛkɛ bâa laä!»
+# text_en = “That's what I saw when I looked.”
+# text_fr = «C'est ce que je constate!»
+# text_de = „Soeben habe ich das wahrgenommen!“
+1	«	_	PUNCT	_	_	_	_	_	Gloss=«
+2	Yê	yê	NOUN	_	_	_	_	_	Gloss=thing
+3	sô	sô	DET	_	PronType=Art,Rel	_	_	_	Gloss=this
+4	mbï	mbï	PRON	_	Num=Sing|Person=1|PronType=Prs	_	_	_	Gloss=i
+5	yɛkɛ	yɛkɛ	AUX	_	_	_	_	_	Gloss=is
+6	bâa	bâa	VERB	_	_	_	_	_	Gloss=see
+7	laä	laä	PART	_	_	_	_	_	Gloss=behold
+8	!	_	PUNCT	_	_	_	_	_	Gloss=!
+9	»	_	PUNCT	_	_	_	_	_	Gloss=»
+
+# newpar id = tere_na_nguru-p31
+# sent id = tere_na_nguru-p31s1
+# text = «Mɔ he ngîâ pɛ̈pɛ!
+# text_en = “Don't put me on!
+# text_fr = «Sois sérieuse!
+# text_de = „Mach Dich nicht über mich lustig!
+1	«	_	PUNCT	_	_	_	_	_	Gloss=«
+2	Mɔ	mɔ	PRON	_	Num=Sing|Person=2|PronType=Prs	_	_	_	Gloss=you
+3	he	he	VERB	_	Subcat=Tran	_	_	_	Gloss=ridicule
+4	ngîâ	ngîâ	NOUN	_	_	_	_	_	Gloss=joy
+5	pɛ̈pɛ	pɛ̈pɛ	PART	_	Polarity=Neg	_	_	_	Gloss=not
+6	!	_	PUNCT	_	_	_	_	_	Gloss=!
+
+# sent id = tere_na_nguru-p31s2
+# text = Mbï löndö yɔngɔ̂rɔ tî gi tɛ̂nɛ̈ sô na ndo tî lakërë na kɔ̈dɔ̈rɔ̈ tî ânɔ̈kɔ̈ tî mbï, sï taä zo agä anzï na ndo sô!
+# text_en = I'm returning from the far off quarry in my maternal uncle's village only to have someone steal from me here!
+# text_fr = Je reviens de loin chercher cette pierre sur les aires rocheuses dans la famille de mon oncle maternel, et voici qu'un homme vient me la voler ici!
+# text_de = Ich kehre von einem fernen Steinbruch im Dorf meines Onkels mütterlicherseits zurück, nun soll jemand kommen und hier von mir stehlen!
+1	Mbï	mbï	PRON	_	Num=Sing|Person=1|PronType=Prs	_	_	_	Gloss=i
+2	löndö	löndö	VERB	_	Subcat=Intr	_	_	_	Gloss=leave-or-stand-up
+3	yɔngɔ̂rɔ	yɔngɔ̂rɔ	ADJ	_	_	_	_	_	Gloss=long-far-tall
+4	tî	tî	PART	_	_	_	_	_	Gloss=to
+5	gi	gi	VERB	_	Subcat=Tran	_	_	_	Gloss=seek
+6	tɛ̂nɛ̈	tɛ̂nɛ̈	NOUN	_	_	_	_	_	Gloss=rock
+7	sô	sô	DET	_	PronType=Art,Rel	_	_	_	Gloss=this
+8	na	na	ADP	_	_	_	_	_	Gloss=in
+9	ndo	ndo	NOUN	_	_	_	_	_	Gloss=place
+10	tî	tî	ADP	_	_	_	_	_	Gloss=of
+11	lakërë	lakërë	NOUN	_	_	_	_	_	Gloss=drying-area
+12	na	na	ADP	_	_	_	_	_	Gloss=in
+13	kɔ̈dɔ̈rɔ̈	kɔ̈dɔ̈rɔ̈	NOUN	_	_	_	_	_	Gloss=village
+14	tî	tî	ADP	_	_	_	_	_	Gloss=of
+15	â	â	PART	_	Prefix=Yes	_	_	_	Gloss=[plural]
+16	nɔ̈kɔ̈	nɔ̈kɔ̈	NOUN	_	_	_	_	_	Gloss=uncle
+17	tî	tî	ADP	_	_	_	_	_	Gloss=of
+18	mbï	mbï	PRON	_	Num=Sing|Person=1|PronType=Prs	_	_	_	Gloss=me
+19	,	_	PUNCT	_	_	_	_	_	Gloss=,
+20	sï	sï	ADV	_	_	_	_	_	Gloss=first
+21	taä	taä	ADJ	_	_	_	_	_	Gloss=true
+22	zo	zo	NOUN	_	_	_	_	_	Gloss=person
+23	a	a	PRON	_	Case=Nom|Person=3|Prefix=Yes|PronType=Art	_	_	_	Gloss=he
+24	gä	gä	VERB	_	_	_	_	_	Gloss=come
+25	a	a	PRON	_	Case=Nom|Person=3|Prefix=Yes|PronType=Art	_	_	_	Gloss=he
+26	nzï	nzï	VERB	_	_	_	_	_	Gloss=steal
+27	na	na	ADP	_	_	_	_	_	Gloss=in
+28	ndo	ndo	NOUN	_	_	_	_	_	Gloss=place
+29	sô	sô	DET	_	PronType=Art,Rel	_	_	_	Gloss=this
+30	!	_	PUNCT	_	_	_	_	_	Gloss=!
+
+# sent id = tere_na_nguru-p31s3
+# text = Mbï hûnda tî tɛnɛ âla mû na mbï gï tɛ̂nɛ̈ tî mbï.»
+# text_en = I demand that you give me back my millstone.”
+# text_fr = Je vous demande de me rendre cette pierre.»
+# text_de = Ich verlange, dass Du mir mein Mühlstein zurückgibst.“
+1	Mbï	mbï	PRON	_	Num=Sing|Person=1|PronType=Prs	_	_	_	Gloss=i
+2	hûnda	hûnda	VERB	_	Subcat=Tran	_	_	_	Gloss=ask
+3	tî	tî	PART	_	_	_	_	_	Gloss=to
+4	tɛnɛ	tɛnɛ	VERB	_	Subcat=Tran	_	_	_	Gloss=say
+5	âla	âla	PRON	_	Num=Plur|Person=3|PronType=Prs	_	_	_	Gloss=they
+6	mû	mû	VERB	_	Subcat=Tran	_	_	_	Gloss=give
+7	na	na	ADP	_	_	_	_	_	Gloss=to
+8	mbï	mbï	PRON	_	Num=Sing|Person=1|PronType=Prs	_	_	_	Gloss=me
+9	gï	gï	ADV	_	_	_	_	_	Gloss=only
+10	tɛ̂nɛ̈	tɛ̂nɛ̈	NOUN	_	_	_	_	_	Gloss=rock
+11	tî	tî	ADP	_	_	_	_	_	Gloss=of
+12	mbï	mbï	PRON	_	Num=Sing|Person=1|PronType=Prs	_	_	_	Gloss=me
+13	.	_	PUNCT	_	_	_	_	_	Gloss=.
+14	»	_	PUNCT	_	_	_	_	_	Gloss=»
+
+# newpar id = tere_na_nguru-p32
+# sent id = tere_na_nguru-p32s1
+# text = Ngûru na wâlï tî lo ague, agi tɛ̂nɛ̈ sô gbä, sï Ngûru atɛnɛ na Tɛrɛ:
+# text_en = Pig and his wife go and look in vain for the stone, then Pig says to Spider:
+# text_fr = Cochon et sa femme s'en vont et cherchent la pierre sans la trouver, puis Cochon revient et dit à Araignée:
+# text_de = Schwein und seine Frau gehen und vergebens das Stein suchen, dann sagt Schwein zu Spinne:
+1	Ngûru	Ngûru	PROPN	_	_	_	_	_	Gloss=pig
+2	na	na	ADP	_	_	_	_	_	Gloss=and
+3	wâlï	wâlï	NOUN	_	Gender=Fem	_	_	_	Gloss=wife
+4	tî	tî	ADP	_	_	_	_	_	Gloss=of
+5	lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=him
+6	a	a	PRON	_	Case=Nom|Person=3|Prefix=Yes|PronType=Art	_	_	_	Gloss=they
+7	gue	gue	VERB	_	Subcat=Intr	_	_	_	Gloss=go
+8	,	_	PUNCT	_	_	_	_	_	Gloss=,
+9	a	a	PRON	_	Case=Nom|Person=3|Prefix=Yes|PronType=Art	_	_	_	Gloss=they
+10	gi	gi	VERB	_	Subcat=Tran	_	_	_	Gloss=seek
+11	tɛ̂nɛ̈	tɛ̂nɛ̈	NOUN	_	_	_	_	_	Gloss=rock
+12	sô	sô	DET	_	PronType=Art,Rel	_	_	_	Gloss=this
+13	gbä	gbä	ADV	_	_	_	_	_	Gloss=in-vain
+14	,	_	PUNCT	_	_	_	_	_	Gloss=,
+15	sï	sï	ADV	_	_	_	_	_	Gloss=first
+16	Ngûru	Ngûru	PROPN	_	_	_	_	_	Gloss=pig
+17	a	a	PRON	_	Case=Nom|Person=3|Prefix=Yes|PronType=Art	_	_	_	Gloss=he
+18	tɛnɛ	tɛnɛ	VERB	_	Subcat=Tran	_	_	_	Gloss=say
+19	na	na	ADP	_	_	_	_	_	Gloss=to
+20	Tɛrɛ	Tɛrɛ	PROPN	_	_	_	_	_	Gloss=spider
+21	:	_	PUNCT	_	_	_	_	_	Gloss=:
+
+# newpar id = tere_na_nguru-p33
+# sent id = tere_na_nguru-p33s1
+# text = «Sô sï mbï wara tɛ̂nɛ̈ tî wâlï tî mɔ nî pɛ̈pɛ sô, mbï fûta na mɔ na sakpä tî nyama ɔ̂kɔ, mɔ gue na nî na lo.»
+# text_en = “As I have not found your wife's stone, I will pay you one basket of meat for you to take to your wife in its place.”
+# text_fr = «Comme je n'ai pas trouvé la pierre de ta femme, je te donne à la place un panier de viande; emporte-le à ta femme.»
+# text_de = „Da ich das Stein Ihrer Frau nicht finden kann, so bezahle ich Dir an seiner Stelle ein Korb Fleisch, das Du dann zu Ihrer Frau bringst.“
+1	«	_	PUNCT	_	_	_	_	_	Gloss=«
+2	Sô	sô	DET	_	PronType=Art,Rel	_	_	_	Gloss=this
+3	sï	sï	ADV	_	_	_	_	_	Gloss=first
+4	mbï	mbï	PRON	_	Num=Sing|Person=1|PronType=Prs	_	_	_	Gloss=i
+5	wara	wara	VERB	_	Subcat=Tran	_	_	_	Gloss=find
+6	tɛ̂nɛ̈	tɛ̂nɛ̈	NOUN	_	_	_	_	_	Gloss=rock
+7	tî	tî	ADP	_	_	_	_	_	Gloss=of
+8	wâlï	wâlï	NOUN	_	Gender=Fem	_	_	_	Gloss=wife
+9	tî	tî	ADP	_	_	_	_	_	Gloss=of
+10	mɔ	mɔ	PRON	_	Num=Sing|Person=2|PronType=Prs	_	_	_	Gloss=you
+11	nî	nî	DET	_	PronType=Art	_	_	_	Gloss=the
+12	pɛ̈pɛ	pɛ̈pɛ	PART	_	Polarity=Neg	_	_	_	Gloss=not
+13	sô	sô	DET	_	PronType=Art,Rel	_	_	_	Gloss=this
+14	,	_	PUNCT	_	_	_	_	_	Gloss=,
+15	mbï	mbï	PRON	_	Num=Sing|Person=1|PronType=Prs	_	_	_	Gloss=i
+16	fûta	fûta	VERB	_	Subcat=Tran	_	_	_	Gloss=pay
+17	na	na	ADP	_	_	_	_	_	Gloss=to
+18	mɔ	mɔ	PRON	_	Num=Sing|Person=2|PronType=Prs	_	_	_	Gloss=you
+19	na	na	ADP	_	_	_	_	_	Gloss=with
+20	sakpä	sakpä	NOUN	_	_	_	_	_	Gloss=basket
+21	tî	tî	ADP	_	_	_	_	_	Gloss=of
+22	nyama	nyama	NOUN	_	_	_	_	_	Gloss=animal
+23	ɔ̂kɔ	ɔ̂kɔ	NUM	_	_	_	_	_	Gloss=one
+24	,	_	PUNCT	_	_	_	_	_	Gloss=,
+25	mɔ	mɔ	PRON	_	Num=Sing|Person=2|PronType=Prs	_	_	_	Gloss=you
+26	gue	gue	VERB	_	Subcat=Intr	_	_	_	Gloss=go
+27	na	na	ADP	_	_	_	_	_	Gloss=with
+28	nî	nî	PRON	_	Animacy=Inan|Num=Sing|Person=3|PronType=Det|Case=Abs,Acc	_	_	_	Gloss=it
+29	na	na	ADP	_	_	_	_	_	Gloss=to
+30	lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=her
+31	.	_	PUNCT	_	_	_	_	_	Gloss=.
+32	»	_	PUNCT	_	_	_	_	_	Gloss=»
+
+# newpar id = tere_na_nguru-p34
+# sent id = tere_na_nguru-p34s1
+# text = Tɛrɛ amä töngasô, bɛ̂ tî lo anzɛrɛ sï lo tɛnɛ:
+# text_en = When Spider hears this, he rejoices and says:
+# text_fr = Lorsque Araignée entend cela, il est tout heureux et dit:
+# text_de = Als Spinne dies hört, freut er sich und sagt:
+1	Tɛrɛ	Tɛrɛ	PROPN	_	_	_	_	_	Gloss=spider
+2	a	a	PRON	_	Case=Nom|Person=3|Prefix=Yes|PronType=Art	_	_	_	Gloss=he
+3	mä	mä	VERB	_	_	_	_	_	Gloss=hear
+4	töngasô	töngasô	ADV	_	_	_	_	_	Gloss=thus
+5	,	_	PUNCT	_	_	_	_	_	Gloss=,
+6	bɛ̂	bɛ̂	NOUN	_	_	_	_	_	Gloss=center-or-heart
+7	tî	tî	ADP	_	_	_	_	_	Gloss=of
+8	lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=him
+9	a	a	PRON	_	Case=Nom|Person=3|Prefix=Yes|PronType=Art	_	_	_	Gloss=it
+10	nzɛrɛ	nzɛrɛ	VERB	_	Subcat=Intr	_	_	_	Gloss=is-delicious
+11	sï	sï	ADV	_	_	_	_	_	Gloss=first
+12	lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=he
+13	tɛnɛ	tɛnɛ	VERB	_	Subcat=Tran	_	_	_	Gloss=say
+14	:	_	PUNCT	_	_	_	_	_	Gloss=:
+
+# newpar id = tere_na_nguru-p35
+# sent id = tere_na_nguru-p35s1
+# text = «Gä na nî.»
+# text_en = “Bring it.”
+# text_fr = «Apporte!»
+# text_de = „Bring es doch her.“
+1	«	_	PUNCT	_	_	_	_	_	Gloss=«
+2	Gä	gä	VERB	_	_	_	_	_	Gloss=come
+3	na	na	ADP	_	_	_	_	_	Gloss=with
+4	nî	nî	PRON	_	Animacy=Inan|Num=Sing|Person=3|PronType=Det|Case=Abs,Acc	_	_	_	Gloss=it
+5	.	_	PUNCT	_	_	_	_	_	Gloss=.
+6	»	_	PUNCT	_	_	_	_	_	Gloss=»
+
+# newpar id = tere_na_nguru-p36
+# sent id = tere_na_nguru-p36s1
+# text = Sï Tɛrɛ amû sakpä tî nyama sô, lo gue lo wara kôya tî lo, Bäkɔngɔ̈, sï âla gue na kɔ̈dɔ̈rɔ̈ tî âla.
+# text_en = And so Spider takes the basket of meat and goes off to find his uncle, Turtle, and they return to their village.
+# text_fr = Et Araignée prend le panier de viande, s'en va trouver Tortue, son parent, et ensemble tous les deux, ils s'en retournent chez eux.
+# text_de = Und so nimmt Spinne das Korb Fleisch und setzt fort, seinen Onkel Schildkröte zu finden, und sie kehren zu ihrem Dorf zurück.
+1	Sï	sï	ADV	_	_	_	_	_	Gloss=first
+2	Tɛrɛ	Tɛrɛ	PROPN	_	_	_	_	_	Gloss=spider
+3	a	a	PRON	_	Case=Nom|Person=3|Prefix=Yes|PronType=Art	_	_	_	Gloss=he
+4	mû	mû	VERB	_	Subcat=Tran	_	_	_	Gloss=take
+5	sakpä	sakpä	NOUN	_	_	_	_	_	Gloss=basket
+6	tî	tî	ADP	_	_	_	_	_	Gloss=of
+7	nyama	nyama	NOUN	_	_	_	_	_	Gloss=animal
+8	sô	sô	DET	_	PronType=Art,Rel	_	_	_	Gloss=this
+9	,	_	PUNCT	_	_	_	_	_	Gloss=,
+10	lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=he
+11	gue	gue	VERB	_	Subcat=Intr	_	_	_	Gloss=go
+12	lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=he
+13	wara	wara	VERB	_	Subcat=Tran	_	_	_	Gloss=find
+14	kôya	kôya	NOUN	_	Gender=Masc	_	_	_	Gloss=uncle
+15	tî	tî	ADP	_	_	_	_	_	Gloss=of
+16	lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=him
+17	,	_	PUNCT	_	_	_	_	_	Gloss=,
+18	Bäkɔngɔ̈	Bäkɔngɔ̈	PROPN	_	_	_	_	_	Gloss=turtle
+19	,	_	PUNCT	_	_	_	_	_	Gloss=,
+20	sï	sï	ADV	_	_	_	_	_	Gloss=first
+21	âla	âla	PRON	_	Num=Plur|Person=3|PronType=Prs	_	_	_	Gloss=they
+22	gue	gue	VERB	_	Subcat=Intr	_	_	_	Gloss=go
+23	na	na	ADP	_	_	_	_	_	Gloss=to
+24	kɔ̈dɔ̈rɔ̈	kɔ̈dɔ̈rɔ̈	NOUN	_	_	_	_	_	Gloss=village
+25	tî	tî	ADP	_	_	_	_	_	Gloss=of
+26	âla	âla	PRON	_	Num=Plur|Person=3|PronType=Prs	_	_	_	Gloss=them
+27	.	_	PUNCT	_	_	_	_	_	Gloss=.
+
+# sent id = tere_na_nguru-p36s2
+# text = Tɛrɛ na wâlï tî lo na môlɛngê tî lo atɛ nyama sô kûɛ̂.
+# text_en = Spider and his wife and child eat all the meat.
+# text_fr = Araignée, sa femme et son enfant mangent toute la viande.
+# text_de = Spinne und seine Frau and Kind essen das ganze Fleisch auf.
+1	Tɛrɛ	Tɛrɛ	PROPN	_	_	_	_	_	Gloss=spider
+2	na	na	ADP	_	_	_	_	_	Gloss=and
+3	wâlï	wâlï	NOUN	_	Gender=Fem	_	_	_	Gloss=wife
+4	tî	tî	ADP	_	_	_	_	_	Gloss=of
+5	lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=him
+6	na	na	ADP	_	_	_	_	_	Gloss=and
+7	môlɛngê	môlɛngɛ̂	NOUN	_	_	_	_	_	Gloss=child
+8	tî	tî	ADP	_	_	_	_	_	Gloss=of
+9	lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=him
+10	a	a	PRON	_	Case=Nom|Person=3|Prefix=Yes|PronType=Art	_	_	_	Gloss=they
+11	tɛ	tɛ	VERB	_	_	_	_	_	Gloss=eat
+12	nyama	nyama	NOUN	_	_	_	_	_	Gloss=animal
+13	sô	sô	DET	_	PronType=Art,Rel	_	_	_	Gloss=this
+14	kûɛ̂	kûɛ̂	ADV	_	_	_	_	_	Gloss=completely
+15	.	_	PUNCT	_	_	_	_	_	Gloss=.
+
+# newpar id = tere_na_nguru-p37
+# sent id = tere_na_nguru-p37s1
+# text = Längɔ̈ ɔkü na pekö nî, Tɛrɛ akîri awara Ngûru na ndo tî lo, sï lo tɛnɛ tɛ̈nɛ̈ na lo:
+# text_en = Five days later, Spider returns to find Pig at home and says to him:
+# text_fr = Cinq jours plus tard, Araignée revient trouver Cochon chez lui et lui dit:
+# text_de = Fünf Tage später, kehrt Spinne zu Schwein zurück und sagt ihm:
+1	Längɔ̈	längɔ̈	NOUN	_	_	_	_	_	Gloss=day-sleep-stand-stay
+2	ɔkü	ɔkü	NUM	_	_	_	_	_	Gloss=five
+3	na	na	ADP	_	_	_	_	_	Gloss=in
+4	pekö	pekö	NOUN	_	_	_	_	_	Gloss=back
+5	nî	nî	DET	_	PronType=Art	_	_	_	Gloss=the
+6	,	_	PUNCT	_	_	_	_	_	Gloss=,
+7	Tɛrɛ	Tɛrɛ	PROPN	_	_	_	_	_	Gloss=spider
+8	a	a	PRON	_	Case=Nom|Person=3|Prefix=Yes|PronType=Art	_	_	_	Gloss=he
+9	kîri	kîri	VERB	_	Subcat=Intr	_	_	_	Gloss=return
+10	a	a	PRON	_	Case=Nom|Person=3|Prefix=Yes|PronType=Art	_	_	_	Gloss=he
+11	wara	wara	VERB	_	Subcat=Tran	_	_	_	Gloss=find
+12	Ngûru	Ngûru	PROPN	_	_	_	_	_	Gloss=pig
+13	na	na	ADP	_	_	_	_	_	Gloss=in
+14	ndo	ndo	NOUN	_	_	_	_	_	Gloss=place
+15	tî	tî	ADP	_	_	_	_	_	Gloss=of
+16	lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=him
+17	,	_	PUNCT	_	_	_	_	_	Gloss=,
+18	sï	sï	ADV	_	_	_	_	_	Gloss=first
+19	lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=he
+20	tɛnɛ	tɛnɛ	VERB	_	Subcat=Tran	_	_	_	Gloss=say
+21	tɛ̈nɛ̈	tɛ̈nɛ̈	NOUN	_	_	_	_	_	Gloss=words-or-quarrel
+22	na	na	ADP	_	_	_	_	_	Gloss=to
+23	lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=him
+24	:	_	PUNCT	_	_	_	_	_	Gloss=:
+
+# newpar id = tere_na_nguru-p38
+# sent id = tere_na_nguru-p38s1
+# text = «Wâlï tî mbï asûku mîngi, lo pâpa na mbï lâkûɛ̂.
+# text_en = “My wife is very angry and is constantly arguing with me.
+# text_fr = «Ma femme est très fâchée et me dispute chaque jour.
+# text_de = „Meine Frau ist sehr verärgert und streitet stets mit mir.
+1	«	_	PUNCT	_	_	_	_	_	Gloss=«
+2	Wâlï	wâlï	NOUN	_	Gender=Fem	_	_	_	Gloss=wife
+3	tî	tî	ADP	_	_	_	_	_	Gloss=of
+4	mbï	mbï	PRON	_	Num=Sing|Person=1|PronType=Prs	_	_	_	Gloss=me
+5	a	a	PRON	_	Case=Nom|Person=3|Prefix=Yes|PronType=Art	_	_	_	Gloss=she
+6	sûku	sûku	VERB	_	_	_	_	_	Gloss=inflate
+7	mîngi	mîngi	ADV	_	_	_	_	_	Gloss=very
+8	,	_	PUNCT	_	_	_	_	_	Gloss=,
+9	lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=she
+10	pâpa	pâpa	VERB	_	Subcat=Intr	_	_	_	Gloss=argue
+11	na	na	ADP	_	_	_	_	_	Gloss=with
+12	mbï	mbï	PRON	_	Num=Sing|Person=1|PronType=Prs	_	_	_	Gloss=me
+13	lâkûɛ̂	lâkûɛ̂	ADV	_	_	_	_	_	Gloss=always
+14	.	_	PUNCT	_	_	_	_	_	Gloss=.
+
+# sent id = tere_na_nguru-p38s2
+# text = Lo tɛnɛ sakpä tî nyama ɔ̂kɔ sô sɛ̂ngɛ̂ alîngbi na tɛ̂nɛ̈ tî lo pɛ̈pɛ, sï lo yê mbɛ̂nî sakpä tî nyama.
+# text_en = She says that a simple basket of meat can't replace her stone, so she wants another basket of meat.
+# text_fr = Elle dit qu'un simple panier de viande ne peut suffire pour remplacer sa pierre; elle veut un autre panier de viande.
+# text_de = Sie behauptet, ein einzelnes Korb Fleisch kann nicht ihr Stein ersetzen, und so verlangt sie noch ein Korb Fleisch.
+1	Lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=she
+2	tɛnɛ	tɛnɛ	VERB	_	Subcat=Tran	_	_	_	Gloss=say
+3	sakpä	sakpä	NOUN	_	_	_	_	_	Gloss=basket
+4	tî	tî	ADP	_	_	_	_	_	Gloss=of
+5	nyama	nyama	NOUN	_	_	_	_	_	Gloss=animal
+6	ɔ̂kɔ	ɔ̂kɔ	NUM	_	_	_	_	_	Gloss=one
+7	sô	sô	DET	_	PronType=Art,Rel	_	_	_	Gloss=this
+8	sɛ̂ngɛ̂	sɛ̂ngɛ̂	ADV	_	_	_	_	_	Gloss=simply
+9	a	a	PRON	_	Case=Nom|Person=3|Prefix=Yes|PronType=Art	_	_	_	Gloss=it
+10	lîngbi	lîngbi	VERB	_	Subcat=Intr	_	_	_	Gloss=suffice
+11	na	na	ADP	_	_	_	_	_	Gloss=for
+12	tɛ̂nɛ̈	tɛ̂nɛ̈	NOUN	_	_	_	_	_	Gloss=rock
+13	tî	tî	ADP	_	_	_	_	_	Gloss=of
+14	lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=her
+15	pɛ̈pɛ	pɛ̈pɛ	PART	_	Polarity=Neg	_	_	_	Gloss=not
+16	,	_	PUNCT	_	_	_	_	_	Gloss=,
+17	sï	sï	ADV	_	_	_	_	_	Gloss=first
+18	lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=she
+19	yê	yê	VERB	_	_	_	_	_	Gloss=want
+20	mbɛ̂nî	mbɛ̂nî	ADJ	_	_	_	_	_	Gloss=another
+21	sakpä	sakpä	NOUN	_	_	_	_	_	Gloss=basket
+22	tî	tî	ADP	_	_	_	_	_	Gloss=of
+23	nyama	nyama	NOUN	_	_	_	_	_	Gloss=animal
+24	.	_	PUNCT	_	_	_	_	_	Gloss=.
+
+# sent id = tere_na_nguru-p38s3
+# text = Töngasô pɛ̈pɛ, âla mû na mbï tɛ̂nɛ̈ tî lo sï âla gue âla mû sakpä tî nyama tî âla.»
+# text_en = Otherwise give me the stone and take back your basket of meat.”
+# text_fr = Sinon vous me rendez la pierre, et vous allez rechercher votre panier de viande.»
+# text_de = Sonst gib mir das Stein zurück und nimm dein Korb Fleisch zurück.“
+1	Töngasô	töngasô	ADV	_	_	_	_	_	Gloss=thus
+2	pɛ̈pɛ	pɛ̈pɛ	PART	_	Polarity=Neg	_	_	_	Gloss=not
+3	,	_	PUNCT	_	_	_	_	_	Gloss=,
+4	âla	âla	PRON	_	Num=Plur|Person=3|PronType=Prs	_	_	_	Gloss=they
+5	mû	mû	VERB	_	Subcat=Tran	_	_	_	Gloss=give
+6	na	na	ADP	_	_	_	_	_	Gloss=to
+7	mbï	mbï	PRON	_	Num=Sing|Person=1|PronType=Prs	_	_	_	Gloss=me
+8	tɛ̂nɛ̈	tɛ̂nɛ̈	NOUN	_	_	_	_	_	Gloss=rock
+9	tî	tî	ADP	_	_	_	_	_	Gloss=of
+10	lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=her
+11	sï	sï	ADV	_	_	_	_	_	Gloss=first
+12	âla	âla	PRON	_	Num=Plur|Person=3|PronType=Prs	_	_	_	Gloss=they
+13	gue	gue	VERB	_	Subcat=Intr	_	_	_	Gloss=go
+14	âla	âla	PRON	_	Num=Plur|Person=3|PronType=Prs	_	_	_	Gloss=they
+15	mû	mû	VERB	_	Subcat=Tran	_	_	_	Gloss=take
+16	sakpä	sakpä	NOUN	_	_	_	_	_	Gloss=basket
+17	tî	tî	ADP	_	_	_	_	_	Gloss=of
+18	nyama	nyama	NOUN	_	_	_	_	_	Gloss=animal
+19	tî	tî	ADP	_	_	_	_	_	Gloss=of
+20	âla	âla	PRON	_	Num=Plur|Person=3|PronType=Prs	_	_	_	Gloss=them
+21	.	_	PUNCT	_	_	_	_	_	Gloss=.
+22	»	_	PUNCT	_	_	_	_	_	Gloss=»
+
+# newpar id = tere_na_nguru-p39
+# sent id = tere_na_nguru-p39s1
+# text = Ngûru amû na Tɛrɛ mbɛ̂nî sakpä tî nyama sï Tɛrɛ ague na nî, âla tɛ kûɛ̂.
+# text_en = Pig gives Spider another basket of meat, who takes it home where they eat it all.
+# text_fr = Cochon donne à Tere un autre panier de viande, il s'en va avec et ils mangent tout.
+# text_de = Schwein gibt Spinne noch ein Korb Fleisch, der es dann nach Hause nimmt wo sie es aufessen.
+1	Ngûru	Ngûru	PROPN	_	_	_	_	_	Gloss=pig
+2	a	a	PRON	_	Case=Nom|Person=3|Prefix=Yes|PronType=Art	_	_	_	Gloss=he
+3	mû	mû	VERB	_	Subcat=Tran	_	_	_	Gloss=give
+4	na	na	ADP	_	_	_	_	_	Gloss=to
+5	Tɛrɛ	Tɛrɛ	PROPN	_	_	_	_	_	Gloss=spider
+6	mbɛ̂nî	mbɛ̂nî	ADJ	_	_	_	_	_	Gloss=another
+7	sakpä	sakpä	NOUN	_	_	_	_	_	Gloss=basket
+8	tî	tî	ADP	_	_	_	_	_	Gloss=of
+9	nyama	nyama	NOUN	_	_	_	_	_	Gloss=animal
+10	sï	sï	ADV	_	_	_	_	_	Gloss=first
+11	Tɛrɛ	Tɛrɛ	PROPN	_	_	_	_	_	Gloss=spider
+12	a	a	PRON	_	Case=Nom|Person=3|Prefix=Yes|PronType=Art	_	_	_	Gloss=he
+13	gue	gue	VERB	_	Subcat=Intr	_	_	_	Gloss=go
+14	na	na	ADP	_	_	_	_	_	Gloss=with
+15	nî	nî	PRON	_	Animacy=Inan|Num=Sing|Person=3|PronType=Det|Case=Abs,Acc	_	_	_	Gloss=it
+16	,	_	PUNCT	_	_	_	_	_	Gloss=,
+17	âla	âla	PRON	_	Num=Plur|Person=3|PronType=Prs	_	_	_	Gloss=they
+18	tɛ	tɛ	VERB	_	_	_	_	_	Gloss=eat
+19	kûɛ̂	kûɛ̂	ADV	_	_	_	_	_	Gloss=completely
+20	.	_	PUNCT	_	_	_	_	_	Gloss=.
+
+# newpar id = tere_na_nguru-p40
+# sent id = tere_na_nguru-p40s1
+# text = Lâkûɛ̂ töngana Tɛrɛ atɛ nyama nî kûɛ̂ awɛ, lo kîri, lo hânda Ngûru gï töngasô ngbiii kɔ̂bɛ ahûnzi na Ngûru awɛ.
+# text_en = Everytime that Spider has finished eating all the meat, he tricks Pig just the same, until Pig's food is all gone.
+# text_fr = A chaque fois, Araignée mange ainsi toute la viande, revient et trompe Cochon toujours de la même façon jusqu'à ce que ce dernier n'ait plus de nourriture.
+# text_de = Jedes Mal, wenn Spinne das ganze Fleisch gegessen hat, so betrügt er Schwein wiederholt, bis dessen Vorräte alle sind.
+1	Lâkûɛ̂	lâkûɛ̂	ADV	_	_	_	_	_	Gloss=always
+2	töngana	töngana	SCONJ	_	_	_	_	_	Gloss=if-while-as
+3	Tɛrɛ	Tɛrɛ	PROPN	_	_	_	_	_	Gloss=spider
+4	a	a	PRON	_	Case=Nom|Person=3|Prefix=Yes|PronType=Art	_	_	_	Gloss=he
+5	tɛ	tɛ	VERB	_	_	_	_	_	Gloss=eat
+6	nyama	nyama	NOUN	_	_	_	_	_	Gloss=animal
+7	nî	nî	DET	_	PronType=Art	_	_	_	Gloss=the
+8	kûɛ̂	kûɛ̂	ADV	_	_	_	_	_	Gloss=completely
+9	awɛ	awɛ	PART	_	_	_	_	_	Gloss=already
+10	,	_	PUNCT	_	_	_	_	_	Gloss=,
+11	lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=he
+12	kîri	kîri	VERB	_	Subcat=Intr	_	_	_	Gloss=return
+13	,	_	PUNCT	_	_	_	_	_	Gloss=,
+14	lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=he
+15	hânda	hânda	VERB	_	Subcat=Tran	_	_	_	Gloss=deceive
+16	Ngûru	Ngûru	PROPN	_	_	_	_	_	Gloss=pig
+17	gï	gï	ADV	_	_	_	_	_	Gloss=only
+18	töngasô	töngasô	ADV	_	_	_	_	_	Gloss=thus
+19	ngbiii	ngbiii	ADV	_	_	_	_	_	Gloss=long-time
+20	kɔ̂bɛ	kɔ̂bɛ	NOUN	_	_	_	_	_	Gloss=food
+21	a	a	PRON	_	Case=Nom|Person=3|Prefix=Yes|PronType=Art	_	_	_	Gloss=it
+22	hûnzi	hûnzi	VERB	_	Subcat=Intr	_	_	_	Gloss=is-all-gone
+23	na	na	ADP	_	_	_	_	_	Gloss=for
+24	Ngûru	Ngûru	PROPN	_	_	_	_	_	Gloss=pig
+25	awɛ	awɛ	PART	_	_	_	_	_	Gloss=already
+26	.	_	PUNCT	_	_	_	_	_	Gloss=.
+
+# newpar id = tere_na_nguru-p41
+# sent id = tere_na_nguru-p41s1
+# text = Sô kɔ̂bɛ ahûnzi na ndo tî Ngûru awɛ, Tɛrɛ asî na mbɛ̂nî ndäpêrêrê, sï lo tɛnɛ:
+# text_en = Once Pig's food is all gone, Spider arrives one morning and says:
+# text_fr = Alors qu'il n'y a plus de nourriture chez Cochon, Araignée arrive un beau matin, disant:
+# text_de = Nachdem die Nahrungsmittel aufgelöst sind, kommt Spinne eines Tages am Morgen und sagt:
+1	Sô	sô	DET	_	PronType=Art,Rel	_	_	_	Gloss=this
+2	kɔ̂bɛ	kɔ̂bɛ	NOUN	_	_	_	_	_	Gloss=food
+3	a	a	PRON	_	Case=Nom|Person=3|Prefix=Yes|PronType=Art	_	_	_	Gloss=it
+4	hûnzi	hûnzi	VERB	_	Subcat=Intr	_	_	_	Gloss=is-all-gone
+5	na	na	ADP	_	_	_	_	_	Gloss=in
+6	ndo	ndo	NOUN	_	_	_	_	_	Gloss=place
+7	tî	tî	ADP	_	_	_	_	_	Gloss=of
+8	Ngûru	Ngûru	PROPN	_	_	_	_	_	Gloss=pig
+9	awɛ	awɛ	PART	_	_	_	_	_	Gloss=already
+10	,	_	PUNCT	_	_	_	_	_	Gloss=,
+11	Tɛrɛ	Tɛrɛ	PROPN	_	_	_	_	_	Gloss=spider
+12	a	a	PRON	_	Case=Nom|Person=3|Prefix=Yes|PronType=Art	_	_	_	Gloss=he
+13	sî	sî	VERB	_	Subcat=Intr	_	_	_	Gloss=arrive
+14	na	na	ADP	_	_	_	_	_	Gloss=on
+15	mbɛ̂nî	mbɛ̂nî	ADJ	_	_	_	_	_	Gloss=some
+16	ndäpêrêrê	ndäpêrêrê	NOUN	_	_	_	_	_	Gloss=morning
+17	,	_	PUNCT	_	_	_	_	_	Gloss=,
+18	sï	sï	ADV	_	_	_	_	_	Gloss=first
+19	lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=he
+20	tɛnɛ	tɛnɛ	VERB	_	Subcat=Tran	_	_	_	Gloss=say
+21	:	_	PUNCT	_	_	_	_	_	Gloss=:
+
+# newpar id = tere_na_nguru-p42
+# sent id = tere_na_nguru-p42s1
+# text = «Wâlï tî mbï ahûnda gï tɛ̂nɛ̈ tî lo.
+# text_en = “My wife only wants her stone!
+# text_fr = «Ma femme veut seulement sa pierre!
+# text_de = „Meine Frau will nur ihr Stein!
+1	«	_	PUNCT	_	_	_	_	_	Gloss=«
+2	Wâlï	wâlï	NOUN	_	Gender=Fem	_	_	_	Gloss=wife
+3	tî	tî	ADP	_	_	_	_	_	Gloss=of
+4	mbï	mbï	PRON	_	Num=Sing|Person=1|PronType=Prs	_	_	_	Gloss=me
+5	a	a	PRON	_	Case=Nom|Person=3|Prefix=Yes|PronType=Art	_	_	_	Gloss=she
+6	hûnda	hûnda	VERB	_	Subcat=Tran	_	_	_	Gloss=ask
+7	gï	gï	ADV	_	_	_	_	_	Gloss=only
+8	tɛ̂nɛ̈	tɛ̂nɛ̈	NOUN	_	_	_	_	_	Gloss=rock
+9	tî	tî	ADP	_	_	_	_	_	Gloss=of
+10	lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=her
+11	.	_	PUNCT	_	_	_	_	_	Gloss=.
+
+# sent id = tere_na_nguru-p42s2
+# text = Sakpä tî nyama balë ɔ̂kɔ sô âla mû nî na lo, anzɛrɛ na lo pɛ̈pɛ, sï lo yê âla zîa mbɛ̂nî na ndo nî ɔ̂kɔ.
+# text_en = The ten baskets of meat you gave her do not interest her, so she wants you to add one more.
+# text_fr = Les dix paniers de viande que vous lui avez donnés, cela ne lui suffit pas, elle en veut encore un autre.
+# text_de = Die zehn Körbe mit Fleisch, die Du ihr gegeben hast, interessieren sie nicht; sie will, dass Du noch eins hinzufügen.
+1	Sakpä	sakpä	NOUN	_	_	_	_	_	Gloss=basket
+2	tî	tî	ADP	_	_	_	_	_	Gloss=of
+3	nyama	nyama	NOUN	_	_	_	_	_	Gloss=animal
+4	balë ɔ̂kɔ	_	NUM	_	_	_	_	_	Gloss=ten
+5	sô	sô	DET	_	PronType=Art,Rel	_	_	_	Gloss=this
+6	âla	âla	PRON	_	Num=Plur|Person=3|PronType=Prs	_	_	_	Gloss=they
+7	mû	mû	VERB	_	Subcat=Tran	_	_	_	Gloss=give
+8	nî	nî	PRON	_	Animacy=Inan|Num=Sing|Person=3|PronType=Det|Case=Abs,Acc	_	_	_	Gloss=it
+9	na	na	ADP	_	_	_	_	_	Gloss=to
+10	lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=her
+11	,	_	PUNCT	_	_	_	_	_	Gloss=,
+12	a	a	PRON	_	Case=Nom|Person=3|Prefix=Yes|PronType=Art	_	_	_	Gloss=it
+13	nzɛrɛ	nzɛrɛ	VERB	_	Subcat=Intr	_	_	_	Gloss=is-interesting
+14	na	na	ADP	_	_	_	_	_	Gloss=to
+15	lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=her
+16	pɛ̈pɛ	pɛ̈pɛ	PART	_	Polarity=Neg	_	_	_	Gloss=not
+17	,	_	PUNCT	_	_	_	_	_	Gloss=,
+18	sï	sï	ADV	_	_	_	_	_	Gloss=first
+19	lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=she
+20	yê	yê	VERB	_	_	_	_	_	Gloss=want
+21	âla	âla	PRON	_	Num=Plur|Person=3|PronType=Prs	_	_	_	Gloss=they
+22	zîa	zîa	VERB	_	Subcat=Tran	_	_	_	Gloss=put-or-leave
+23	mbɛ̂nî	mbɛ̂nî	ADJ	_	_	_	_	_	Gloss=another
+24	na	na	ADP	_	_	_	_	_	Gloss=into
+25	ndo	ndo	NOUN	_	_	_	_	_	Gloss=place
+26	nî	nî	DET	_	PronType=Art	_	_	_	Gloss=the
+27	ɔ̂kɔ	ɔ̂kɔ	NUM	_	_	_	_	_	Gloss=one
+28	.	_	PUNCT	_	_	_	_	_	Gloss=.
+
+# sent id = tere_na_nguru-p42s3
+# text = Töngasô pɛ̈pɛ, âla gue âla mû nyama tî âla, sï âla kîri na lo na tɛ̂nɛ̈ tî lo.»
+# text_en = Otherwise, go and take your meat and return her stone.”
+# text_fr = Sinon vous allez récupérer votre viande et vous lui rendez sa pierre.»
+# text_de = Sonst geh, nimm das Fleisch zurück und ersetze es mit dem Stein.“
+1	Töngasô	töngasô	ADV	_	_	_	_	_	Gloss=thus
+2	pɛ̈pɛ	pɛ̈pɛ	PART	_	Polarity=Neg	_	_	_	Gloss=not
+3	,	_	PUNCT	_	_	_	_	_	Gloss=,
+4	âla	âla	PRON	_	Num=Plur|Person=3|PronType=Prs	_	_	_	Gloss=they
+5	gue	gue	VERB	_	Subcat=Intr	_	_	_	Gloss=go
+6	âla	âla	PRON	_	Num=Plur|Person=3|PronType=Prs	_	_	_	Gloss=they
+7	mû	mû	VERB	_	Subcat=Tran	_	_	_	Gloss=take
+8	nyama	nyama	NOUN	_	_	_	_	_	Gloss=animal
+9	tî	tî	ADP	_	_	_	_	_	Gloss=of
+10	âla	âla	PRON	_	Num=Plur|Person=3|PronType=Prs	_	_	_	Gloss=them
+11	,	_	PUNCT	_	_	_	_	_	Gloss=,
+12	sï	sï	ADV	_	_	_	_	_	Gloss=first
+13	âla	âla	PRON	_	Num=Plur|Person=3|PronType=Prs	_	_	_	Gloss=they
+14	kîri	kîri	VERB	_	Subcat=Intr	_	_	_	Gloss=return
+15	na	na	ADP	_	_	_	_	_	Gloss=to
+16	lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=her
+17	na	na	ADP	_	_	_	_	_	Gloss=with
+18	tɛ̂nɛ̈	tɛ̂nɛ̈	NOUN	_	_	_	_	_	Gloss=rock
+19	tî	tî	ADP	_	_	_	_	_	Gloss=of
+20	lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=her
+21	.	_	PUNCT	_	_	_	_	_	Gloss=.
+22	»	_	PUNCT	_	_	_	_	_	Gloss=»
+
+# newpar id = tere_na_nguru-p43
+# sent id = tere_na_nguru-p43s1
+# text = Ngûru atï na toto sï lo tɛnɛ kɔ̂bɛ ayɛkɛ na lo mbɛ̂nî pɛ̈pɛ, fadë lo sâra töngana nyɛ.
+# text_en = Pig started crying, saying there is no more food, what should he do?
+# text_fr = Cochon se met à gémir, disant: «je n'ai plus de nourriture, comment vais-je faire?»
+# text_de = Schwein fängt an zu weinen und sagt, es gibt keine Nahrung mehr, was soll er sonst tun?
+1	Ngûru	Ngûru	PROPN	_	_	_	_	_	Gloss=pig
+2	a	a	PRON	_	Case=Nom|Person=3|Prefix=Yes|PronType=Art	_	_	_	Gloss=he
+3	tï	tï	VERB	_	_	_	_	_	Gloss=fall
+4	na	na	ADP	_	_	_	_	_	Gloss=into
+5	toto	toto	NOUN	_	_	_	_	_	Gloss=crying
+6	sï	sï	ADV	_	_	_	_	_	Gloss=first
+7	lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=he
+8	tɛnɛ	tɛnɛ	VERB	_	Subcat=Tran	_	_	_	Gloss=say
+9	kɔ̂bɛ	kɔ̂bɛ	NOUN	_	_	_	_	_	Gloss=food
+10	a	a	PRON	_	Case=Nom|Person=3|Prefix=Yes|PronType=Art	_	_	_	Gloss=it
+11	yɛkɛ	yɛkɛ	VERB	_	_	_	_	_	Gloss=is
+12	na	na	ADP	_	_	_	_	_	Gloss=with
+13	lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=him
+14	mbɛ̂nî	mbɛ̂nî	ADJ	_	_	_	_	_	Gloss=any-more
+15	pɛ̈pɛ	pɛ̈pɛ	PART	_	Polarity=Neg	_	_	_	Gloss=not
+16	,	_	PUNCT	_	_	_	_	_	Gloss=,
+17	fadë	fadë	AUX	_	_	_	_	_	Gloss=shall
+18	lo	lo	PRON	_	Num=Sing|Person=3|PronType=Prs	_	_	_	Gloss=he
+19	sâra	sâra	VERB	_	_	_	_	_	Gloss=do
+20	töngana	töngana	ADP	_	_	_	_	_	Gloss=like
+21	nyɛ	nyɛ	NOUN	_	_	_	_	_	Gloss=what
+22	.	_	PUNCT	_	_	_	_	_	Gloss=.
+
+# newpar id = tere_na_nguru-p44
+# sent id = tere_na_nguru-p44s1
+# text = «Sï îtä tî mbï, Ngûru, mɔ yê mbï sâra tî mbï töngana nyɛ?
+# text_en = “Pig, my friend, what do you want me to do?
+# text_fr = «Cochon, mon frère, que veux-tu que je fasse?
+# text_de = „Schwein, mein Freund, was willst Du das ich tue?
+1	«	_	PUNCT	_	_	_	_	_	Gloss=«
+2	Sï	sï	ADV	_	_	_	_	_	Gloss=first
+3	îtä	îtä	NOUN	_	_	_	_	_	Gloss=sibling
+4	tî	tî	ADP	_	_	_	_	_	Gloss=of
+5	mbï	mbï	PRON	_	Num=Sing|Person=1|PronType=Prs	_	_	_	Gloss=me
+6	,	_	PUNCT	_	_	_	_	_	Gloss=,
+7	Ngûru	Ngûru	PROPN	_	_	_	_	_	Gloss=pig
+8	,	_	PUNCT	_	_	_	_	_	Gloss=,
+9	mɔ	mɔ	PRON	_	Num=Sing|Person=2|PronType=Prs	_	_	_	Gloss=you
+10	yê	yê	VERB	_	_	_	_	_	Gloss=want
+11	mbï	mbï	PRON	_	Num=Sing|Person=1|PronType=Prs	_	_	_	Gloss=i
+12	sâra	sâra	VERB	_	_	_	_	_	Gloss=do
+13	tî	tî	ADP	_	_	_	_	_	Gloss=of
+14	mbï	mbï	PRON	_	Num=Sing|Person=1|PronType=Prs	_	_	_	Gloss=me
+15	töngana	töngana	ADP	_	_	_	_	_	Gloss=like
+16	nyɛ	nyɛ	NOUN	_	_	_	_	_	Gloss=what
+17	?	_	PUNCT	_	_	_	_	_	Gloss=?
+
+# sent id = tere_na_nguru-p44s2
+# text = Yê sô wâlï tî mbï ayɛkɛ fâa mbï daä sô, mbï yɛkɛ kâi?»
+# text_en = My wife is going to kill me, how am I to calm the situation?”
+# text_fr = Ma femme me tue avec cette histoire, vais-je m'en sortir?»
+# text_de = Meine Frau wird mich umbringen, wie soll ich die Lage beruhigen?“
+1	Yê	yê	NOUN	_	_	_	_	_	Gloss=thing
+2	sô	sô	DET	_	PronType=Art,Rel	_	_	_	Gloss=this
+3	wâlï	wâlï	NOUN	_	Gender=Fem	_	_	_	Gloss=wife
+4	tî	tî	ADP	_	_	_	_	_	Gloss=of
+5	mbï	mbï	PRON	_	Num=Sing|Person=1|PronType=Prs	_	_	_	Gloss=me
+6	a	a	PRON	_	Case=Nom|Person=3|Prefix=Yes|PronType=Art	_	_	_	Gloss=she
+7	yɛkɛ	yɛkɛ	AUX	_	_	_	_	_	Gloss=is
+8	fâa	fâa	VERB	_	Subcat=Tran	_	_	_	Gloss=cross-cut-or-kill
+9	mbï	mbï	PRON	_	Num=Sing|Person=1|PronType=Prs	_	_	_	Gloss=me
+10	daä	daä	PART	_	_	_	_	_	Gloss=there
+11	sô	sô	DET	_	PronType=Art,Rel	_	_	_	Gloss=this
+12	,	_	PUNCT	_	_	_	_	_	Gloss=,
+13	mbï	mbï	PRON	_	Num=Sing|Person=1|PronType=Prs	_	_	_	Gloss=i
+14	yɛkɛ	yɛkɛ	AUX	_	_	_	_	_	Gloss=is
+15	kâi	kâi	VERB	_	Subcat=Intr	_	_	_	Gloss=get-well-or-grow-calm
+16	?	_	PUNCT	_	_	_	_	_	Gloss=?
+17	»	_	PUNCT	_	_	_	_	_	Gloss=»
+
+# newpar id = tere_na_nguru-p45
+# sent id = tere_na_nguru-p45s1
+# text = «Sô sakpä tî nyama tî mbï ahûnzi kûɛ̂ awɛ sô, mbï yɛkɛ gue, mbï, wâlï tî mbï, na âmôlɛngê tî mbï kûɛ̂, tî gi tɛ̂nɛ̈ tî wâlï tî mɔ.»
+# text_en = “Because my baskets of meat are all gone, I will go, I, my wife, and all my children, to look for your wife's stone.”
+# text_fr = «Alors, comme notre réserve de viande est entièrement finie, je vais aller, moi, ma femme et mes enfants chercher la pierre de ta femme.»
+# text_de = „Da meine Körbe Fleisch aus sind, gehe ich mit meiner Frau und all meinen Kindern, um das Stein deiner Frau zu suchen.“
+1	«	_	PUNCT	_	_	_	_	_	Gloss=«
+2	Sô	sô	DET	_	PronType=Art,Rel	_	_	_	Gloss=this
+3	sakpä	sakpä	NOUN	_	_	_	_	_	Gloss=basket
+4	tî	tî	ADP	_	_	_	_	_	Gloss=of
+5	nyama	nyama	NOUN	_	_	_	_	_	Gloss=animal
+6	tî	tî	ADP	_	_	_	_	_	Gloss=of
+7	mbï	mbï	PRON	_	Num=Sing|Person=1|PronType=Prs	_	_	_	Gloss=me
+8	a	a	PRON	_	Case=Nom|Person=3|Prefix=Yes|PronType=Art	_	_	_	Gloss=it
+9	hûnzi	hûnzi	VERB	_	Subcat=Intr	_	_	_	Gloss=is-all-gone
+10	kûɛ̂	kûɛ̂	ADV	_	_	_	_	_	Gloss=completely
+11	awɛ	awɛ	PART	_	_	_	_	_	Gloss=already
+12	sô	sô	DET	_	PronType=Art,Rel	_	_	_	Gloss=this
+13	,	_	PUNCT	_	_	_	_	_	Gloss=,
+14	mbï	mbï	PRON	_	Num=Sing|Person=1|PronType=Prs	_	_	_	Gloss=i
+15	yɛkɛ	yɛkɛ	AUX	_	_	_	_	_	Gloss=is
+16	gue	gue	VERB	_	Subcat=Intr	_	_	_	Gloss=go
+17	,	_	PUNCT	_	_	_	_	_	Gloss=,
+18	mbï	mbï	PRON	_	Num=Sing|Person=1|PronType=Prs	_	_	_	Gloss=i
+19	,	_	PUNCT	_	_	_	_	_	Gloss=,
+20	wâlï	wâlï	NOUN	_	Gender=Fem	_	_	_	Gloss=wife
+21	tî	tî	ADP	_	_	_	_	_	Gloss=of
+22	mbï	mbï	PRON	_	Num=Sing|Person=1|PronType=Prs	_	_	_	Gloss=me
+23	,	_	PUNCT	_	_	_	_	_	Gloss=,
+24	na	na	ADP	_	_	_	_	_	Gloss=and
+25	â	â	PART	_	Prefix=Yes	_	_	_	Gloss=[plural]
+26	môlɛngê	môlɛngɛ̂	NOUN	_	_	_	_	_	Gloss=child
+27	tî	tî	ADP	_	_	_	_	_	Gloss=of
+28	mbï	mbï	PRON	_	Num=Sing|Person=1|PronType=Prs	_	_	_	Gloss=me
+29	kûɛ̂	kûɛ̂	DET	_	PronType=Tot	_	_	_	Gloss=all
+30	,	_	PUNCT	_	_	_	_	_	Gloss=,
+31	tî	tî	PART	_	_	_	_	_	Gloss=to
+32	gi	gi	VERB	_	Subcat=Tran	_	_	_	Gloss=seek
+33	tɛ̂nɛ̈	tɛ̂nɛ̈	NOUN	_	_	_	_	_	Gloss=rock
+34	tî	tî	ADP	_	_	_	_	_	Gloss=of
+35	wâlï	wâlï	NOUN	_	Gender=Fem	_	_	_	Gloss=wife
+36	tî	tî	ADP	_	_	_	_	_	Gloss=of
+37	mɔ	mɔ	PRON	_	Num=Sing|Person=2|PronType=Prs	_	_	_	Gloss=you
+38	.	_	PUNCT	_	_	_	_	_	Gloss=.
+39	»	_	PUNCT	_	_	_	_	_	Gloss=»
+
+# newpar id = tere_na_nguru-p46
+# sent id = tere_na_nguru-p46s1
+# text = Ndâ nî laä sï, ângûru ayɛkɛ ndüru hôn tî âla na sêse tî gi tɛ̂nɛ̈ tî wâlï tî Tɛrɛ sô, sï gbä âla yɛkɛ wara nî pɛ̈pɛ.
+# text_en = And that is why pigs keep their noses close to the ground to look for the stone of Spider's wife, without ever finding it.
+# text_fr = C'est pourquoi depuis ce temps, les cochons fouissent la terre de leur groin à la recherche de la pierre de la femme d'Araignée, sans jamais la trouver.
+# text_de = Weswegen Schweine sich die Schnauzen immer nah an den Boden halten, um das Stein der Frau von Spinne zu suchen, ohne es je zu finden.
+1	Ndâ	ndâ	NOUN	_	_	_	_	_	Gloss=end
+2	nî	nî	DET	_	PronType=Art	_	_	_	Gloss=the
+3	laä	laä	PART	_	_	_	_	_	Gloss=behold
+4	sï	sï	ADV	_	_	_	_	_	Gloss=first
+5	,	_	PUNCT	_	_	_	_	_	Gloss=,
+6	â	â	PART	_	Prefix=Yes	_	_	_	Gloss=[plural]
+7	ngûru	ngûru	NOUN	_	_	_	_	_	Gloss=pig
+8	a	a	PRON	_	Case=Nom|Person=3|Prefix=Yes|PronType=Art	_	_	_	Gloss=it
+9	yɛkɛ	yɛkɛ	AUX	_	_	_	_	_	Gloss=is
+10	ndüru	ndüru	VERB	_	_	_	_	_	Gloss=poke
+11	hôn	hôn	NOUN	_	_	_	_	_	Gloss=nose
+12	tî	tî	ADP	_	_	_	_	_	Gloss=of
+13	âla	âla	PRON	_	Num=Plur|Person=3|PronType=Prs	_	_	_	Gloss=them
+14	na	na	ADP	_	_	_	_	_	Gloss=on
+15	sêse	sêse	NOUN	_	_	_	_	_	Gloss=ground
+16	tî	tî	PART	_	_	_	_	_	Gloss=to
+17	gi	gi	VERB	_	Subcat=Tran	_	_	_	Gloss=seek
+18	tɛ̂nɛ̈	tɛ̂nɛ̈	NOUN	_	_	_	_	_	Gloss=rock
+19	tî	tî	ADP	_	_	_	_	_	Gloss=of
+20	wâlï	wâlï	NOUN	_	Gender=Fem	_	_	_	Gloss=wife
+21	tî	tî	ADP	_	_	_	_	_	Gloss=of
+22	Tɛrɛ	Tɛrɛ	PROPN	_	_	_	_	_	Gloss=spider
+23	sô	sô	DET	_	PronType=Art,Rel	_	_	_	Gloss=this
+24	,	_	PUNCT	_	_	_	_	_	Gloss=,
+25	sï	sï	ADV	_	_	_	_	_	Gloss=first
+26	gbä	gbä	ADV	_	_	_	_	_	Gloss=in-vain
+27	âla	âla	PRON	_	Num=Plur|Person=3|PronType=Prs	_	_	_	Gloss=they
+28	yɛkɛ	yɛkɛ	AUX	_	_	_	_	_	Gloss=is
+29	wara	wara	VERB	_	Subcat=Tran	_	_	_	Gloss=find
+30	nî	nî	PRON	_	Animacy=Inan|Num=Sing|Person=3|PronType=Det|Case=Abs,Acc	_	_	_	Gloss=it
+31	pɛ̈pɛ	pɛ̈pɛ	PART	_	Polarity=Neg	_	_	_	Gloss=not
+32	.	_	PUNCT	_	_	_	_	_	Gloss=.
+
