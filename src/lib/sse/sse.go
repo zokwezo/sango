@@ -3,10 +3,16 @@ package sse
 import (
 	"bytes"
 	"fmt"
+	"regexp"
+	"slices"
+	"strings"
 	"unicode"
 	"unicode/utf8"
 
 	"github.com/rivo/uniseg"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
+	"golang.org/x/text/unicode/norm"
 )
 
 //////////////////////////////////////////////////////////////////////////////
@@ -128,18 +134,18 @@ func (t SSEtoken) AsSangoSSE() SangoSSE {
 	// +-----+----+----+----+----+
 	// | Bit | 00 | 01 | 10 | 11 |
 	// +-----+----+----+----+----+
-	// | 000 |    | f  | r  | k  |
-	// | 001 | mv | v  | ng | g  |
-	// | 010 | m  | p  | l  | kp |
-	// | 011 | mb | b  | ngb| gb |
-	// | 100 |    | s  | y  | h  |
-	// | 101 | nz | z  | ny | w  |
-	// | 110 | n  | t  | nd | d  |
+	// | 000 |    | h  | w  | r  |
+	// | 001 | l  | y  | ny | m  |
+	// | 010 | mb | b  | mp | p  |
+	// | 011 | kp | k  | g  | gb |
+	// | 100 | ngb| ng | n  | nd |
+	// | 101 | d  | t  | s  | z  |
+	// | 110 | nz | mv | v  | f  |
 	// +-----+----+----+----+----+
-	// |  00 |    | u  | ɔ  | ɛ  |
-	// |  01 | a  | i  | o  | e  |
-	// |  10 |    | uñ | ø  | ə  |
-	// |  11 | añ | iñ | oñ | eñ |
+	// |  00 |    | a  | ə  | ɛ  |
+	// |  01 | e  | i  | ø  | ɔ  |
+	// |  10 | o  | u  | añ | eñ |
+	// |  11 | iñ | oñ | uñ | —— |
 	// +-----+----+----+----+----+
 	if t&0b_1_00_00_00_00000_0000 != 0b_1_00_00_00000_0000_00 {
 		panic("SSEtoken is not a SangoSSE")
@@ -214,27 +220,25 @@ func MakeAsciiSSE(r rune, isFrench bool, numLettersLeft int) AsciiSSE {
 	return SSEtoken(s).AsAsciiSSE()
 }
 
-// TODO: Remove caseEnum and pitchEnum and merge consonant and
-// vowelWithNasal into a syllable, then infer everything from that.
-func MakeSangoSSE(
-	caseEnum, pitchEnum uint16,
-	consonant, vowelWithNasal string,
-	numSyllablesLeft int) SangoSSE {
-	s := uint16(1 << 15)
-	s |= uint16(min(3, max(0, numSyllablesLeft)) << 13)
-	if caseEnum > 0 && caseEnum < 4 {
-		s |= caseEnum & 3 << 11
+func MakeSangoSSE(syllable string, numLettersLeft int) (sangoSSE SangoSSE, wordLeft string) {
+	var t SSEtoken
+	syllable = norm.NFD.String(syllable)
+	wordLeft, t = encodeLastSyllable(syllable, numLettersLeft)
+	return t.AsSangoSSE(), norm.NFC.String(wordLeft)
+}
+
+func EncodeSangoWord(word string) []SangoSSE {
+	sangoSSEs := []SangoSSE{}
+	if len(word) != 0 {
+		word = norm.NFD.String(word)
+		for numSyllablesLeft := 0; len(word) > 0; numSyllablesLeft++ {
+			var sse SSEtoken
+			word, sse = encodeLastSyllable(word, numSyllablesLeft)
+			sangoSSEs = append(sangoSSEs, sse.AsSangoSSE())
+		}
+		slices.Reverse(sangoSSEs)
 	}
-	if c, found := consToSSEToken[consonant]; found {
-		s |= uint16(c)
-	}
-	if v, found := vowelToSSEToken[vowelWithNasal]; found {
-		s |= uint16(v & 0b1111_00)
-	}
-	if pitchEnum > 0 && pitchEnum < 4 {
-		s |= uint16(pitchEnum & 3)
-	}
-	return SSEtoken(s).AsSangoSSE()
+	return sangoSSEs
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -259,7 +263,7 @@ func (sse SangoSSE) Pitch() int {
 	if sse.t>>15&1 != 0 {
 		return -1
 	}
-	return int(sse.t >> 9 & 3)
+	return int(sse.t & 3)
 }
 
 func (sse SangoSSE) Consonants() []rune {
@@ -327,113 +331,106 @@ func (sse SSE) NumTokensLeftInWord() int {
 // IMPLEMENTATION
 
 var (
-	consToSSEToken = map[string]SSEtoken{
+	consToSSEtoken = map[string]SSEtoken{
 		"":    0b_0_00_00_00000_0000_00,
-		"f":   0b_0_00_00_00001_0000_00,
-		"r":   0b_0_00_00_00010_0000_00,
-		"k":   0b_0_00_00_00011_0000_00,
-		"mv":  0b_0_00_00_00100_0000_00,
-		"v":   0b_0_00_00_00101_0000_00,
-		"ng":  0b_0_00_00_00110_0000_00,
-		"g":   0b_0_00_00_00111_0000_00,
-		"m":   0b_0_00_00_01000_0000_00,
-		"p":   0b_0_00_00_01001_0000_00,
-		"l":   0b_0_00_00_01010_0000_00,
-		"kp":  0b_0_00_00_01011_0000_00,
-		"mb":  0b_0_00_00_01100_0000_00,
-		"b":   0b_0_00_00_01101_0000_00,
-		"ngb": 0b_0_00_00_01110_0000_00,
+		"h":   0b_0_00_00_00001_0000_00,
+		"w":   0b_0_00_00_00010_0000_00,
+		"r":   0b_0_00_00_00011_0000_00,
+		"l":   0b_0_00_00_00100_0000_00,
+		"y":   0b_0_00_00_00101_0000_00,
+		"ny":  0b_0_00_00_00110_0000_00,
+		"m":   0b_0_00_00_00111_0000_00,
+		"mb":  0b_0_00_00_01000_0000_00,
+		"b":   0b_0_00_00_01001_0000_00,
+		"mp":  0b_0_00_00_01010_0000_00,
+		"p":   0b_0_00_00_01011_0000_00,
+		"kp":  0b_0_00_00_01100_0000_00,
+		"k":   0b_0_00_00_01101_0000_00,
+		"g":   0b_0_00_00_01110_0000_00,
 		"gb":  0b_0_00_00_01111_0000_00,
-		"s":   0b_0_00_00_10001_0000_00,
-		"y":   0b_0_00_00_10010_0000_00,
-		"h":   0b_0_00_00_10011_0000_00,
-		"nz":  0b_0_00_00_10100_0000_00,
-		"z":   0b_0_00_00_10101_0000_00,
-		"ny":  0b_0_00_00_10110_0000_00,
-		"w":   0b_0_00_00_10111_0000_00,
-		"n":   0b_0_00_00_11000_0000_00,
-		"t":   0b_0_00_00_11001_0000_00,
-		"nd":  0b_0_00_00_11010_0000_00,
-		"d":   0b_0_00_00_11011_0000_00,
+		"ngb": 0b_0_00_00_10000_0000_00,
+		"ng":  0b_0_00_00_10001_0000_00,
+		"n":   0b_0_00_00_10010_0000_00,
+		"nd":  0b_0_00_00_10011_0000_00,
+		"d":   0b_0_00_00_10100_0000_00,
+		"t":   0b_0_00_00_10101_0000_00,
+		"s":   0b_0_00_00_10110_0000_00,
+		"z":   0b_0_00_00_10111_0000_00,
+		"nz":  0b_0_00_00_11000_0000_00,
+		"mv":  0b_0_00_00_11001_0000_00,
+		"v":   0b_0_00_00_11010_0000_00,
+		"f":   0b_0_00_00_11011_0000_00,
 	}
 
-	vowelToSSEToken = map[string]SSEtoken{
-		".":   0b_0_00_00_00000_0000_00,
-		"ụ":   0b_0_00_00_00000_0001_00,
-		"ɔ̣":  0b_0_00_00_00000_0010_00,
-		"ɛ̣":  0b_0_00_00_00000_0011_00,
-		"ạ":   0b_0_00_00_00000_0100_00,
-		"ị":   0b_0_00_00_00000_0101_00,
-		"ọ":   0b_0_00_00_00000_0110_00,
-		"ẹ":   0b_0_00_00_00000_0111_00,
-		"ụn":  0b_0_00_00_00000_1001_00,
-		"ø̣":  0b_0_00_00_00000_1010_00,
-		"ə̣":  0b_0_00_00_00000_1011_00,
-		"ạn":  0b_0_00_00_00000_1100_00,
-		"ịn":  0b_0_00_00_00000_1101_00,
-		"ọn":  0b_0_00_00_00000_1110_00,
-		"ø̣n": 0b_0_00_00_00000_1110_00,
-		"ẹn":  0b_0_00_00_00000_1111_00,
-		"ə̣n": 0b_0_00_00_00000_1111_00,
+	vowelToSSEtoken = map[string]SSEtoken{
+		".":  0b_0_00_00_00000_0000_00,
+		"ạ":  0b_0_00_00_00000_0001_00,
+		"ə̣": 0b_0_00_00_00000_0010_00,
+		"ɛ̣": 0b_0_00_00_00000_0011_00,
+		"ẹ":  0b_0_00_00_00000_0100_00,
+		"ị":  0b_0_00_00_00000_0101_00,
+		"ø̣": 0b_0_00_00_00000_0110_00,
+		"ɔ̣": 0b_0_00_00_00000_0111_00,
+		"ọ":  0b_0_00_00_00000_1000_00,
+		"ụ":  0b_0_00_00_00000_1001_00,
+		"ạn": 0b_0_00_00_00000_1010_00,
+		"ẹn": 0b_0_00_00_00000_1011_00,
+		"ịn": 0b_0_00_00_00000_1100_00,
+		"ọn": 0b_0_00_00_00000_1101_00,
+		"ụn": 0b_0_00_00_00000_1110_00,
 
 		"":   0b_0_00_00_00000_0000_01,
-		"u":  0b_0_00_00_00000_0001_01,
-		"ɔ":  0b_0_00_00_00000_0010_01,
+		"a":  0b_0_00_00_00000_0001_01,
+		"ə":  0b_0_00_00_00000_0010_01,
 		"ɛ":  0b_0_00_00_00000_0011_01,
-		"a":  0b_0_00_00_00000_0100_01,
+		"e":  0b_0_00_00_00000_0100_01,
 		"i":  0b_0_00_00_00000_0101_01,
-		"o":  0b_0_00_00_00000_0110_01,
-		"e":  0b_0_00_00_00000_0111_01,
-		"un": 0b_0_00_00_00000_1001_01,
-		"ø":  0b_0_00_00_00000_1010_01,
-		"ə":  0b_0_00_00_00000_1011_01,
-		"an": 0b_0_00_00_00000_1100_01,
-		"in": 0b_0_00_00_00000_1101_01,
-		"on": 0b_0_00_00_00000_1110_01,
-		"øn": 0b_0_00_00_00000_1110_01,
-		"en": 0b_0_00_00_00000_1111_01,
-		"ən": 0b_0_00_00_00000_1111_01,
+		"ø":  0b_0_00_00_00000_0110_01,
+		"ɔ":  0b_0_00_00_00000_0111_01,
+		"o":  0b_0_00_00_00000_1000_01,
+		"u":  0b_0_00_00_00000_1001_01,
+		"an": 0b_0_00_00_00000_1010_01,
+		"en": 0b_0_00_00_00000_1011_01,
+		"in": 0b_0_00_00_00000_1100_01,
+		"on": 0b_0_00_00_00000_1101_01,
+		"un": 0b_0_00_00_00000_1110_01,
 
-		"¨":   0b_0_00_00_00000_0000_10,
-		"ü":   0b_0_00_00_00000_0001_10,
-		"ɔ̈":  0b_0_00_00_00000_0010_10,
-		"ɛ̈":  0b_0_00_00_00000_0011_10,
-		"ä":   0b_0_00_00_00000_0100_10,
-		"ï":   0b_0_00_00_00000_0101_10,
-		"ö":   0b_0_00_00_00000_0110_10,
-		"ë":   0b_0_00_00_00000_0111_10,
-		"ün":  0b_0_00_00_00000_1001_10,
-		"ø̈":  0b_0_00_00_00000_1010_10,
-		"ə̈":  0b_0_00_00_00000_1011_10,
-		"än":  0b_0_00_00_00000_1100_10,
-		"ïn":  0b_0_00_00_00000_1101_10,
-		"ön":  0b_0_00_00_00000_1110_10,
-		"ø̈n": 0b_0_00_00_00000_1110_10,
-		"ën":  0b_0_00_00_00000_1111_10,
-		"ə̈n": 0b_0_00_00_00000_1111_10,
+		"¨":  0b_0_00_00_00000_0000_10,
+		"ä":  0b_0_00_00_00000_0001_10,
+		"ə̈": 0b_0_00_00_00000_0010_10,
+		"ɛ̈": 0b_0_00_00_00000_0011_10,
+		"ë":  0b_0_00_00_00000_0100_10,
+		"ï":  0b_0_00_00_00000_0101_10,
+		"ø̈": 0b_0_00_00_00000_0110_10,
+		"ɔ̈": 0b_0_00_00_00000_0111_10,
+		"ö":  0b_0_00_00_00000_1000_10,
+		"ü":  0b_0_00_00_00000_1001_10,
+		"än": 0b_0_00_00_00000_1010_10,
+		"ën": 0b_0_00_00_00000_1011_10,
+		"ïn": 0b_0_00_00_00000_1100_10,
+		"ön": 0b_0_00_00_00000_1101_10,
+		"ün": 0b_0_00_00_00000_1110_10,
 
-		"^":   0b_0_00_00_00000_0000_11,
-		"û":   0b_0_00_00_00000_0001_11,
-		"ɔ̂":  0b_0_00_00_00000_0010_11,
-		"ɛ̂":  0b_0_00_00_00000_0011_11,
-		"â":   0b_0_00_00_00000_0100_11,
-		"î":   0b_0_00_00_00000_0101_11,
-		"ô":   0b_0_00_00_00000_0110_11,
-		"ê":   0b_0_00_00_00000_0111_11,
-		"ûn":  0b_0_00_00_00000_1001_11,
-		"ø̂":  0b_0_00_00_00000_1010_11,
-		"ə̂":  0b_0_00_00_00000_1011_11,
-		"ân":  0b_0_00_00_00000_1100_11,
-		"în":  0b_0_00_00_00000_1101_11,
-		"ôn":  0b_0_00_00_00000_1110_11,
-		"ø̂n": 0b_0_00_00_00000_1110_11,
-		"ên":  0b_0_00_00_00000_1111_11,
-		"ə̂n": 0b_0_00_00_00000_1111_11,
+		"^":  0b_0_00_00_00000_0000_11,
+		"â":  0b_0_00_00_00000_0001_11,
+		"ə̂": 0b_0_00_00_00000_0010_11,
+		"ɛ̂": 0b_0_00_00_00000_0011_11,
+		"ê":  0b_0_00_00_00000_0100_11,
+		"î":  0b_0_00_00_00000_0101_11,
+		"ø̂": 0b_0_00_00_00000_0110_11,
+		"ɔ̂": 0b_0_00_00_00000_0111_11,
+		"ô":  0b_0_00_00_00000_1000_11,
+		"û":  0b_0_00_00_00000_1001_11,
+		"ân": 0b_0_00_00_00000_1010_11,
+		"ên": 0b_0_00_00_00000_1011_11,
+		"în": 0b_0_00_00_00000_1100_11,
+		"ôn": 0b_0_00_00_00000_1101_11,
+		"ûn": 0b_0_00_00_00000_1110_11,
 	}
 
 	sseTokenToCons = func() map[SSEtoken][]rune {
 		m := make(map[SSEtoken][]rune)
-		for cons, sse := range consToSSEToken {
+		for cons, sse := range consToSSEtoken {
 			m[sse] = []rune(cons)
 		}
 		return m
@@ -441,9 +438,68 @@ var (
 
 	sseTokenToVowel = func() map[SSEtoken][]rune {
 		m := make(map[SSEtoken][]rune)
-		for vowel, sse := range vowelToSSEToken {
+		for vowel, sse := range vowelToSSEtoken {
 			m[sse] = []rune(vowel)
 		}
 		return m
 	}()
 )
+
+// Matches final syllable of a Sango word in NFD form.
+var (
+	titleCaser = cases.Title(language.Und)
+	upperCaser = cases.Upper(language.Und)
+
+	sangoSyllableRE = regexp.MustCompile(`(?i)([-]?)` +
+		`(ngb|gb|kp|mb|mp|mv|nd|ng|ny|nz|h|w|r|l|y|m|b|p|k|g|n|d|t|s|z|v|f|)` +
+		`([aeiou\xF8\x{0254}\x{0259}\x{025B}])` +
+		`([\x{0302}\x{0308}\x{0323}]?)(n?)$`)
+)
+
+// PRE: word must be in norm.NFD format.
+// POST: newWord will be in norm.NFD format.
+func encodeLastSyllable(word string, numSyllablesLeft int) (newWord string, sse SSEtoken) {
+	span := sangoSyllableRE.FindStringSubmatchIndex(word)
+	if span == nil || len(span) != 12 || span[0] < 0 || span[1] <= span[0] {
+		return
+	}
+	sse = 0b_1_00_00_00000_0000_00
+	sse |= 0b_0_11_00_00000_0000_00 & SSEtoken(min(3, numSyllablesLeft)<<13)
+	newWord = word[:span[0]]
+	syllable := string(word[span[0]:span[1]])
+	hyphen := string(word[span[2]:span[3]])
+	cons := string(strings.ToLower(word[span[4]:span[5]]))
+	vowel := string(strings.ToLower(word[span[6]:span[7]]))
+	pitch := string(strings.ToLower(word[span[8]:span[9]]))
+	nasal := string(strings.ToLower(word[span[10]:span[11]]))
+
+	if syllable == "" {
+		return
+	}
+	if hyphen == "-" {
+		sse |= 0b_0_00_10_00000_0000_00
+	} else if syllable == titleCaser.String(syllable) {
+		sse |= 0b_0_00_01_00000_0000_00
+	} else if syllable == upperCaser.String(syllable) {
+		sse |= 0b_0_00_11_00000_0000_00
+	}
+
+	switch pitch {
+	case "\u0323": // dot below, e.g. ọ
+		sse |= 0b_0_00_00_00000_0000_00
+	case "\u0308": // diaeresis above, e.g. ö
+		sse |= 0b_0_00_00_00000_0000_10
+	case "\u0302": // circumflex above, e.g. ô
+		sse |= 0b_0_00_00_00000_0000_11
+	default: // no accent, e.g. o
+		sse |= 0b_0_00_00_00000_0000_01
+	}
+	if sseCons, isFound := consToSSEtoken[cons]; isFound {
+		sse |= sseCons
+	}
+	if sseVowel, isFound := vowelToSSEtoken[norm.NFC.String(vowel+pitch+nasal)]; isFound {
+		sse |= sseVowel
+	}
+
+	return
+}

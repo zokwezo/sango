@@ -54,35 +54,26 @@ The Sango syllable encoding is defined as follows:
 
 ### Consonant cluster
 
-| MSB \\ LSB | 00           | 01  | 10   | 11     |
-| :--------: | ------------ | --- | ---- | ------ |
-|    000     | *missing*    | f   | r    | k      |
-|    001     | mv           | v   | ng   | g      |
-|    010     | m            | p   | l    | kp     |
-|    011     | mb           | b   | ngb  | gb     |
-|    100     | **invalid**  | s   | y    | h      |
-|    101     | nz           | z   | ny   | w      |
-|    110     | n            | t   | nd   | d      |
+| MSB\\LSB | 00  | 01  | 10  | 11  |
+| :------: | --- | --- | --- | --- |
+|   000    |     | h   | w   | r   |
+|   001    | l   | y   | ny  | m   |
+|   010    | mb  | b   | mp  | p   |
+|   011    | kp  | k   | g   | gb  |
+|   100    | ngb | ng  | n   | nd  |
+|   101    | d   | t   | s   | z   |
+|   110    | nz  | mv  | v   | f   |
 
 ### Vowel
 
-| MSB \\ LSB | 00           | 01  |  10   |  11   |
-| :--------: | ------------ | --- | ----- | ----- |
-|     00     | **missing**  | u   |   ɔ   |   ɛ   |
-|     01     | a            | i   |   o   |   e   |
-|     10     | **invalid**  | uñ  | **ø** | **ə** |
-|     11     | añ           | iñ  |  oñ   |  eñ   |
+| MSB\\LSB | 00 | 01 | 10 | 11 |
+| :------: | -- | -- | -- | -- |
+|    00    |    | a  | ə  | ɛ  |
+|    01    | e  | i  | ø  | ɔ  |
+|    10    | o  | u  | añ | eñ |
+|    11    | iñ | oñ | uñ | —— |
 
-* Bold entries are not found in normal Sango text.
-* These are stand-in vowels when the vowel height is unknown,
-  to be replaced by the appropriate open or close vowel once known:
+* The following stand-in vowels are not found in normal Sango text and are used internally to indicate that
+  the vowel height is unknown and is to be replaced by the appropriate open or close vowel once known:
   - **ə** ⟹ **e** or **ɛ**
   - **ø** ⟹ **o** or **ɔ**
-
-## Examples
-
-| Text   | Tokens                                                 |
-| ------ | ------------------------------------------------------ |
-| Hi     | `[0b_01_0_00001_01001000,   0b_01_0_00000_01101001]`   |
-| Bɛ̂-bïn | `[0b_1_01_01_01101_0011_11, 0b_1_00_10_01101_1101_10]` |
-| bə̣bị   | `[0b_1_01_11_01101_1011_00, 0b_1_00_11_01101_0101_00]` |

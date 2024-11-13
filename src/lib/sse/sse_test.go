@@ -1,9 +1,9 @@
 package sse
 
 import (
+	"fmt"
 	"log"
 	"testing"
-	"unicode/utf8"
 )
 
 func init() {
@@ -62,7 +62,11 @@ func TestSangoSSE(t *testing.T) {
 	for _, s := range []int{0, 1, 2, 3} {
 		for _, x := range []uint16{0, 1, 2, 3} {
 			for _, c := range []uint16{0, 1, 3, 11, 25} {
-				for _, v := range []uint16{0, 1, 3, 7, 13} {
+				// Don't test uppercase if there is no consonant, since that looks just like titlecase
+				if x == 3 && c == 0 {
+					continue
+				}
+				for _, v := range []uint16{1, 3, 7, 13} {
 					for _, p := range []uint16{0, 1, 2, 3} {
 						q := uint16(1) << 15
 						q += uint16(s) << 13
@@ -71,23 +75,25 @@ func TestSangoSSE(t *testing.T) {
 						q += uint16(v) << 2
 						q += uint16(p)
 						expectToken := SSEtoken(q)
-						var cc, vv []byte
-						for _, r := range sseTokenToCons[SSEtoken(c<<6)] {
-							cc = utf8.AppendRune(cc, r)
-						}
-						for _, r := range sseTokenToVowel[SSEtoken(v<<2)] {
-							vv = utf8.AppendRune(vv, r)
-						}
-						actualSse := MakeSangoSSE(x, p, string(cc), string(vv), s)
+						expectSse := expectToken.AsSangoSSE()
+						expectSyllable := expectSse.String()
+						actualSse, _ := MakeSangoSSE(expectSyllable, s)
 						actualToken := actualSse.SSEToken()
-						expectSse := actualToken.AsSangoSSE()
+						actualSyllable := actualSse.String()
 						actualSseStr := actualSse.FullString()
 						expectSseStr := expectSse.FullString()
-						if actualToken != expectToken || actualSseStr != expectSseStr {
+						if actualToken != expectToken {
 							t.Errorf("for n=%02b x=%02b c=%05b v=%04b p=%02b\nactual = %016b\nexpect = %016b\n",
 								s, x, c, v, p, actualToken, expectToken)
+							panic("DONE 1")
+						} else if actualSyllable != expectSyllable {
+							t.Errorf("for n=%02b x=%02b c=%05b v=%04b p=%02b\nactual = %s\nexpect = %s\n",
+								s, x, c, v, p, actualSyllable, expectSyllable)
+							panic("DONE 2")
+						} else if actualSseStr != expectSseStr {
 							t.Errorf("for n=%02b x=%02b c=%05b v=%04b p=%02b\nactual = %s\nexpect = %s\n",
 								s, x, c, v, p, actualSseStr, expectSseStr)
+							panic("DONE 3")
 						}
 					}
 				}
@@ -103,18 +109,44 @@ func TestVariousSSE(t *testing.T) {
 		`{token=0b_01_0_00001_01101001 UTF8=[105] UTF8/glyph=[[105]] runes=[105] string="i" lang=en numTokensLeft=1}`)
 	assertEqual(t, MakeAsciiSSE('!', false, 0).FullString(),
 		`{token=0b_01_0_00000_00100001 UTF8=[33] UTF8/glyph=[[33]] runes=[33] string="!" lang=en numTokensLeft=0}`)
-	assertEqual(t, MakeSangoSSE(SangoCaseTitle, SangoPitchHigh, "b", "ɛ", 1).FullString(),
-		`{token=0b_1_01_01_01101_0011_11 UTF8=[66 201 155 204 130] UTF8/glyph=[[66] [201 155 204 130]] runes=[66 603 770] string="Bɛ̂" lang=sg numTokensLeft=1}`)
-	assertEqual(t, MakeSangoSSE(SangoCaseHyphen, SangoPitchMid, "b", "in", 0).FullString(),
-		`{token=0b_1_00_10_01101_1101_10 UTF8=[45 98 195 175 110] UTF8/glyph=[[45] [98] [195 175] [110]] runes=[45 98 239 110] string="-bïn" lang=sg numTokensLeft=0}`)
-	assertEqual(t, MakeSangoSSE(SangoCaseUpper, SangoPitchUnknown, "b", "ə", 1).FullString(),
-		`{token=0b_1_01_11_01101_1011_00 UTF8=[66 198 143 204 163] UTF8/glyph=[[66] [198 143 204 163]] runes=[66 399 803] string="BƏ̣" lang=sg numTokensLeft=1}`)
-	assertEqual(t, MakeSangoSSE(SangoCaseUpper, SangoPitchUnknown, "b", "i", 0).FullString(),
-		`{token=0b_1_00_11_01101_0101_00 UTF8=[66 225 187 138] UTF8/glyph=[[66] [225 187 138]] runes=[66 7882] string="BỊ" lang=sg numTokensLeft=0}`)
+
+	sse, w := MakeSangoSSE("Bɛ̂", 1)
+	assertEqual(t, w, "")
+	assertEqual(t, sse.FullString(),
+		`{token=0b_1_01_01_01001_0011_11 UTF8=[66 201 155 204 130] UTF8/glyph=[[66] [201 155 204 130]] runes=[66 603 770] string="Bɛ̂" lang=sg numTokensLeft=1}`)
+
+	sse, w = MakeSangoSSE("-bïn", 0)
+	assertEqual(t, w, "")
+	assertEqual(t, sse.FullString(),
+		`{token=0b_1_00_10_01001_1100_10 UTF8=[45 98 195 175 110] UTF8/glyph=[[45] [98] [195 175] [110]] runes=[45 98 239 110] string="-bïn" lang=sg numTokensLeft=0}`)
+
+	sse, w = MakeSangoSSE("Bə̣", 2)
+	assertEqual(t, w, "")
+	assertEqual(t, sse.FullString(),
+		`{token=0b_1_10_01_01001_0010_00 UTF8=[66 201 153 204 163] UTF8/glyph=[[66] [201 153 204 163]] runes=[66 601 803] string="Bə̣" lang=sg numTokensLeft=2}`)
+
+	sse, w = MakeSangoSSE("BI", 3)
+	assertEqual(t, w, "")
+	assertEqual(t, sse.FullString(),
+		`{token=0b_1_11_11_01001_0101_01 UTF8=[66 73] UTF8/glyph=[[66] [73]] runes=[66 73] string="BI" lang=sg numTokensLeft=3}`)
+}
+
+func TestEncodeSangoWord(t *testing.T) {
+	s := "\n"
+	for k, a := range EncodeSangoWord("Bïkua-ɔ̂kɔ") {
+		s += fmt.Sprintf("sse[%v] = %s\n", k, a.FullString())
+	}
+	assertEqual(t, s, `
+sse[0] = {token=0b_1_11_01_01001_0101_10 UTF8=[66 195 175] UTF8/glyph=[[66] [195 175]] runes=[66 239] string="Bï" lang=sg numTokensLeft=3}
+sse[1] = {token=0b_1_11_00_01101_1001_01 UTF8=[107 117] UTF8/glyph=[[107] [117]] runes=[107 117] string="ku" lang=sg numTokensLeft=3}
+sse[2] = {token=0b_1_10_00_00000_0001_01 UTF8=[97] UTF8/glyph=[[97]] runes=[97] string="a" lang=sg numTokensLeft=2}
+sse[3] = {token=0b_1_01_10_00000_0111_11 UTF8=[45 201 148 204 130] UTF8/glyph=[[45] [201 148 204 130]] runes=[45 596 770] string="-ɔ̂" lang=sg numTokensLeft=1}
+sse[4] = {token=0b_1_00_00_01101_0111_01 UTF8=[107 201 148] UTF8/glyph=[[107] [201 148]] runes=[107 596] string="kɔ" lang=sg numTokensLeft=0}
+`)
 }
 
 func assertEqual(t *testing.T, a string, b string) {
 	if a != b {
-		t.Fatalf("%s != %s", a, b)
+		t.Fatalf("\nactual %s !=\nexpect %s", a, b)
 	}
 }
