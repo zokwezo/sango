@@ -16,8 +16,15 @@ import (
 )
 
 // Sango lexicon in row-major and column-major order, outer joined with compatible affixes.
-func LexiconRows() DictRows { return lexiconRowsAndCols.rows }
-func LexiconCols() DictCols { return lexiconRowsAndCols.cols }
+func LexiconRows() DictRows                     { return lexiconRowsAndCols.rows }
+func LexiconCols() DictCols                     { return lexiconRowsAndCols.cols }
+func HeightlessFromLemma() map[string]string    { return lexiconRowsAndCols.heightlessFromLemma }
+func TonelessFromHeightless() map[string]string { return lexiconRowsAndCols.tonelessFromHeightless }
+func RowsMatchingToneless() DictRowsMap         { return lexiconRowsAndCols.rowsMatchingToneless }
+func RowsMatchingHeightless() DictRowsMap       { return lexiconRowsAndCols.rowsMatchingHeightless }
+func RowsMatchingLemma() DictRowsMap            { return lexiconRowsAndCols.rowsMatchingLemma }
+
+type DictRowsMap = map[string]DictRows
 
 type DictRows = []DictRow
 
@@ -38,7 +45,7 @@ type DictCols struct {
 	Runes              []rune
 	Toneless           [][]byte
 	Heightless         [][]byte
-	Lemma              [][]rune
+	LemmaRunes         [][]rune
 	LemmaUTF8          [][]byte
 	UDPos              [][]byte
 	UDFeature          [][]byte
@@ -88,13 +95,17 @@ func lookupMatchingRows(in DictRows, f DictRowRegexp) (out DictRows, err error) 
 }
 
 type dictRowsAndCols struct {
-	rows DictRows
-	cols DictCols
+	rows                   DictRows
+	cols                   DictCols
+	heightlessFromLemma    map[string]string
+	tonelessFromHeightless map[string]string
+	rowsMatchingToneless   DictRowsMap
+	rowsMatchingHeightless DictRowsMap
+	rowsMatchingLemma      DictRowsMap
 }
 
 var lexiconRowsAndCols = func() dictRowsAndCols {
-	// Keep in sorted order.
-	var rows = []DictRow{
+	var rows = DictRows{
 		{"", "", "", "DO NOT REMOVE THIS ROW", "Copyright=DanielDWeston2024", "HTTP://WWW.APACHE.ORG/LICENSES/LICENSE-2.0", 0, "https://github.com/zokwezo/sango/blob/main/src/lib/lexicon/lexicon.csv", ""},
 		{"ababaa", "ababâa", "ababâa", "NOUN", "", "FOOD", 5, "soybean", "soybean"},
 		{"ade", "âde", "âdɛ", "ADV", "Mood=Irr", "WHEN", 1, "not-yet", "[lit: if-only|remain]: not yet"},
@@ -106,11 +117,10 @@ var lexiconRowsAndCols = func() dictRowsAndCols {
 		{"ahonndoni", "ahön ndö nî", "ahön ndö nî", "ADV", "VerbForm=Fin", "HOW", 2, "too-much", "too much"},
 		{"ai", "âi", "âi", "INTERJ", "", "ALT SP FOR", 9, "oh", "âe"},
 		{"akotara", "âkötarä", "âkötarä", "NOUN", "Num=Plur", "FAMILY", 4, "genealogy", "[plural] genealogy, family tree, patrilineage"},
-		{"ala", "âla", "âla", "PRON", "Num=Plur|Person=3|PronType=Prs", "WHO", 1, "they", "they, them"},
+		{"ala", "âla", "âla", "PRON", "Num=Plur|Person=3|PronType=Prs", "WHO", 1, "they-or-you", "they, them; you [plural and/or polite]"},
 		{"alameti", "alamëti", "alamëti", "NOUN", "", "ALT SP FOR", 9, "matchstick", "alimëti"},
-		{"alamveni", "âla mvenî", "âla mvɛnî", "PRON", "Num=Plur|Person=3|PronType=Prs", "WHO", 1, "themselves", "[lit: they, [plural] you|self]: themselves"},
+		{"alamveni", "âla mvenî", "âla mvɛnî", "PRON", "Num=Plur|Person=3|PronType=Prs", "WHO", 1, "themselves", "[lit: they, [plural and/or polite] you|self]: themselves"},
 		{"ale", "alë", "alë", "NOUN", "VerbForm=Fin", "WHO", 3, "ancestry", "[lit: it bears fruit]: ancestry"},
-		{"alebede", "alëbedê", "alëbɛdê", "NOUN", "", "TREE", 5, "breadfruit-tree", "[lit: it bears fruit|ripens|shade]: Breadfruit tree (African)"},
 		{"alezo", "alë-zo", "alë-zo", "NOUN", "VerbForm=Fin", "WHO", 3, "ancestor", "[lit: it bears fruit|person]: ancestor(s)"},
 		{"alimeti", "alimëti", "alimëti", "NOUN", "", "OBJ", 7, "matchstick", "[Fr: allumette]: match (for lighting a fire)"},
 		{"ambeso", "âmbeso", "âmbeso", "NOUN", "Num=Plur", "WHO", 2, "ancestors", "[lit: [plural]|formerly]: ancestors"},
@@ -121,7 +131,7 @@ var lexiconRowsAndCols = func() dictRowsAndCols {
 		{"ande", "ânde", "ândɛ", "ADV", "Mood=Irr", "WHEN", 1, "later", "[lit: if-only|next-day]: later"},
 		{"ando", "ândö", "ândö", "ADV", "Mood=Irr", "WHEN", 1, "recently", "[lit: if-only|at-the-place]: recently"},
 		{"ange", "ânge", "ânge", "INTERJ", "", "SENSE", 1, "watch-out", "[lit: hön=pass|ge=here]: watch out"},
-		{"angelee", "angelêe", "angɛlêe", "NOUN", "", "COUNTRY", 1, "England", "England"},
+		{"angelee", "angelêe", "angɛlɛ̈ɛ", "NOUN", "", "COUNTRY", 1, "England", "England"},
 		{"angoro", "angöro", "angɔ̈rɔ", "ADV", "", "HOW", 7, "again", "[Fr: encore]: once more, again"},
 		{"ani", "ânî", "ânî", "PRON", "Animacy=Inan|Case=Acc|Num=Plur|Person=3|PronType=Det", "WHICH", 1, "they", "[neuter]: they, them"},
 		{"ani", "ânï", "ânï", "PRON", "Num=Plur|Person=3|PronType=Rel", "WHICH", 2, "they", "[indirect style]: they"},
@@ -341,8 +351,8 @@ var lexiconRowsAndCols = func() dictRowsAndCols {
 		{"buze", "büzë", "büzë", "NOUN", "", "CIVIL", 4, "trade", "barter, trade, commerce"},
 		{"buzi", "buzî", "buzî", "NOUN", "", "OBJ", 4, "candle", "[Fr: bougie]: candle"},
 		{"da", "da", "da", "NOUN", "", "HOUSE", 2, "house", "house, shelter"},
-		{"da", "da", "da", "VERB", "Subcat=Tran", "ACT", 2, "put", "[figurative]: put, place"},
-		{"da", "dä", "dä", "VERB", "Subcat=Intr", "NATURE", 3, "mildew", "mildew"},
+		{"da", "da", "da", "VERB", "Subcat=Tran", "ACT", 3, "put", "[figurative]: put, place"},
+		{"da", "dä", "dä", "VERB", "Subcat=Intr", "NATURE", 5, "mildew", "mildew"},
 		{"da", "dä", "dä", "VERB", "Subcat=Intr", "STATE", 2, "become", "become"},
 		{"daa", "daä", "daä", "PART", "", "WHEN", 1, "then", "then"},
 		{"daa", "daä", "daä", "PART", "", "WHERE", 1, "there", "there"},
@@ -432,7 +442,6 @@ var lexiconRowsAndCols = func() dictRowsAndCols {
 		{"dongongbi", "dongöngbi", "dɔngɔ̈ngbi", "NOUN", "", "ACT", 3, "arrangement", "arrangement"},
 		{"dongongbi", "dongöngbi", "dɔngɔ̈ngbi", "VERB", "Aspect=Imp|Subcat=Tran", "ACT", 3, "arrange", "arrange"},
 		{"dongongbitere", "dongöngbi terê", "dɔngɔ̈ngbi tɛrɛ̂", "VERB", "Subcat=Intr", "ACT", 3, "get-in-line", "[lit: arrange|oneself]: arrange oneself, get in order, get in line"},
-		{"doporo", "döporo", "döpɔrɔ", "NOUN", "", "HOUSE", 4, "window", "window"},
 		{"doro", "dörö", "dɔ̈rɔ̈", "VERB", "Mood=Emp", "BODY", 4, "shiver", "shiver"},
 		{"doroko", "doroko", "dɔrɔkɔ", "VERB", "Subcat=Tran", "ACT", 4, "eviscerate", "eviscerate"},
 		{"du", "du", "du", "VERB", "Subcat=Intr", "STATE", 2, "sit", "sit"},
@@ -590,7 +599,6 @@ var lexiconRowsAndCols = func() dictRowsAndCols {
 		{"gbokoro", "gbôkôrô", "gbôkôrô", "NOUN", "", "FOOD", 6, "peas", "peas"},
 		{"gbongu", "gbo-ngû", "gbɔ-ngû", "VERB", "Subcat=Intr", "ACT", 3, "bathe-or-swim", "[lit: take|water]: bathe, swim"},
 		{"gboro", "gboro", "gbɔrɔ", "NOUN", "", "FOOD", 6, "okra", "okra"},
-		{"gborongane", "gborongâne", "gbɔrɔngâne", "NOUN", "Gender=Masc", "FAMILY", 6, "homonymic-woman", "woman with feminine form of one's name"},
 		{"gbote", "gbo-te", "gbɔ-tɛ", "VERB", "Subcat=Intr", "ACT", 4, "swim", "swim"},
 		{"gboto", "gbôto", "gbɔ̂tɔ", "VERB", "Subcat=Tran", "ACT", 3, "pull", "pull"},
 		{"gbu", "gbû", "gbû", "VERB", "Subcat=Intr", "ACT", 3, "grab", "grab; grab, seize"},
@@ -623,7 +631,7 @@ var lexiconRowsAndCols = func() dictRowsAndCols {
 		{"go", "gô", "gɔ̂", "NOUN", "", "BODY", 2, "throat-or-voice", "throat, voice"},
 		{"gobi", "gobi", "gobi", "NOUN", "", "WHO", 5, "half-breed", "half breed"},
 		{"gobo", "gobo", "gɔbɔ", "NOUN", "", "BODY", 3, "fist", "fist"},
-		{"godobe", "godobe", "gɔdɔbe", "NOUN", "", "WHO", 4, "street-youth", "juvenile delinquent, street youth"},
+		{"godobe", "godobe", "gɔdɔbx", "NOUN", "", "WHO", 4, "street-youth", "juvenile delinquent, street youth"},
 		{"gogo", "gögö", "gögö", "NOUN", "", "FISH", 6, "catfish", "upside down catfish"},
 		{"gogoro", "gogoro", "gɔgɔrɔ", "NOUN", "", "HOUSE", 6, "grange", "grange, grain storage room"},
 		{"gogua", "gögüä", "gögüä", "NOUN", "", "ANIM", 6, "buffalo", "buffalo"},
@@ -853,7 +861,6 @@ var lexiconRowsAndCols = func() dictRowsAndCols {
 		{"kolongo", "kolôngo", "kolôngo", "NOUN", "", "OBJ", 4, "wooden-bowl", "wooden bowl"},
 		{"kombe", "kömbë", "kömbë", "ADJ", "", "COLOR", 6, "yellow", "[lit: yellowfruit]: yellow"},
 		{"kombe", "kömbë", "kömbë", "NOUN", "", "TREE", 6, "yellowfruit", "yellowfruit"},
-		{"komberee", "komberëe", "kɔmberëe", "NOUN", "", "OBJ", 5, "business-suit", "business suit"},
 		{"kombuka", "kombûka", "kombûka", "NOUN", "", "ACT", 4, "uprising", "revolt, uprising"},
 		{"kombuka", "kombûka", "kombûka", "VERB", "Subcat=Intr", "ACT", 4, "revolt", "revolt"},
 		{"kome", "kome", "kɔmɛ", "NOUN", "", "ANIM", 6, "lizard", "Nile monitor lizard"},
@@ -863,11 +870,11 @@ var lexiconRowsAndCols = func() dictRowsAndCols {
 		{"kongba", "kongba", "kongba", "NOUN", "", "ANIM", 6, "toad", "toad"},
 		{"kongba", "kongba", "kongba", "NOUN", "", "HOW", 4, "eccentric", "eccentric"},
 		{"kongba", "köngbä", "köngbä", "NOUN", "", "OBJ", 6, "bellows", "blacksmith bellows"},
-		{"kongo", "kongö", "kongɔ̈", "NOUN", "", "ANIM", 4, "parrot", "parrot"},
-		{"kongo", "kongö", "kongɔ̈", "NOUN", "", "PLANT", 4, "flower", "flower"},
+		{"kongo", "kongö", "kongö", "NOUN", "", "ANIM", 4, "parrot", "parrot"},
+		{"kongo", "kongö", "kongö", "NOUN", "", "PLANT", 4, "flower", "flower"},
 		{"kongo", "kongö", "kɔngɔ̈", "NOUN", "", "NATURE", 4, "rainbow", "rainbow"},
 		{"kongo", "kôngô", "kôngô", "NOUN", "", "OBJ", 4, "hoe", "hoe"},
-		{"kongo", "köngö", "köngɔ̈", "NOUN", "", "ACT", 4, "dam-fishing", "dam fishing"},
+		{"kongo", "köngö", "köngö", "NOUN", "", "ACT", 4, "dam-fishing", "dam fishing"},
 		{"kongo", "köngö", "kɔ̈ngɔ̈", "NOUN", "VerbForm=Vnoun", "INTERACT", 2, "exclamation", "cry, exclamation"},
 		{"kono", "kono", "kɔnɔ", "VERB", "Subcat=Intr", "HOW", 2, "get-big", "grow up, get big, large, fat"},
 		{"kono", "konô", "kɔnɔ̂", "NOUN", "", "ANIM", 3, "hippopotamus", "hippopotamus"},
@@ -904,7 +911,7 @@ var lexiconRowsAndCols = func() dictRowsAndCols {
 		{"koto", "koto", "kɔtɔ", "NOUN", "", "HOUSE", 4, "house-foundation", "foundation of a house"},
 		{"koto", "koto", "kɔtɔ", "VERB", "Subcat=Tran", "ACT", 4, "scratch", "claw, scratch"},
 		{"koto", "kôto", "kôto", "NOUN", "", "BODY", 5, "Adam's-apple", "Adam's apple"},
-		{"kotoon", "kotöon", "kɔtɔ̈on", "NOUN", "", "PLANT", 5, "cotton", "cotton"},
+		{"kotoon", "kotöon", "kɔtɔ̈ɔn", "NOUN", "", "PLANT", 5, "cotton", "cotton"},
 		{"koya", "kôya", "kôya", "NOUN", "", "FAMILY", 4, "maternal-relative", "maternal uncle/niece/nephew"},
 		{"kozo", "kôzo", "kɔ̂zɔ", "ADJ", "", "WHEN", 1, "first", "first"},
 		{"kozo", "kôzo", "kɔ̂zɔ", "NOUN", "", "FAMILY", 4, "oldest", "[lit: first]: firstborn child, oldest"},
@@ -1200,7 +1207,7 @@ var lexiconRowsAndCols = func() dictRowsAndCols {
 		{"mbetitinzapa", "mbëtï tî nzapä", "mbɛ̈tï tî nzapä", "NOUN", "", "GOD", 2, "bible-or-catechism", "bible, catechism"},
 		{"mbetitokua", "mbëtï-tokua", "mbɛ̈tï-tokua", "NOUN", "", "OBJ", 2, "message", "message, missive"},
 		{"mbeto", "mbeto", "mbɛtɔ", "NOUN", "", "FEEL", 3, "fear", "fear"},
-		{"mbi", "mbï", "mbï", "PRON", "Num=Sing|Person=1|PronType=Prs", "WHO", 1, "I", "I, me"},
+		{"mbi", "mbï", "mbï", "PRON", "Num=Sing|Person=1|PronType=Prs", "WHO", 1, "I-me", "I, me"},
 		{"mbimveni", "mbï mvenî", "mbï mvɛnî", "PRON", "Num=Sing|Person=1|PronType=Prs", "WHO", 1, "myself", "[lit: I,me|self]: myself"},
 		{"mbinda", "mbîndä", "mbîndä", "NOUN", "", "NATURE", 3, "cloud-fog-mist", "cloud, fog, mist"},
 		{"mbingo", "mbîngo", "mbîngo", "NOUN", "", "NATURE", 3, "darkness-ignorance", "darkness, ignorance"},
@@ -1246,13 +1253,14 @@ var lexiconRowsAndCols = func() dictRowsAndCols {
 		{"mimi", "mîmi", "mîmi", "ADJ", "", "CIVIL", 5, "brave", "brave, courageous"},
 		{"mingi", "mîngi", "mîngi", "ADV", "", "NUM", 1, "very", "very, too[ much]"},
 		{"mingo", "mîngo", "mîngɔ", "VERB", "Subcat=Tran", "ACT", 3, "extinguish", "extinguish, close"},
-		{"miombe", "miombe", "miɔmbe", "ADJ", "NumType=Ord", "NUM", 2, "eight", "eight"},
-		{"miombe", "miombe", "miɔmbe", "NUM", "NumType=Card", "NUM", 2, "eight", "eight"},
+		{"meambe", "meambe", "meambe", "ADJ", "NumType=Ord", "NUM", 2, "eight", "eight"},
+		{"meambe", "meambe", "meambe", "NUM", "NumType=Card", "NUM", 2, "eight", "eight"},
+		{"miombe", "miombe", "miɔmbɛ", "ADJ", "NumType=Ord", "ALT SP FOR", 9, "eight", "meambe"},
+		{"miombe", "miombe", "miɔmbɛ", "NUM", "NumType=Card", "ALT SP FOR", 9, "eight", "meambe"},
 		{"misuiya", "mî-suïya", "mî-suïya", "NOUN", "", "FOOD", 3, "skewered-meat", "[lit: flesh|skewer]: skewered meat,kabob"},
 		{"mitere", "mî-terê", "mî-tɛrɛ̂", "NOUN", "", "BODY", 3, "muscle", "muscle"},
 		{"mo", "mo", "mɔ", "PRON", "Num=Sing|Person=2|PronType=Prs", "WHO", 1, "you", "[singular]: you"},
 		{"mobaamotene", "mo-bâa-mo-tene", "mɔ-bâa-mɔ-tɛnɛ", "SCONJ", "", "HOW", 1, "as-if", "[lit: (if) you|see (it)|(then) you (would) say]: as if"},
-		{"mobange", "mobangë", "mɔbangë", "NOUN", "", "WHO", 6, "old-person", "old person"},
 		{"modogere", "modögerê", "mɔdɔ̈gɛrɛ̂", "NOUN", "", "FOOD", 6, "soybean", "soybean"},
 		{"mokiri", "mokiri", "mɔkiri", "NOUN", "", "CIVIL", 6, "world", "world, universe, history"},
 		{"mokondo", "mokondö", "mɔkondö", "ADJ", "", "GOD", 4, "holy", "holy, saintly, honest, just, pure"},
@@ -1267,9 +1275,7 @@ var lexiconRowsAndCols = func() dictRowsAndCols {
 		{"mondelepako", "mondelepâko", "mondelepâko", "NOUN", "", "FOOD", 6, "sweet-manioc", "sweet manioc"},
 		{"monganga", "mongânga", "mongânga", "NOUN", "", "WHO", 6, "shaman", "witchdoctor, shaman, sorceror"},
 		{"mongoli", "möngö-li", "möngö-li", "NOUN", "", "BODY", 6, "brain", "brain"},
-		{"mopepe", "mopepe", "mopɛpɛ", "NOUN", "", "OBJ", 6, "jet-airplane", "jet airplane"},
 		{"mopi", "mopï", "mɔpï", "NOUN", "", "STATE", 3, "bad-luck", "bad luck"},
-		{"mosasako", "mosasako", "mɔsasako", "NOUN", "", "WHEN", 6, "July", "July"},
 		{"mosongoli", "mosongôli", "mosongôli", "NOUN", "", "HOW", 6, "pink", "pink"},
 		{"mosoro", "mosoro", "mɔsɔrɔ", "NOUN", "", "CIVIL", 4, "wealth", "[lit: you|choose]: wealth"},
 		{"mosuma", "mosümä", "mosümä", "NOUN", "", "FEEL", 3, "dream", "[lit: you|dream]: dream"},
@@ -1505,7 +1511,6 @@ var lexiconRowsAndCols = func() dictRowsAndCols {
 		{"nyau", "nyâu", "nyâu", "NOUN", "", "ANIM", 2, "cat-or-hypocrite", "cat, [fig]: hypocrite"},
 		{"nye", "nye", "nyɛ", "NOUN", "", "WHICH", 1, "what", "what"},
 		{"nyene", "nyenë", "nyɛnɛ̈", "NOUN", "", "BODY", 6, "buttocks", "butt, buttocks"},
-		{"nyengo", "nyengo", "nyɛngo", "NOUN", "", "HOW", 2, "debt-or-obligation", "debt, obligation"},
 		{"nyenye", "nyenye", "nyɛnyɛ", "NOUN", "", "WHEN", 5, "January", "January"},
 		{"nyenyeke", "nyenyekê", "nyɛnyɛkɛ̂", "ADV", "", "BODY", 4, "graceful", "graceful, elegant"},
 		{"nyi", "nyï", "nyï", "NOUN", "", "FAMILY", 3, "child", "[6mo-4yrs]: child"},
@@ -1542,7 +1547,7 @@ var lexiconRowsAndCols = func() dictRowsAndCols {
 		{"nzege", "nzëgë", "nzëgë", "NOUN", "", "ANIM", 5, "frog", "frog"},
 		{"nzeli", "nzeli", "nzɛli", "NOUN", "", "ACT", 3, "razor", "razor"},
 		{"nzembarambara", "nze mbârâmbârâ", "nzɛ mbârâmbârâ", "NOUN", "", "WHEN", 2, "July", "[lit: moon|seven]: July"},
-		{"nzemiombe", "nze miombe", "nzɛ miɔmbe", "NOUN", "", "WHEN", 2, "August", "[lit: moon|eight]: August"},
+		{"nzemeambe", "nze meambe", "nzɛ meambe", "NOUN", "", "WHEN", 2, "August", "[lit: moon|eight]: August"},
 		{"nzene", "nzêne", "nzɛ̂nɛ", "ADJ", "", "NUM", 4, "small", "small, little"},
 		{"nzene", "nzënë", "nzɛ̈nɛ̈", "NOUN", "", "BODY", 4, "claw-fingernail-toenail", "claw, fingernail, toenail"},
 		{"nzengumbaya", "nze ngümbâyä", "nzɛ ngümbâyä", "NOUN", "", "WHEN", 2, "September", "[lit: moon|nine]: September"},
@@ -1957,6 +1962,7 @@ var lexiconRowsAndCols = func() dictRowsAndCols {
 		{"tongoro", "tongoro", "tongoro", "NOUN", "", "ALT SP FOR", 9, "star", "tongolo"},
 		{"tono", "tono", "tɔnɔ", "VERB", "Subcat=Intr", "ACT", 3, "drain-or-drip", "drain, drip"},
 		{"too", "tôo", "tɔ̂ɔ", "VERB", "Subcat=Tran", "ACT", 2, "cook-or-boil", "cook, boil"},
+		{"toro", "törö", "tɔ̈rɔ̈", "NOUN", "", "MYTH", 4, "spirit", "spirit, soul of the deceased, ghost, phantom"},
 		{"tororo", "torôrô", "tɔrɔ̂rɔ̂", "ADV", "", "HOW", 4, "repeatedly", "repeatedly"},
 		{"toto", "toto", "toto", "NOUN", "", "FEEL", 2, "sound-noise", "sound, noise, crying"},
 		{"toto", "toto", "toto", "VERB", "Subcat=Intr", "FEEL", 2, "make-a-sound", "make a sound, make a noise, cry"},
@@ -2200,7 +2206,7 @@ var lexiconRowsAndCols = func() dictRowsAndCols {
 	// The goal is to increase recall, not precision.
 	//
 	// For each verb not ending in "nga" or "ngbi", add it.
-	derivedRows := []DictRow{}
+	derivedRows := DictRows{}
 	for _, row := range rows {
 		if row.Lemma != "" && row.UDPos == "VERB" &&
 			!strings.ContainsAny(row.Lemma, "- ") && !strings.Contains(row.UDFeature, "VerbForm=") {
@@ -2243,7 +2249,7 @@ var lexiconRowsAndCols = func() dictRowsAndCols {
 	rows = append(rows, derivedRows...)
 
 	// For each verb not ending in "ngɔ̈, add it and change all other vowels to mid pitch.
-	derivedRows = []DictRow{}
+	derivedRows = DictRows{}
 	for _, row := range rows {
 		if row.Lemma != "" && row.UDPos == "VERB" && !strings.ContainsAny(row.Lemma, "- ") &&
 			!strings.Contains(row.UDFeature, "VerbForm=") && !strings.HasSuffix(row.Lemma, "ngɔ̈") {
@@ -2294,7 +2300,7 @@ var lexiconRowsAndCols = func() dictRowsAndCols {
 	}
 
 	// For each verb, prefix a "wa-".
-	derivedRows = []DictRow{}
+	derivedRows = DictRows{}
 	for _, row := range rows {
 		if row.Lemma != "" && row.UDPos == "VERB" {
 			if !strings.ContainsAny(row.Lemma, "- ") && !strings.HasPrefix(row.Lemma, "wa") {
@@ -2317,7 +2323,7 @@ var lexiconRowsAndCols = func() dictRowsAndCols {
 	rows = append(rows, derivedRows...)
 
 	// Pluralize each noun. Finitize each verb.
-	derivedRows = []DictRow{}
+	derivedRows = DictRows{}
 	for _, row := range rows {
 		if row.Lemma != "" && !strings.ContainsAny(row.Lemma, "- ") && !strings.Contains(row.UDFeature, "VerbForm=") {
 			if (row.UDPos == "NOUN" || row.UDPos == "ADJ") && !strings.HasPrefix(row.Lemma, "â") &&
@@ -2367,7 +2373,7 @@ var lexiconRowsAndCols = func() dictRowsAndCols {
 		}
 	}
 	rows = append(rows, derivedRows...)
-	derivedRows = []DictRow{}
+	derivedRows = DictRows{}
 	if len(derivedRows) != 0 {
 		panic("Derived lexicon entries were left orphaned")
 	}
@@ -2383,10 +2389,10 @@ var lexiconRowsAndCols = func() dictRowsAndCols {
 		if c := strings.Compare(lhs.Toneless, rhs.Toneless); c != 0 {
 			return c
 		}
-		if c := strings.Compare(lhs.Heightless, rhs.Heightless); c != 0 {
+		if c := compareUnicode(lhs.Heightless, rhs.Heightless); c != 0 {
 			return c
 		}
-		if c := strings.Compare(lhs.Lemma, rhs.Lemma); c != 0 {
+		if c := compareUnicode(lhs.Lemma, rhs.Lemma); c != 0 {
 			return c
 		}
 		if c := strings.Compare(lhs.UDPos, rhs.UDPos); c != 0 {
@@ -2412,7 +2418,7 @@ var lexiconRowsAndCols = func() dictRowsAndCols {
 	var cols DictCols
 	cols.Toneless = make([][]byte, numRows)
 	cols.Heightless = make([][]byte, numRows)
-	cols.Lemma = make([][]rune, numRows)
+	cols.LemmaRunes = make([][]rune, numRows)
 	cols.LemmaUTF8 = make([][]byte, numRows)
 	cols.UDPos = make([][]byte, numRows)
 	cols.UDFeature = make([][]byte, numRows)
@@ -2462,7 +2468,7 @@ var lexiconRowsAndCols = func() dictRowsAndCols {
 
 		startRune := endRune
 		endRune += copy(cols.Runes[startRune:], []rune(r.Lemma))
-		cols.Lemma[k] = cols.Runes[startRune:endRune]
+		cols.LemmaRunes[k] = cols.Runes[startRune:endRune]
 
 		startByte = endByte
 		endByte += copy(cols.Bytes[startByte:], []byte(r.Lemma))
@@ -2515,5 +2521,107 @@ var lexiconRowsAndCols = func() dictRowsAndCols {
 		panic("Bad cap(cols.Frequency)")
 	}
 
-	return dictRowsAndCols{rows: rows, cols: cols}
+	heightlessFromLemma := make(map[string]string)
+	tonelessFromHeightless := make(map[string]string)
+	for _, row := range rows {
+		heightlessFromLemma[row.Lemma] = row.Heightless
+		tonelessFromHeightless[row.Heightless] = row.Toneless
+	}
+
+	rowsMatchingLemma := make(DictRowsMap)
+	rowsMatchingHeightless := make(DictRowsMap)
+	rowsMatchingToneless := make(DictRowsMap)
+
+	boundsMatchingLemma := make(map[string][2]int)
+	boundsMatchingHeightless := make(map[string][2]int)
+	boundsMatchingToneless := make(map[string][2]int)
+	for k, row := range rows {
+		newBounds := [2]int{k, k + 1}
+
+		if bounds, found := boundsMatchingLemma[row.Lemma]; found {
+			newBounds[0] = min(bounds[0], newBounds[0])
+			newBounds[1] = max(bounds[1], newBounds[1])
+		}
+		boundsMatchingLemma[row.Lemma] = newBounds
+
+		if bounds, found := boundsMatchingHeightless[row.Lemma]; found {
+			newBounds[0] = min(bounds[0], newBounds[0])
+			newBounds[1] = max(bounds[1], newBounds[1])
+		}
+		boundsMatchingHeightless[row.Lemma] = newBounds
+
+		if bounds, found := boundsMatchingHeightless[row.Heightless]; found {
+			newBounds[0] = min(bounds[0], newBounds[0])
+			newBounds[1] = max(bounds[1], newBounds[1])
+		}
+		boundsMatchingHeightless[row.Heightless] = newBounds
+
+		if bounds, found := boundsMatchingToneless[row.Lemma]; found {
+			newBounds[0] = min(bounds[0], newBounds[0])
+			newBounds[1] = max(bounds[1], newBounds[1])
+		}
+		boundsMatchingToneless[row.Lemma] = newBounds
+		if bounds, found := boundsMatchingToneless[row.Heightless]; found {
+			newBounds[0] = min(bounds[0], newBounds[0])
+			newBounds[1] = max(bounds[1], newBounds[1])
+		}
+		boundsMatchingToneless[row.Heightless] = newBounds
+		if bounds, found := boundsMatchingToneless[row.Toneless]; found {
+			newBounds[0] = min(bounds[0], newBounds[0])
+			newBounds[1] = max(bounds[1], newBounds[1])
+		}
+		boundsMatchingToneless[row.Toneless] = newBounds
+	}
+
+	for token, bound := range boundsMatchingToneless {
+		rowsMatchingToneless[token] = rows[bound[0]:bound[1]]
+	}
+	for token, bound := range boundsMatchingHeightless {
+		rowsMatchingHeightless[token] = rows[bound[0]:bound[1]]
+	}
+	for token, bound := range boundsMatchingLemma {
+		rowsMatchingLemma[token] = rows[bound[0]:bound[1]]
+	}
+
+	return dictRowsAndCols{
+		rows:                   rows,
+		cols:                   cols,
+		heightlessFromLemma:    heightlessFromLemma,
+		tonelessFromHeightless: tonelessFromHeightless,
+		rowsMatchingToneless:   rowsMatchingToneless,
+		rowsMatchingHeightless: rowsMatchingHeightless,
+		rowsMatchingLemma:      rowsMatchingLemma,
+	}
 }()
+
+func compareUnicode(lhs, rhs string) int {
+	return strings.Compare(toComparable(lhs), toComparable(rhs))
+}
+
+func toComparable(s string) string {
+	s = strings.ReplaceAll(s, "A", "A01")
+	s = strings.ReplaceAll(s, "Ə", "E01")
+	s = strings.ReplaceAll(s, "Ɛ", "E11")
+	s = strings.ReplaceAll(s, "E", "E21")
+	s = strings.ReplaceAll(s, "I", "I01")
+	s = strings.ReplaceAll(s, "Ø", "O01")
+	s = strings.ReplaceAll(s, "Ɔ", "O11")
+	s = strings.ReplaceAll(s, "O", "O21")
+	s = strings.ReplaceAll(s, "U", "U01")
+	s = strings.ReplaceAll(s, "a", "a01")
+	s = strings.ReplaceAll(s, "ə", "e01")
+	s = strings.ReplaceAll(s, "ɛ", "e11")
+	s = strings.ReplaceAll(s, "e", "e21")
+	s = strings.ReplaceAll(s, "i", "i01")
+	s = strings.ReplaceAll(s, "ø", "o01")
+	s = strings.ReplaceAll(s, "ɔ", "o11")
+	s = strings.ReplaceAll(s, "o", "o21")
+	s = strings.ReplaceAll(s, "u", "u01")
+	s = strings.ReplaceAll(s, "1\u0323", "0")
+	s = strings.ReplaceAll(s, "1\u0308", "2")
+	s = strings.ReplaceAll(s, "1\u0302", "3")
+	if strings.ContainsRune(s, 0x0302) || strings.ContainsRune(s, 0x0308) || strings.ContainsRune(s, 0x0323) {
+		panic("Bad orphaned combining mark")
+	}
+	return s
+}

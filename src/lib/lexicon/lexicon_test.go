@@ -1,6 +1,7 @@
 package lexicon
 
 import (
+	"fmt"
 	"os"
 	"testing"
 
@@ -68,7 +69,7 @@ func TestConsistencyBetweenRowAndColMajorOrder(t *testing.T) {
 	if nc := len(cols.Toneless); nc != nr {
 		t.Error(name, ": Toneless cols has ", nc, " entries, but rows has ", nr, " entries")
 	}
-	if nc := len(cols.Lemma); nc != nr {
+	if nc := len(cols.LemmaRunes); nc != nr {
 		t.Error(name, ": Lemma cols has ", nc, " entries, but rows has ", nr, " entries")
 	}
 	if nc := len(cols.LemmaUTF8); nc != nr {
@@ -116,7 +117,7 @@ func TestConsistencyBetweenRowAndColMajorOrder(t *testing.T) {
 		if len(row.Lemma) == 0 {
 			t.Error(name, ": Lemma row is empty")
 		}
-		if s := string(cols.Lemma[k]); s != row.Lemma {
+		if s := string(cols.LemmaRunes[k]); s != row.Lemma {
 			t.Error(name, ": Lemma[", k, "] col (", s, ") != row (", row.Lemma, ")")
 		}
 		if s := string(cols.LemmaUTF8[k]); s != row.Lemma {
@@ -158,5 +159,52 @@ func TestConsistencyBetweenRowAndColMajorOrder(t *testing.T) {
 		if s := string(cols.EnglishDefinition[k]); s != row.EnglishDefinition {
 			t.Error(name, ": EnglishDefinition[", k, "] col (", s, ") != row (", row.EnglishDefinition, ")")
 		}
+	}
+}
+
+func TestRowsMatchingLemma(t *testing.T) {
+	actual := RowsMatchingLemma()["dɛ̈"]
+	expect := DictRows{
+		{"de", "dë", "dɛ̈", "VERB", "Subcat=Tran", "ACT", 2, "cut-or-grow", "cut, slice; grow, cultivate"},
+		{"de", "dë", "dɛ̈", "VERB", "Subcat=Tran", "INTERACT", 3, "emit", "emit"},
+	}
+	actualStr := fmt.Sprintf("%v", actual)
+	expectStr := fmt.Sprintf("%v", expect)
+	if actualStr != expectStr {
+		t.Error("actual: " + actualStr)
+		t.Error("expect: " + expectStr)
+	}
+}
+
+func TestRowsMatchingHeightless(t *testing.T) {
+	actual := RowsMatchingHeightless()["dë"]
+	expect := DictRows{
+		{"de", "dë", "dɛ̈", "VERB", "Subcat=Tran", "ACT", 2, "cut-or-grow", "cut, slice; grow, cultivate"},
+		{"de", "dë", "dɛ̈", "VERB", "Subcat=Tran", "INTERACT", 3, "emit", "emit"},
+		{"de", "dë", "dë", "VERB", "Subcat=Intr", "HOW", 3, "be-cold", "be cold"},
+	}
+	actualStr := fmt.Sprintf("%v", actual)
+	expectStr := fmt.Sprintf("%v", expect)
+	if actualStr != expectStr {
+		t.Error("actual: " + actualStr)
+		t.Error("expect: " + expectStr)
+	}
+}
+
+func TestRowsMatchingToneless(t *testing.T) {
+	actual := RowsMatchingToneless()["de"]
+	expect := DictRows{
+		{"de", "de", "de", "VERB", "Subcat=Intr", "BODY", 3, "vomit", "vomit"},
+		{"de", "de", "dɛ", "VERB", "", "STATE", 2, "remain", "remain"},
+		{"de", "dê", "dê", "NOUN", "", "HOW", 3, "coldness", "coldness, shade"},
+		{"de", "dë", "dɛ̈", "VERB", "Subcat=Tran", "ACT", 2, "cut-or-grow", "cut, slice; grow, cultivate"},
+		{"de", "dë", "dɛ̈", "VERB", "Subcat=Tran", "INTERACT", 3, "emit", "emit"},
+		{"de", "dë", "dë", "VERB", "Subcat=Intr", "HOW", 3, "be-cold", "be cold"},
+	}
+	actualStr := fmt.Sprintf("%v", actual)
+	expectStr := fmt.Sprintf("%v", expect)
+	if actualStr != expectStr {
+		t.Error("actual: " + actualStr)
+		t.Error("expect: " + expectStr)
 	}
 }
