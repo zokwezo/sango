@@ -113,22 +113,22 @@ func TestVariousSSE(t *testing.T) {
 	sse, w := MakeSangoSSE("Bɛ̂", 1)
 	assertEqual(t, w, "")
 	assertEqual(t, sse.FullString(),
-		`{token=0b_1_01_01_01001_0011_11 UTF8=[66 201 155 204 130] UTF8/glyph=[[66] [201 155 204 130]] runes=[66 603 770] string="Bɛ̂" lang=sg numTokensLeft=1}`)
+		`{token=0b_1_01_01_00001_0100_11 UTF8=[66 201 155 204 130] UTF8/glyph=[[66] [201 155 204 130]] runes=[66 603 770] string="Bɛ̂" lang=sg numTokensLeft=1}`)
 
 	sse, w = MakeSangoSSE("-bïn", 0)
 	assertEqual(t, w, "")
 	assertEqual(t, sse.FullString(),
-		`{token=0b_1_00_10_01001_1100_10 UTF8=[45 98 195 175 110] UTF8/glyph=[[45] [98] [195 175] [110]] runes=[45 98 239 110] string="-bïn" lang=sg numTokensLeft=0}`)
+		`{token=0b_1_00_10_00001_1000_10 UTF8=[45 98 195 175 110] UTF8/glyph=[[45] [98] [195 175] [110]] runes=[45 98 239 110] string="-bïn" lang=sg numTokensLeft=0}`)
 
 	sse, w = MakeSangoSSE("Bə̣", 2)
 	assertEqual(t, w, "")
 	assertEqual(t, sse.FullString(),
-		`{token=0b_1_10_01_01001_0010_00 UTF8=[66 201 153 204 163] UTF8/glyph=[[66] [201 153 204 163]] runes=[66 601 803] string="Bə̣" lang=sg numTokensLeft=2}`)
+		`{token=0b_1_10_01_00001_0011_00 UTF8=[66 201 153 204 163] UTF8/glyph=[[66] [201 153 204 163]] runes=[66 601 803] string="Bə̣" lang=sg numTokensLeft=2}`)
 
 	sse, w = MakeSangoSSE("BI", 3)
 	assertEqual(t, w, "")
 	assertEqual(t, sse.FullString(),
-		`{token=0b_1_11_11_01001_0101_01 UTF8=[66 73] UTF8/glyph=[[66] [73]] runes=[66 73] string="BI" lang=sg numTokensLeft=3}`)
+		`{token=0b_1_11_11_00001_0111_01 UTF8=[66 73] UTF8/glyph=[[66] [73]] runes=[66 73] string="BI" lang=sg numTokensLeft=3}`)
 }
 
 func TestEncodeSangoWord(t *testing.T) {
@@ -137,11 +137,11 @@ func TestEncodeSangoWord(t *testing.T) {
 		s += fmt.Sprintf("sse[%v] = %s\n", k, a.FullString())
 	}
 	assertEqual(t, s, `
-sse[0] = {token=0b_1_11_01_01001_0101_10 UTF8=[66 195 175] UTF8/glyph=[[66] [195 175]] runes=[66 239] string="Bï" lang=sg numTokensLeft=3}
-sse[1] = {token=0b_1_11_00_01101_1001_01 UTF8=[107 117] UTF8/glyph=[[107] [117]] runes=[107 117] string="ku" lang=sg numTokensLeft=3}
+sse[0] = {token=0b_1_11_01_00001_0111_10 UTF8=[66 195 175] UTF8/glyph=[[66] [195 175]] runes=[66 239] string="Bï" lang=sg numTokensLeft=3}
+sse[1] = {token=0b_1_11_00_00111_1101_01 UTF8=[107 117] UTF8/glyph=[[107] [117]] runes=[107 117] string="ku" lang=sg numTokensLeft=3}
 sse[2] = {token=0b_1_10_00_00000_0001_01 UTF8=[97] UTF8/glyph=[[97]] runes=[97] string="a" lang=sg numTokensLeft=2}
-sse[3] = {token=0b_1_01_10_00000_0111_11 UTF8=[45 201 148 204 130] UTF8/glyph=[[45] [201 148 204 130]] runes=[45 596 770] string="-ɔ̂" lang=sg numTokensLeft=1}
-sse[4] = {token=0b_1_00_00_01101_0111_01 UTF8=[107 201 148] UTF8/glyph=[[107] [201 148]] runes=[107 596] string="kɔ" lang=sg numTokensLeft=0}
+sse[3] = {token=0b_1_01_10_00000_1010_11 UTF8=[45 201 148 204 130] UTF8/glyph=[[45] [201 148 204 130]] runes=[45 596 770] string="-ɔ̂" lang=sg numTokensLeft=1}
+sse[4] = {token=0b_1_00_00_00111_1010_01 UTF8=[107 201 148] UTF8/glyph=[[107] [201 148]] runes=[107 596] string="kɔ" lang=sg numTokensLeft=0}
 `)
 }
 

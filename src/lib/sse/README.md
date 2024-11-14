@@ -56,22 +56,22 @@ The Sango syllable encoding is defined as follows:
 
 | MSB\\LSB | 00  | 01  | 10  | 11  |
 | :------: | --- | --- | --- | --- |
-|   000    |     | h   | w   | r   |
-|   001    | l   | y   | ny  | m   |
-|   010    | mb  | b   | mp  | p   |
-|   011    | kp  | k   | g   | gb  |
-|   100    | ngb | ng  | n   | nd  |
-|   101    | d   | t   | s   | z   |
-|   110    | nz  | mv  | v   | f   |
+|   000    |     | b   | d   | f   |
+|   001    | g   | gb  | h   | k   |
+|   010    | kp  | l   | m   | mb  |
+|   011    | mp  | mv  | n   | nd  |
+|   100    | ng  | ngb | ny  | nz  |
+|   101    | p   | r   | s   | t   |
+|   110    | v   | w   | y   | z   | 
 
 ### Vowel
 
 | MSB\\LSB | 00 | 01 | 10 | 11 |
 | :------: | -- | -- | -- | -- |
-|    00    |    | a  | ə  | ɛ  |
-|    01    | e  | i  | ø  | ɔ  |
-|    10    | o  | u  | añ | eñ |
-|    11    | iñ | oñ | uñ | —— |
+|    00    |    | a  | añ | ə  |
+|    01    | ɛ  | e  | eñ | i  |
+|    10    | iñ | ø  | ɔ  | o  |
+|    11    | oñ | u  | uñ | —— |
 
 * The following stand-in vowels are not found in normal Sango text and are used internally to indicate that
   the vowel height is unknown and is to be replaced by the appropriate open or close vowel once known:
