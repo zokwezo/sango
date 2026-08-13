@@ -3,10 +3,29 @@ package lexicon
 import (
 	"fmt"
 	"os"
+	"regexp"
 	"testing"
 
 	cuckoo "github.com/panmari/cuckoofilter"
 )
+
+var canonicalRE = regexp.MustCompile(`^([BDGHKPQVYZbdfghklmnpqstvwyz][AEIOUaceioux][_:^]){0,5}$`)
+
+func TestCanonicalRowFormat(t *testing.T) {
+	for _, row := range LexiconRows() {
+		if matched := canonicalRE.MatchString(row.Canonical); !matched {
+			t.Error("XXX", row.Canonical)
+		}
+	}
+}
+
+func TestCanonicalColFormat(t *testing.T) {
+	for _, canonical := range LexiconCols().Canonical {
+		if matched := canonicalRE.Match(canonical); !matched {
+			t.Error(string(canonical))
+		}
+	}
+}
 
 func TestGenerateEncodedCuckooFilterOfLemma(t *testing.T) {
 	cf := cuckoo.NewFilter(uint(len(LexiconCols().LemmaUTF8)))
@@ -66,6 +85,9 @@ func TestConsistencyBetweenRowAndColMajorOrder(t *testing.T) {
 	if nr == 0 {
 		t.Error(name, ": Rows is empty")
 	}
+	if nc := len(cols.Canonical); nc != nr {
+		t.Error(name, ": Canonical cols has ", nc, " entries, but rows has ", nr, " entries")
+	}
 	if nc := len(cols.Toneless); nc != nr {
 		t.Error(name, ": Toneless cols has ", nc, " entries, but rows has ", nr, " entries")
 	}
@@ -103,12 +125,22 @@ func TestConsistencyBetweenRowAndColMajorOrder(t *testing.T) {
 	}
 
 	for k, row := range rows {
+		if len(row.Canonical) == 0 {
+			if len(row.Lemma) == 0 {
+				// Skip metadata header row
+				continue
+			}
+			t.Error(name, ": Canonical row is empty")
+		}
 		if len(row.Toneless) == 0 {
 			if len(row.Lemma) == 0 {
 				// Skip metadata header row
 				continue
 			}
 			t.Error(name, ": Toneless row is empty")
+		}
+		if s := string(cols.Canonical[k]); s != row.Canonical {
+			t.Error(name, ": Canonical[", k, "] col (", s, ") != row (", row.Canonical, ")")
 		}
 		if s := string(cols.Toneless[k]); s != row.Toneless {
 			t.Error(name, ": Toneless[", k, "] col (", s, ") != row (", row.Toneless, ")")
@@ -163,10 +195,12 @@ func TestConsistencyBetweenRowAndColMajorOrder(t *testing.T) {
 }
 
 func TestRowsMatchingLemma(t *testing.T) {
-	actual := RowsMatchingLemma()["dɛ̈"]
+	var dictRowRegexp DictRowRegexp
+	dictRowRegexp.LemmaRE = regexp.MustCompile(`^dɛ̈$`)
+	actual := Lookup(LexiconRows(), dictRowRegexp)
 	expect := DictRows{
-		{"de", "dë", "dɛ̈", "VERB", "Subcat=Tran", "ACT", 2, "cut-or-grow", "cut, slice; grow, cultivate"},
-		{"de", "dë", "dɛ̈", "VERB", "Subcat=Tran", "INTERACT", 3, "emit", "emit"},
+		{"de", "dë", "dɛ̈", "dx:", "VERB", "Subcat=Tran", "ACT", 2, "cut-or-grow", "cut, slice; grow, cultivate"},
+		{"de", "dë", "dɛ̈", "dx:", "VERB", "Subcat=Tran", "INTERACT", 3, "emit", "emit"},
 	}
 	actualStr := fmt.Sprintf("%v", actual)
 	expectStr := fmt.Sprintf("%v", expect)
@@ -177,11 +211,13 @@ func TestRowsMatchingLemma(t *testing.T) {
 }
 
 func TestRowsMatchingHeightless(t *testing.T) {
-	actual := RowsMatchingHeightless()["dë"]
+	var dictRowRegexp DictRowRegexp
+	dictRowRegexp.HeightlessRE = regexp.MustCompile(`^dë$`)
+	actual := Lookup(LexiconRows(), dictRowRegexp)
 	expect := DictRows{
-		{"de", "dë", "dɛ̈", "VERB", "Subcat=Tran", "ACT", 2, "cut-or-grow", "cut, slice; grow, cultivate"},
-		{"de", "dë", "dɛ̈", "VERB", "Subcat=Tran", "INTERACT", 3, "emit", "emit"},
-		{"de", "dë", "dë", "VERB", "Subcat=Intr", "HOW", 3, "be-cold", "be cold"},
+		{"de", "dë", "dɛ̈", "dx:", "VERB", "Subcat=Tran", "ACT", 2, "cut-or-grow", "cut, slice; grow, cultivate"},
+		{"de", "dë", "dɛ̈", "dx:", "VERB", "Subcat=Tran", "INTERACT", 3, "emit", "emit"},
+		{"de", "dë", "dë", "de:", "VERB", "Subcat=Intr", "HOW", 3, "be-cold", "be cold"},
 	}
 	actualStr := fmt.Sprintf("%v", actual)
 	expectStr := fmt.Sprintf("%v", expect)
@@ -192,14 +228,16 @@ func TestRowsMatchingHeightless(t *testing.T) {
 }
 
 func TestRowsMatchingToneless(t *testing.T) {
-	actual := RowsMatchingToneless()["de"]
+	var dictRowRegexp DictRowRegexp
+	dictRowRegexp.TonelessRE = regexp.MustCompile(`^de$`)
+	actual := Lookup(LexiconRows(), dictRowRegexp)
 	expect := DictRows{
-		{"de", "de", "de", "VERB", "Subcat=Intr", "BODY", 3, "vomit", "vomit"},
-		{"de", "de", "dɛ", "VERB", "", "STATE", 2, "remain", "remain"},
-		{"de", "dê", "dê", "NOUN", "", "HOW", 3, "coldness", "coldness, shade"},
-		{"de", "dë", "dɛ̈", "VERB", "Subcat=Tran", "ACT", 2, "cut-or-grow", "cut, slice; grow, cultivate"},
-		{"de", "dë", "dɛ̈", "VERB", "Subcat=Tran", "INTERACT", 3, "emit", "emit"},
-		{"de", "dë", "dë", "VERB", "Subcat=Intr", "HOW", 3, "be-cold", "be cold"},
+		{"de", "de", "de", "de_", "VERB", "Subcat=Intr", "BODY", 3, "vomit", "vomit"},
+		{"de", "de", "dɛ", "dx_", "VERB", "", "STATE", 2, "remain", "remain"},
+		{"de", "dê", "dê", "de^", "NOUN", "", "HOW", 3, "coldness", "coldness, shade"},
+		{"de", "dë", "dɛ̈", "dx:", "VERB", "Subcat=Tran", "ACT", 2, "cut-or-grow", "cut, slice; grow, cultivate"},
+		{"de", "dë", "dɛ̈", "dx:", "VERB", "Subcat=Tran", "INTERACT", 3, "emit", "emit"},
+		{"de", "dë", "dë", "de:", "VERB", "Subcat=Intr", "HOW", 3, "be-cold", "be cold"},
 	}
 	actualStr := fmt.Sprintf("%v", actual)
 	expectStr := fmt.Sprintf("%v", expect)

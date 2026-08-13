@@ -2,7 +2,6 @@ package lexicon
 
 import (
 	"fmt"
-	"log"
 	"regexp"
 
 	"github.com/spf13/cobra"
@@ -11,6 +10,7 @@ import (
 func Init(rootCmd *cobra.Command) {
 	lookupCmd.Flags().StringVar(&tonelessFlagValue, "toneless", "", "Returns values only where this regexp partially matches toneless.")
 	lookupCmd.Flags().StringVar(&lemmaFlagValue, "lemma", "", "Returns values only where this regexp partially matches lemma.")
+	lookupCmd.Flags().StringVar(&canonicalFlagValue, "canonical", "", "Returns values only where this regexp partially matches canonical.")
 	lookupCmd.Flags().StringVar(&udPosFlagValue, "ud_os", "", "Returns values only where this regexp partially matches uDPos.")
 	lookupCmd.Flags().StringVar(&udFeatureFlagValue, "ud_feature", "", "Returns values only where this regexp partially matches uDFeature.")
 	lookupCmd.Flags().StringVar(&categoryFlagValue, "category", "", "Returns values only where this regexp partially matches category.")
@@ -25,6 +25,7 @@ func Init(rootCmd *cobra.Command) {
 var (
 	tonelessFlagValue           string
 	lemmaFlagValue              string
+	canonicalFlagValue          string
 	udPosFlagValue              string
 	udFeatureFlagValue          string
 	categoryFlagValue           string
@@ -48,6 +49,7 @@ var (
 			f := DictRowRegexp{
 				TonelessRE:           regexp.MustCompile(tonelessFlagValue),
 				LemmaRE:              regexp.MustCompile(lemmaFlagValue),
+				CanonicalRE:          regexp.MustCompile(canonicalFlagValue),
 				UDPosRE:              regexp.MustCompile(udPosFlagValue),
 				UDFeatureRE:          regexp.MustCompile(udFeatureFlagValue),
 				CategoryRE:           regexp.MustCompile(categoryFlagValue),
@@ -57,10 +59,7 @@ var (
 				FrequencyMax:         frequencyMaxFlagValue,
 			}
 
-			dictRows, err := Lookup(LexiconRows(), f)
-			if err != nil {
-				log.Fatal(err)
-			}
+			dictRows := Lookup(LexiconRows(), f)
 			for k, row := range dictRows {
 				fmt.Printf("row[%v] = %v\n", k, row)
 			}

@@ -1,8 +1,10 @@
 # Sango Lexicon
 
-This directory contains a Sango-English lexicon and metadata, available in both row-major and column-major order, via a Go library.
+This directory contains a Sango-English lexicon and metadata, available in both
+row-major and column-major order, via a Go library.
 
-The lexicon data can be extracted from code (if needed for other purposes) into a standalone CSV file with the following bash shell commands:
+The lexicon data can be extracted from code (if needed for other purposes) into
+a standalone CSV file with the following bash shell commands:
 
 ```bash
 outfile="/tmp/lexicon.csv"
@@ -12,15 +14,20 @@ cat lexicon.go | grep -E '^\s*{"[a-z]*",' | head -n -9 | sed -E 's/^\s*\{((.)*)\
 
 ### Background
 
-The English translations and linguistic annotations in this lexicon are based on my analysis of the limited written corpus I could
-locate (secular and religious texts, government publications), combined with personal knowledge and notes and merged into a lexicon
-I accumulated over two years in the Central African Republic in 1988-90.
+The English translations and linguistic annotations in this lexicon are based on
+my analysis of the limited written corpus I could locate (secular and religious
+texts, government publications), combined with personal knowledge and notes and
+merged into a lexicon I accumulated over two years in the Central African
+Republic in 1988-90.
 
-Most of this source material was not in digital form and dates to before the orthography was standardized in 1984 (after which
-high and mid vowel pitch were represented in writing with circumflex and diaeresis, respectively). Also, in retrospect,
-it is important to distinguishing between open (Ɛ and Ɔ) and close (E and O) vowel height, and to encode these in writing
-to assist nonnative speakers and to support text-to-speech. Consequently, I have since manually restored these
-in consultation with the three published references below, but responsibility for any errata rests entirely with me.
+Most of this source material was not in digital form and dates to before the
+orthography was standardized in 1984 (after which high and mid vowel pitch were
+represented in writing with circumflex and diaeresis, respectively). Also, in
+retrospect, it is important to distinguishing between open (Ɛ and Ɔ) and close
+(E and O) vowel height, and to encode these in writing to assist nonnative
+speakers and to support text-to-speech. Consequently, I have since manually
+restored these in consultation with the three published references below,
+but responsibility for any errata rests entirely with me.
 
 Please email me (Dan Weston <westondan@zokwezo.net>) if you:
 
@@ -34,25 +41,29 @@ In publications, this work can be cited as:
 
 ### External Resources
 
-This lexicon is only best effort and does not purport to meet the excellent quality of the (only) two published professional
-Sango-French dictionaries and orthography manual:
+This lexicon is only best effort and does not purport to meet the excellent
+quality of the (only) two published professional Sango-French dictionaries
+and orthography manual:
 
 - Koyt-Deballé, G. F. (2013). _Lexique illustré sängö-français - français-sängö_, Éditions universitaires européennes. 476 p. ISBN 978-6131592690.
 - Bouquiaux, L. et al (1978). _Dictionnaire sango-français = Kété bàkàrī sāngō-fàránzì_, Société d'études linguistiques et anthropologiques de France. 663 p. ISBN 2-85297-016-3.
 - Diki-Dikiri, M. (1977). _Le Sango s'écrit aussi… Esquisse Linguistique du Sango, Langue Nationale de l'Empire Centrafricain_, Selaf-Paris. 187 p. ISBN 2-85297-057-0.
 
-I strongly encourage users of this project to also acquire a personal copy of the first (or better, all three!) of these to serve as source of truth
-(and of course to support the authors and publishers!). In particular, _Lexique illustré sängö-français - français-sängö_, which reflects changes to the
-language in the subsequent 35 years (including computer terms) and exhaustively catalogs the Sango words (along with the scientific names) of
-indigenous Central African flora and fauna, of which only the most basic are found therein.
+I strongly encourage users of this project to also acquire a personal copy of
+the first (or better, all three!) of these to serve as source of truth
+(and of course to support the authors and publishers!). In particular,
+_Lexique illustré sängö-français - français-sängö_, which reflects changes to the
+language in the subsequent 35 years (including computer terms) and exhaustively
+catalogs the Sango words (along with the scientific names) of indigenous
+Central African flora and fauna, of which only the most basic are found therein.
 
 ### Copyright and License
 
 Copyright 2024 Daniel D. Weston
 
-Except as otherwise noted, all code and data in this repository are the original work
-of the copyright holder, or else derived from fair use of reference materials generally
-available to the public.
+Except as otherwise noted, all code and data in this repository are the
+original work of the copyright holder, or else derived from fair use of
+reference materials generally available to the public.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -68,13 +79,15 @@ limitations under the License.
 
 ### Data Structure
 
-Each lexicon row contains the following columns, intended i.a. to establish a reference for a future Sango treebank:
+Each lexicon row contains the following columns, intended i.a. to establish a
+reference for a future Sango treebank:
 
 | Name                | Type   | Description                                                                               |
 | ------------------- | ------ | ----------------------------------------------------------------------------------------- |
 | Toneless            | string | = Heightless column, but with whitespace, hyphens, and pitch removed                      |
 | Heightless          | string | = Lemma column, but with case and height removed                                          |
 | Lemma               | string | Lemma (possibly multiword) with accents and close/open vowel distinctions                 |
+| Canonical           | string | ASCII-based encoding                                                                      |
 | UDPos               | string | [Universal Dependency Part-of-speech](https://universaldependencies.org/u/pos/index.html) |
 | UDFeature           | string | [Universal Dependency Feature](https://universaldependencies.org/u/feat/)                 |
 | Category            | string | Semantic cluster label                                                                    |
@@ -93,13 +106,13 @@ Please note the following:
 4. **Pitch accent is always indicated in the official orthography**
    and is important to distinguish meanings and/or parts of speech, e.g.
 
-   | Toneless | Lemma | UDPos | UDFeature   | Category | English Translation             |
-   | -------- | ----- | ----- | ----------- | -------- | ------------------------------- |
-   | iri      | îri   | VERB  | Subcat=Tran | INTERACT | call, name                      |
-   | iri      | ïrï   | NOUN  |             | INTERACT | name                            |
-   | kua      | kua   | NOUN  |             | CIVIL    | work, job, duty                 |
-   | kua      | kûâ   | NOUN  |             | STATE    | death                           |
-   | kua      | küä   | NOUN  |             | BODY     | hair, fur, pelt, feathers, down |
+   | Toneless | Lemma | Canonical | UDPos | UDFeature   | Category | English Translation             |
+   | -------- | ----- | --------- | ----- | ----------- | -------- | ------------------------------- |
+   | iri      | îri   | hi^li_    | VERB  | Subcat=Tran | INTERACT | call, name                      |
+   | iri      | ïrï   | hi:li:    | NOUN  |             | INTERACT | name                            |
+   | kua      | kua   | ku_ha_    | NOUN  |             | CIVIL    | work, job, duty                 |
+   | kua      | kûâ   | ku^ha^    | NOUN  |             | STATE    | death                           |
+   | kua      | küä   | ku:ha:    | NOUN  |             | BODY     | hair, fur, pelt, feathers, down |
 
 5. **Vowel height is not indicated in the official orthography** but is nonetheless important in aural understanding and therefore
    represented here in the Lemma column explicitly.
@@ -121,7 +134,7 @@ Please note the following:
    | dê    | NOUN  |             | HOW      | coldness, shade             |
    | dɛ̈    | VERB  | Subcat=Tran | INTERACT | emit                        |
 
-6. There are 8 affixes sufficiently productive that they are automatically affixed to all compatible lemmas
+6. There are 5 affixes sufficiently productive that they are automatically affixed to all compatible lemmas
    (governed by UDFeature `CanPrefix=`_UDPos_) on startup to generate derived lemmas. These are:
 
    | Lemma | UDPos | UDFeature                              | Category | English Definition  |
@@ -129,9 +142,6 @@ Please note the following:
    | a     | VERB  | CanPrefix=VERB\|Person=3\|VerbForm=Fin | WHO      | subject marker      |
    | â     | ADJ   | CanPrefix=ADJ\|Number=Plur             | NUM      | plural marker       |
    | â     | NOUN  | CanPrefix=NOUN\|Number=Plur            | NUM      | plural marker       |
-   | bâ    | NOUN  | CanPrefix=NOUN                         | WHERE    | canonical place for |
-   | nga   | VERB  | Aspect=Iter\|CanSuffix=VERB            | HOW      | periodic action     |
-   | ngbi  | VERB  | Aspect=Imp\|CanSuffix=VERB\|Reflex=Yes | HOW      | synchronic action   |
    | ngɔ̈   | VERB  | CanSuffix=VERB\|VerbForm=Vnoun         | HOW      | gerund ("-ing")     |
    | wa    | NOUN  | CanPrefix=VERB                         | WHO      | agent ("one who")   |
 
@@ -147,6 +157,12 @@ Please note the following:
 
 7. There are other affixes that had at one time been productive (esp. in progenitor tribal languages such as Ngbandi) but
    no longer sufficiently productive in Sango to generate automatically, and are listed as explicit lexemes in the lexicon:
+
+   | Lemma | UDPos | UDFeature                              | Category | English Definition  |
+   | ----- | ----- | -------------------------------------- | -------- | ------------------- |
+   | bâ    | NOUN  | CanPrefix=NOUN                         | WHERE    | canonical place for |
+   | nga   | VERB  | Aspect=Iter\|CanSuffix=VERB            | HOW      | periodic action     |
+   | ngbi  | VERB  | Aspect=Imp\|CanSuffix=VERB\|Reflex=Yes | HOW      | synchronic action   |
 
    - initial syllable (or word) reduplication
 
