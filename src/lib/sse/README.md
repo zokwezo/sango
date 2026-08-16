@@ -28,26 +28,18 @@ The 64-bit encoding divides up into components, from Most Significant Bit
 
 ### Type 0: Unicode substrings
 
-For a Unicode substring, the rest of the bits are zero or more UTF8 encodings
-(as usual, from MSB to LSB) where a given code point must never straddle
-`uint64` words. Unused bytes are all ZEROES.
-
-A given `uint64` can contain up to 8 ASCII characters (or fewer multibyte
-Unicode code points). Unused end bytes have all ZEROES in LSB (ignored during
-decoding). Partial or multiple Unicode text may fit in a uint64.
-
-B63 is zero, and so the first byte is assumed to encode an ASCII character
-less than 0x80. If this is not the case, the first 8 MSB are set to ZERO and
-the string is continued in the next 56 LSB.
+For a Unicode substring, the 4 bytes comprise up to 4 Unicode code points
+(U+0001 through U+FFFF, ignoring any U+0000 bytes). The first byte must be
+less than U+8000, otherwise set it to zero and continue with the next byte.
 
 #### UNICODE EXAMPLE
 
-| Format      | Value                                                                       |
-| ----------- | --------------------------------------------------------------------------- |
-| Unicode     | `日本語は難しい!`                                                             |
-| UTF8        | `e697a5_e69cac_e8aa9e_e381af_e99ba3_e38197_e38184_21`                       |
-| Hex\[4\]    | `00e697a5e69cace8  00aa9ee381afe99b  00a3e38197e38184  2100000000000000`    |
-| uint64\[4\] | `64905983437876456 48025446011365787 46130566942392708 2377900603251621888` |
+| Format      | Value                                                               |
+| ----------- | ------------------------------------------------------------------- |
+| Unicode     | `日本語は難しい!`                                                     |
+| UTF8        | `0xE697A5_E69CAC_E8AA9E_E381AF_E99BA3_E38197_E38184_21`             |
+| Code points | `U+65E5 U+672C U+8A9E u+306F U+96E3 U+3057 U+3044 U+0021`           |
+| SSEs        | `0x65E5_672C_8A9E_306F 0x0000_96E3_3057_3044 0x0021_0000_0000_0000` |
 
 ### Type 1: Sango words
 
@@ -70,10 +62,13 @@ five groups of 12 bits (3 hex digits) followed by all ONES in unused LSB.
 
 The first 4 bits `1PCC` are global to the word encode the `P`refix and `C`ase:
 
-| B61 \\ B60 |    `0`    |    `1`    |
-| :--------: | :-------: | :-------: |
-|     `0`    | lowercase | Titlecase |
-|     `1`    | UPPERCASE | Invisible |
+| B61 \\ B60 |       `0`       |       `1`       |
+| :--------: | :-------------: | :-------------: |
+|     `0`    | lowercase ()    | Titlecase (`~`) |
+|     `1`    | UPPERCASE (`$`) | Invisible       |
+
+The case is applied to UTF8 directly, and the value in parentheses is
+prepended to canonical format. In both cases, invisible case is unrendered.
 
 #### Sango syllable(s)
 
@@ -184,7 +179,7 @@ possible when not known.
 All Sango vowels have exactly one of three pitch tones (Low, Mid, High) or else
 unknown pitch. These are represented in the standard orthography by diacritics, respectively
 none (`o`), dieresis (`ö`), or circumflex (`ô`). This project nonstandardly represents
-unknown pitch with a dot below (`ọ`). Internally, these are represented by
+unknown pitch with a dot below (`ọ`). Internally, these are represented by
 vowel suffixes `_`, `:`, `^`, and `=` respectively, for ease of typing
 and use in code.
 

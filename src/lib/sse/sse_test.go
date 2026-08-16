@@ -1,78 +1,57 @@
 package sse
 
 import (
+	"strings"
 	"testing"
 )
 
-func TestExtractBits(t *testing.T) {
-	var xx = []struct {
-		src    uint64
-		lsb    int
-		msb    int
-		expect uint64
-	}{
-		{src: 0b0100100011, lsb: -3, msb: 888, expect: 0b0100100011},
-		{src: 0b0100100011, lsb: 888, msb: -3, expect: 0},
-		{src: 0b0100100011, lsb: 1, msb: 8, expect: 0b10010001},
-		{src: 0b0100100011, lsb: 8, msb: 1, expect: 0},
-		{src: 0b0100100011, lsb: 0, msb: 5, expect: 0b100011},
-		{src: 0b0100100011, lsb: 5, msb: 0, expect: 0},
-		{src: 10548167345049833471, lsb: 48, msb: 59, expect: 0b001001100010},
-	}
-	for k, x := range xx {
-		actual := extractBits(x.src, x.lsb, x.msb)
-		if actual != x.expect {
-			t.Errorf("In x #%v, from extractBits(%b, %v, %v),\nexpect: %b\nactual: %b\n",
-				k, x.src, x.lsb, x.msb, x.expect, actual)
-		}
-	}
-}
-
-func TestUTF8FromUnicodeSSEs(t *testing.T) {
+func TestWriteAsUTF8(t *testing.T) {
 	sses := [...]SSE{
-		0x00e697a5e69cac00,
-		0x00e8aa9ee381af00,
-		0x00e99ba3e3819700,
-		0x00e3818421000000,
+		0x65E5_672C_8A9E_306F,
+		0x0000_96E3_3057_3044,
+		0x0021_0000_0020_00A7,
+		0x8_062_BE5_451_320_FFF,
+		0x9_062_BE5_451_320_FFF,
+		0xA_062_BE5_451_320_FFF,
+		0xB_062_BE5_451_320_FFF,
+		0xC_062_BE5_451_320_FFF,
+		0xD_062_BE5_451_320_FFF,
+		0xE_062_BE5_451_320_FFF,
+		0xF_062_BE5_451_320_FFF,
 	}
-	expect := "日本語は難しい!"
-	actual := UTF8FromSSEs(sses[:])
+	var s strings.Builder
+	for _, sse := range sses {
+		sse.WriteAsUTF8To(&s)
+	}
+	expect := "日本語は難しい! §bɛ̂-kɔ̈mbïtɛBƐ̂-kɔ̈mbïtɛBƐ̂-KƆ̈MBÏTƐ bɛ̂-kɔ̈mbïtɛ BƐ̂-kɔ̈mbïtɛ BƐ̂-KƆ̈MBÏTƐ"
+	actual := s.String()
 	if actual != expect {
 		t.Errorf("From UTF8FromSSE(\n%#v\n),\nexpect: %#v\nactual: %#v\n\n",
 			sses, expect, actual)
 	}
 }
 
-func TestUTF8FromSangoSSEs(t *testing.T) {
-	sses := [...]SSE{0x9_062_BE5_451_320_FFF}
-	expect := "bɛ̂-kɔ̈mbïtɛ"
-	actual := UTF8FromSSEs(sses[:])
-	if actual != expect {
-		t.Errorf("From UTF8FromSSE(\n%#v\n),\nexpect: %#v\nactual: %#v\n\n",
-			sses, expect, actual)
-	}
-}
-
-func TestCanonicalFromUnicodeSSEs(t *testing.T) {
+func TestWriteAsCanonical(t *testing.T) {
 	sses := [...]SSE{
-		0x00e697a5e69cac00,
-		0x00e8aa9ee381af00,
-		0x00e99ba3e3819700,
-		0x00e3818421000000,
+		0x65E5_672C_8A9E_306F,
+		0x0000_96E3_3057_3044,
+		0x0021_0000_0020_00A7,
+		0x8_062_BE5_451_320_FFF,
+		0x9_062_BE5_451_320_FFF,
+		0xA_062_BE5_451_320_FFF,
+		0xB_062_BE5_451_320_FFF,
+		0xC_062_BE5_451_320_FFF,
+		0xD_062_BE5_451_320_FFF,
+		0xE_062_BE5_451_320_FFF,
+		0xF_062_BE5_451_320_FFF,
 	}
-	expectUTF8 := "E697A5E69CACE8AA9EE381AFE99BA3E38197E3818421"
-	actualUTF8 := CanonicalFromSSEs(sses[:])
-	if actualUTF8 != expectUTF8 {
-		t.Errorf("From CanonicalFromSSE(\n%#v\n),\nexpect: %#v\nactual: %#v\n\n",
-			sses, expectUTF8, actualUTF8)
+	var s strings.Builder
+	for _, sse := range sses {
+		sse.WriteAsCanonicalTo(&s)
 	}
-}
-
-func TestCanonicalFromSangoSSEs(t *testing.T) {
-	sses := [...]SSE{0x9_062_BE5_451_320_FFF}
-	//expectUTF8 := "Bɛ̂-kɔ̈mbïtɛ"
-	expect := "bx^-kc:Bi:tx_"
-	actual := CanonicalFromSSEs(sses[:])
+	expect := "U+65E5U+672CU+8A9EU+306FU+96E3U+3057U+3044U+0021U+0020U+00A7" +
+		"bx^-kc:Bi:tx_~bx^-kc:Bi:tx_$bx^-$kc:$Bi:$tx_ bx^-kc:Bi:tx_ ~bx^-kc:Bi:tx_ $bx^-$kc:$Bi:$tx_"
+	actual := s.String()
 	if actual != expect {
 		t.Errorf("From CanonicalFromSSE(\n%#v\n),\nexpect: %#v\nactual: %#v\n\n",
 			sses, expect, actual)
