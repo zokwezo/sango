@@ -9,12 +9,12 @@ import (
 	cuckoo "github.com/panmari/cuckoofilter"
 )
 
-var canonicalRE = regexp.MustCompile(`^([BDGHKPQVYZbdfghklmnpqstvwyz][AEIOUaceioux][_:^]){0,5}$`)
+var canonicalRE = regexp.MustCompile(`^([BDGHKPQVYZbdfghklmnpqrstvwyz][AEIOUaceioux][_:^]){0,5}$`)
 
 func TestCanonicalRowFormat(t *testing.T) {
 	for _, row := range LexiconRows() {
 		if matched := canonicalRE.MatchString(row.Canonical); !matched {
-			t.Error("XXX", row.Canonical)
+			t.Error(row.Canonical)
 		}
 	}
 }

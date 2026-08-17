@@ -50,7 +50,7 @@ func TestWriteAsCanonical(t *testing.T) {
 		sse.WriteAsCanonicalTo(&s)
 	}
 	expect := "U+65E5U+672CU+8A9EU+306FU+96E3U+3057U+3044U+0021U+0020U+00A7" +
-		"bx^-kc:Bi:tx_~bx^-kc:Bi:tx_$bx^-$kc:$Bi:$tx_ bx^-kc:Bi:tx_ ~bx^-kc:Bi:tx_ $bx^-$kc:$Bi:$tx_"
+		"bx^-kc:Bi:tx_~bx^-kc:Bi:tx_=bx^-=kc:=Bi:=tx_ bx^-kc:Bi:tx_ ~bx^-kc:Bi:tx_ =bx^-=kc:=Bi:=tx_"
 	actual := s.String()
 	if actual != expect {
 		t.Errorf("From CanonicalFromSSE(\n%#v\n),\nexpect: %#v\nactual: %#v\n\n",

@@ -5,6 +5,7 @@
 package sse
 
 import (
+	"regexp"
 	"strings"
 )
 
@@ -337,7 +338,7 @@ func canonicalFromSangoSyllableCode(code uint16) string {
 	case Code_Titlecase:
 		s += "~"
 	case Code_Uppercase:
-		s += "$"
+		s += "="
 	case Code_Invisible:
 		return ""
 	}
@@ -440,10 +441,15 @@ func canonicalFromSangoSyllableCode(code uint16) string {
 		s += ":"
 	case Code_HighPitch:
 		s += "^"
-	case Code_UnknownPitch:
-		s += "="
 	}
 	return s
+}
+
+var canonicalRE = regexp.MustCompile(`^(([ -]?)([~=]?)([hbvydzqgHpfltsKkwBVYDZQGnPmr])([aAeEiIoOxcuUXC])([_:^]?))$`)
+
+func canonicalToSangoSyllableCode(s string) uint16 {
+	// TODO: finish functionality and test on ../lexicon/lexicon.go
+	return 0xFFFF
 }
 
 func extractBits(code uint16, lsb int, msb int) uint16 {

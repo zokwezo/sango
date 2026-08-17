@@ -23,6 +23,10 @@ func (sse SSE) WriteAsCanonicalTo(s *strings.Builder) {
 	writeAsCanonicalTo(s, uint64(sse))
 }
 
+func CanonicalToSSE(s string) SSE {
+	return canonicalToSSE(s)
+}
+
 //////////////////////////////////////////////////////////////////////////////
 // IMPLEMENTATION
 
@@ -92,4 +96,8 @@ func writeAsCanonicalTo(s *strings.Builder, b uint64) {
 			s.WriteString(canonicalFromSangoSyllableCode(c))
 		}
 	}
+}
+
+func canonicalToSSE(s string) SSE {
+	return SSE(0xFFFF_FFFF)
 }
