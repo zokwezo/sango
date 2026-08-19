@@ -103,36 +103,35 @@ to separate word constituents.
 Consonants are arranged in quasi-lexical CV sorting order, except that
 allophones and near-allophones are grouped:
 * unaspirated and aspirated H immediately follow no consonant
-* R immediately follows L
-* TODO: Nasal consonants immediately follow their non-nasal counterpart
-* Nasal vowels immediately follow their non-nasal counterpart
+* Nasal consonants and vowels immediately follow their non-nasal counterpart
 * Open vowels immediately precede their closed counterpart
 
 ###### Canonical
 
-Consonants are ordered so that natural allophones are adjacent:
+Consonants are ordered so that natural allophones and
+phonetically similar phonemes are adjacent:
 
 | b10-b8 \\ b7-b6 | 00  | 01  | 10  | 11  |
 | :-------------: | :-: | :-: | :-: | :-: |
-|        000      |  h  |  H  |  b  |  d  |
-|        001      |  f  |  g  |  q  |  k  |
-|        010      |  K  |  l  |  r  |  m  |
-|        011      |  B  |  P  |  V  |  n  |
-|        100      |  D  |  G  |  Q  |  Y  |
-|        101      |  Z  |  p  |  s  |  t  |
-|        110      |  v  |  w  |  y  |  z  |
+|        000      |  h  |  H  |  b  |  B  |
+|        001      |  q  |  Q  |  d  |  D  |
+|        010      |  f  |  g  |  G  |  k  |
+|        011      |  l  |  r  |  m  |  n  |
+|        100      |  p  |  K  |  P  |  s  |
+|        101      |  t  |  v  |  V  |  w  |
+|        110      |  y  |  Y  |  z  |  Z  |
 
 ###### UTF8
 
 | b10-b8 \\ b7-b6 | 00  | 01  | 10  | 11  |
 | :-------------: | :-: | :-: | :-: | :-: |
-|        000      |     |  h  |  b  |  d  |
-|        001      |  f  |  g  | gb  |  k  |
-|        010      | kp  |  l  |  r  |  m  |
-|        011      | mb  | mp  | mv  |  n  |
-|        100      | nd  | ng  | ngb | ny  |
-|        101      | nz  |  p  |  s  |  t  |
-|        110      |  v  |  w  |  y  |  z  |
+|        000      |     |  h  |  b  | mb  |
+|        001      | gb  | ngb |  d  | nd  |
+|        010      |  f  |  g  | ng  |  k  |
+|        011      |  l  |  r  |  m  |  n  |
+|        100      |  p  | kp  | mp  |  s  |
+|        101      |  t  |  v  | mv  |  w  |
+|        110      |  y  | ny  |  z  | nz  |
 
 <!-- There is an alternate arrangement (not used herein) of consonant clusters that
 maximally encodes phonetic symmetries (voiced, nasal, aspirated, yotated) in

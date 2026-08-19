@@ -32,14 +32,14 @@ type DictRows = []DictRow
 //
 // h -> (unaspirated h is omitted)
 // H -> h (aspirated h is preserved)
-// q -> gb
-// K -> kp
 // B -> mb
-// P -> mp
-// V -> mv
+// q -> gb
+// Q -> ngb
 // D -> nd
 // G -> ng
-// Q -> ngb
+// K -> kp
+// P -> mp
+// V -> mv
 // Y -> ny
 // Z -> nz
 // A -> añ
