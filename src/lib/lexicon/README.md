@@ -8,8 +8,8 @@ a standalone CSV file with the following bash shell commands:
 
 ```bash
 outfile="/tmp/lexicon.csv"
-echo '"Toneless","Heightless","Lemma","UDPos","UDFeature","Category","Frequency","EnglishTranslation","EnglishDefinition"' >  "${outfile}"
-cat lexicon.go | grep -E '^\s*{"[a-z]*",' | head -n -9 | sed -E 's/^\s*\{((.)*)\},/\1/' | sed -E 's/(["0-9],) /\1/g' >> "${outfile}"
+echo '"Toneless","Heightless","Lemma","Canonical","UDPos","UDFeature","Category","Frequency","EnglishTranslation","EnglishDefinition"' >  "${outfile}"
+cat lexicon.go | grep -E '^\s*{"[a-z]*",' | sed -E 's/^\s*\{((.)*)\},/\1/' | sed -E 's/(["0-9],) /\1/g' >> "${outfile}"
 ```
 
 ### Background
@@ -87,7 +87,7 @@ reference for a future Sango treebank:
 | Toneless            | string | = Heightless column, but with whitespace, hyphens, and pitch removed                      |
 | Heightless          | string | = Lemma column, but with case and height removed                                          |
 | Lemma               | string | Lemma (possibly multiword) with accents and close/open vowel distinctions                 |
-| Canonical           | string | ASCII-based encoding                                                                      |
+| Canonical           | string | ASCII-based lossless and orthogonal encoding                                              |
 | UDPos               | string | [Universal Dependency Part-of-speech](https://universaldependencies.org/u/pos/index.html) |
 | UDFeature           | string | [Universal Dependency Feature](https://universaldependencies.org/u/feat/)                 |
 | Category            | string | Semantic cluster label                                                                    |
@@ -98,9 +98,10 @@ reference for a future Sango treebank:
 Please note the following:
 
 1. The first lexicon row is a copyright and license statement, which must remain with the data (whether stored or in memory).
-   It is the only row with empty values for Toneless, Heightless, and Lemma columns.
+   It must remain the first row, and only row with empty values for Toneless, Heightless, Lemma, or Canonical columns.
 2. The columns (`Lemma`, `UDPos`, `UDFeature`, `Category`, `Frequency`) form a minimal 5-tuple primary key and the rows
    are sorted in strict ascending order to enable binary search and [lower, upper) bound interval lookups in the tables.
+	 > TODO: Update above after primary key is based on SSE
 3. Hyphenation is used for clarity in separating Sango morphemes and is suitable for generation, but parsing
    should not depend on its presence as there is free variation in the use of punctuation in corpora.
 4. **Pitch accent is always indicated in the official orthography**
@@ -137,20 +138,21 @@ Please note the following:
 6. There are 5 affixes sufficiently productive that they are automatically affixed to all compatible lemmas
    (governed by UDFeature `CanPrefix=`_UDPos_) on startup to generate derived lemmas. These are:
 
-   | Lemma | UDPos | UDFeature                              | Category | English Definition  |
+   | Affix | UDPos | UDFeature                              | Category | English Definition  |
    | ----- | ----- | -------------------------------------- | -------- | ------------------- |
-   | a     | VERB  | CanPrefix=VERB\|Person=3\|VerbForm=Fin | WHO      | subject marker      |
-   | â     | ADJ   | CanPrefix=ADJ\|Number=Plur             | NUM      | plural marker       |
-   | â     | NOUN  | CanPrefix=NOUN\|Number=Plur            | NUM      | plural marker       |
-   | ngɔ̈   | VERB  | CanSuffix=VERB\|VerbForm=Vnoun         | HOW      | gerund ("-ing")     |
-   | wa    | NOUN  | CanPrefix=VERB                         | WHO      | agent ("one who")   |
+   | a-    | VERB  | CanPrefix=VERB\|Person=3\|VerbForm=Fin | WHO      | subject marker      |
+   | â-    | ADJ   | CanPrefix=ADJ\|Number=Plur             | NUM      | plural marker       |
+   | â-    | NOUN  | CanPrefix=NOUN\|Number=Plur            | NUM      | plural marker       |
+   | ⸚ngɔ̈  | VERB  | CanSuffix=VERB\|VerbForm=Vnoun         | HOW      | gerund ("-ing")     |
+   | wa-   | NOUN  | CanPrefix=VERB                         | WHO      | agent ("one who")   |
 
    - This attempts to generate the [convex set](https://en.wikipedia.org/wiki/Convex_set) of all possible lemmas,
-     not a minimal plausible set, and will generate many lemmas not found in native speech, and is suitable for
+     not a minimal plausible set, and will generate many lemmas not found in native speech, and so is suitable for
      language understanding but not language generation (which would require a curated outer product).
-   - The **ngɔ̈** suffix enforces vowel _pitch_ harmony by changing all preceding pitch accents in the root lexeme
+		 > TODO: Remove these rows from the lexicon, these are not standalone lemmas.
+   - The **⸚ngɔ̈** suffix enforces vowel _pitch_ harmony by changing all preceding pitch accents in the root lexeme
      (but not any other prefix or suffix) to circumflex (medium pitch), e.g.
-     - **wa-** (one who) + **manda** (learn) + **-ngɔ̈** (-ing) + **kua** (work) = **wa-mändängɔ̈-kua** (apprentice).
+     - **wa-** (one who) + **manda** (learn) + **⸚ngɔ̈** (-ing) + **kua** (work) = **wamändängɔ̈-kua** (apprentice).
    - The **ngɔ̈** suffix does NOT enforce vowel _height_ harmony, and leaves close root vowels closed.
    - The **ngɔ̈** suffix, when affixed to stative verbs, functions as both gerund (action) and noun (state),
      as in **nɛ** = "weigh, to be heavy" ⇒ **nɛ̈ngɔ̈** = "weighing, weight".
@@ -158,11 +160,13 @@ Please note the following:
 7. There are other affixes that had at one time been productive (esp. in progenitor tribal languages such as Ngbandi) but
    no longer sufficiently productive in Sango to generate automatically, and are listed as explicit lexemes in the lexicon:
 
-   | Lemma | UDPos | UDFeature                              | Category | English Definition  |
-   | ----- | ----- | -------------------------------------- | -------- | ------------------- |
-   | bâ    | NOUN  | CanPrefix=NOUN                         | WHERE    | canonical place for |
-   | nga   | VERB  | Aspect=Iter\|CanSuffix=VERB            | HOW      | periodic action     |
-   | ngbi  | VERB  | Aspect=Imp\|CanSuffix=VERB\|Reflex=Yes | HOW      | synchronic action   |
+   - affixes
+
+     | Affix | UDPos | UDFeature                              | Category | English Definition  |
+     | ----- | ----- | -------------------------------------- | -------- | ------------------- |
+     | bâ-    | NOUN  | CanPrefix=NOUN                         | WHERE    | canonical place for |
+     | -nga   | VERB  | Aspect=Iter\|CanSuffix=VERB            | HOW      | periodic action     |
+     | -ngbi  | VERB  | Aspect=Imp\|CanSuffix=VERB\|Reflex=Yes | HOW      | synchronic action   |
 
    - initial syllable (or word) reduplication
 

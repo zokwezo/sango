@@ -10,6 +10,7 @@ package sse
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 )
 
@@ -23,8 +24,12 @@ func (sse SSE) WriteAsCanonicalTo(s *strings.Builder) {
 	writeAsCanonicalTo(s, uint64(sse))
 }
 
-func CanonicalToSSE(s string) SSE {
-	return canonicalToSSE(s)
+func CanonicalToSyllables(s string) ([]uint16, int) {
+	return canonicalToSyllables(s)
+}
+
+func SyllablesToSSEs(syllables []uint16) []SSE {
+	return syllablesToSSEs(syllables)
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -98,6 +103,72 @@ func writeAsCanonicalTo(s *strings.Builder, b uint64) {
 	}
 }
 
-func canonicalToSSE(s string) SSE {
-	return SSE(0xFFFF_FFFF)
+const (
+	syllableType_Unicode uint64 = 0x0000_0000_0000_0000
+	syllableType_Sango   uint64 = 0x8000_0000_0000_0000
+	syllableType_Mask    uint64 = 0x8000_0000_0000_0000
+
+	undefined_Unicode uint64 = 0x0000_0000_0000_0000
+	undefined_Sango   uint64 = 0xFFFF_FFFF_FFFF_FFFF
+
+	msbs_Mask uint64 = 0xF000_0000_0000_0000
+)
+
+// Returns the accumulated syllables and the index where processing stopped.
+// The latter will equal len(s) on success, else the index of the first error.
+func canonicalToSyllables(s string) ([]uint16, int) {
+	// Initialize return values
+	var syllables []uint16
+
+	// Partition string into syllables.
+	indexes := canonicalRE.FindAllStringSubmatchIndex(s, -1)
+
+	// Bail out if the start of string doesn't match.
+	n := len(indexes)
+	if n == 0 || indexes[0][0] != 0 {
+		return syllables, 0
+	}
+
+	// word := undefined_Sango
+	// msbs := word & msbs_Mask
+	// msb0 := msbs & syllableType_Mask
+	// var currentSyllable int
+
+	for k := range n {
+		ii := indexes[k]
+		if len(ii) != 14 {
+			panic("Bad index length")
+		}
+
+		// Bail out if there is a gap between syllables.
+		if k > 0 && indexes[k][0] != indexes[k-1][1] {
+			return syllables, indexes[k-1][1]
+		}
+
+		if ii[2] != -1 { // Unicode syllable
+			codePoint, err := strconv.ParseUint(s[ii[2]:ii[3]], 16, 16)
+			if err != nil {
+				return syllables, ii[0]
+			}
+			syllables = append(syllables, uint16(codePoint))
+		} else { // Sango syllable
+			affix := s[ii[4]:ii[5]]
+			shift := s[ii[6]:ii[7]]
+			consonant := s[ii[8]:ii[9]]
+			vowel := s[ii[10]:ii[11]]
+			pitch := s[ii[12]:ii[13]]
+			syllable, err := canonicalToSangoSyllableCode(affix, shift, consonant, vowel, pitch)
+			if err != nil {
+				return syllables, ii[0]
+			}
+			syllables = append(syllables, syllable)
+		}
+	}
+	return syllables, len(s)
+}
+
+func syllablesToSSEs(syllables []uint16) []SSE {
+	var sses []SSE
+	// TODO: Implement and update unit test
+	return sses
 }

@@ -23,35 +23,39 @@ func HeightlessFromLemma() map[string]string    { return lexiconRowsAndCols.heig
 func TonelessFromHeightless() map[string]string { return lexiconRowsAndCols.tonelessFromHeightless }
 
 type DictRowsMap = map[string]DictRows
-
 type DictRows = []DictRow
 
-// Canonical format matches the regexp `^([BDGHKPQVYZbdfghklmnpqstvwyz][AEIOUaceioux][_:^]){0,5}$` where:
-// Canonical -> Lemma
-// ------------------
+// The canonical format is strictly more general, but
+// the entries in LexiconRows.Canonical exactly match the regular expression
+// `^([-]?[hbvydzqgHpfltsKkwBVYDZQGnPmr][aAeEiIoOxcuU][_:^]){1,5}$`
+// where the mapping from Canonical to Lemma is:
+//
+// h -> (unaspirated h is omitted)
+// H -> h (aspirated h is preserved)
+// q -> gb
+// K -> kp
 // B -> mb
+// P -> mp
+// V -> mv
 // D -> nd
 // G -> ng
-// H -> h
-// K -> kp
-// P -> mp
 // Q -> ngb
-// V -> mv
 // Y -> ny
 // Z -> nz
-// A -> an'
-// E -> en'
-// I -> in'
-// O -> on'
-// U -> un'
-// c -> ɔ
-// x -> ɛ
-// _ -> low  tone
-// : -> mid  tone
-// ^ -> high tone
-// h -> omitted
-// l -> l or r        TODO: restore using a whitelist in the future
-// hyphens and spaces TODO: restore using a whitelist in the future
+// A -> añ
+// x -> ɛ (open e)
+// E -> eñ
+// I -> iñ
+// c -> ɔ (open o)
+// o -> o
+// O -> oñ
+// u -> u
+// U -> uñ
+// _ -> low  tone (omitted)
+// : -> mid  tone (dieresis   diacritic)
+// ^ -> high tone (circumflex diacritic)
+//
+// All other symbols (e.g. k) are the same in Canonical and Lemma.
 
 type DictRow struct {
 	Toneless           string // = Heightless, but with pitch removed
@@ -2183,7 +2187,7 @@ var lexiconRowsAndCols = func() dictRowsAndCols {
 		{"zuu", "zûu", "zûu", "zu^hu_", "VERB", "Subcat=Intr", "MOVE", 2, "descend", "descend"},
 		{"zuu", "zûu", "zûu", "zu^hu_", "VERB", "Subcat=Tran", "MOVE", 2, "lower-bow", "lower, bow"},
 	}
-	/*
+	/* TODO: Uncomment after switching to either Canonical or SSE, preferably the latter.
 		// Add rows derived from existing entries by the affixing of prefixes or suffixes.
 		// These don't have to be completely productive and may include incorrect lexemes.
 		// The goal is to increase recall, not precision.

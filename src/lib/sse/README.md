@@ -12,21 +12,21 @@ is done only on output. This allows the software to easily:
   worrying about byte boundaries
 - Code switch between Sango, human languages, and symbols in the same document
 - Query different properties and mask or filter on unimportant ones
-- Record inline metadata by setting Case to Hidden
+- Record inline metadata by setting Shift to Hidden
 - Isolate use of hyphens and spaces, which in Sango are neither syntactically
   standardized nor semantically important
 
-## Word type encoded
+## Kind of encoding
 
 The 64-bit encoding divides up into components, from Most Significant Bit
 (MSB = B63) to Least (LSB = B0) as follows:
 
-| B63 | Word type         |
+| B63 | Contents encoded  |
 | :-: | ----------------- |
 |  0  | Unicode substring |
 |  1  | Sango word        |
 
-### Type 0: Unicode substrings
+### Kind 0: Unicode substrings
 
 For a Unicode substring, the 4 bytes comprise up to 4 Unicode code points
 (U+0001 through U+FFFF, ignoring any U+0000 bytes). The first byte must be
@@ -34,13 +34,13 @@ less than U+8000, otherwise set it to zero and continue with the next byte.
 
 #### UNICODE EXAMPLE
 
-| Format    | Value                                                                       |
-| --------- | --------------------------------------------------------------------------- |
-| SSEs      | 0x65E5672C8A9E306F 0x000096E330573044 0x0021002000A70000 0xF062BE5451320FFF |
-| Canonical | U+65E5U+672CU+8A9EU+306FU+96E3U+3057U+3044U+0021U+0020U+00A7                |
-| UTF8      | 日本語は難しい! §                                                             |
+| Format    | Value                                                                            |
+| --------- | -------------------------------------------------------------------------------- |
+| SSEs      | [0x65E5672C8A9E306F, 0x000096E330573044, 0x0021002000A70000, 0xF062BE5451320FFF] |
+| Canonical | "U+65E5U+672CU+8A9EU+306FU+96E3U+3057U+3044U+0021U+0020U+00A7"                   |
+| UTF8      | "日本語は難しい! §"                                                                |
 
-### Type 1: Sango words
+### Kind 1: Sango words
 
 For a Sango word, the rest of the bits encode a single Sango word of up to
 5 syllables (there are no Sango words of more than 5 syllables).
@@ -59,15 +59,15 @@ The first 4 bits **1PCC** are global to the word encode the `P`refix and `C`ase:
 |  0  | None   |
 |  1  | Space  |
 
-#### Case
+#### Shift
 
-| B61 \\ B60 |       0       |       1       |
-| :--------: | :-----------: | :-----------: |
-|      0     | lowercase ()  | Titlecase (~) |
-|      1     | UPPERCASE ($) | Invisible     |
+| B61 \\ B60 |     0     |       1       |
+| :--------: | :-------: | :-----------: |
+|      0     | lower ()  | Title (~)     |
+|      1     | UPPER (=) | Invisible (#) |
 
-The case is applied to UTF8 directly, and the value in parentheses is
-prepended to canonical format. In both cases, invisible case is unrendered.
+The shift is applied to UTF8 directly, and the value in parentheses is
+prepended to canonical format. In both cases, invisible shift is unrendered.
 
 #### Sango syllable(s)
 
@@ -90,31 +90,65 @@ initial unaspirated **h**. When semantically important, aspirated **H**
 
 Hyphens internal to a word are often (but not always) used in compound
 words and this usage is not entirely standardized in the lexicon.
-Where important, a compound word can be specify a hyphen syllable prefix
+Where important, a compound word can be specify a hyphen syllable infix
 to separate word constituents.
 
-| b11 | Prefix |
+| b11 | Infix  |
 | :-: | ------ |
 |  0  | None   |
 |  1  | Hyphen |
 
 ##### Consonant cluster
 
-The arrangement of consonant clusters is meant to maximally encode phonetic
-symmetries (voiced, nasal, aspirated, yotated) in bit patterns, subject to
-having a dense compact encoding scheme.
+Consonants are arranged in quasi-lexical CV sorting order, except that
+allophones and near-allophones are grouped:
+* unaspirated and aspirated H immediately follow no consonant
+* R immediately follows L
+* TODO: Nasal consonants immediately follow their non-nasal counterpart
+* Nasal vowels immediately follow their non-nasal counterpart
+* Open vowels immediately precede their closed counterpart
+
+###### Canonical
+
+Consonants are ordered so that natural allophones are adjacent:
+
+| b10-b8 \\ b7-b6 | 00  | 01  | 10  | 11  |
+| :-------------: | :-: | :-: | :-: | :-: |
+|        000      |  h  |  H  |  b  |  d  |
+|        001      |  f  |  g  |  q  |  k  |
+|        010      |  K  |  l  |  r  |  m  |
+|        011      |  B  |  P  |  V  |  n  |
+|        100      |  D  |  G  |  Q  |  Y  |
+|        101      |  Z  |  p  |  s  |  t  |
+|        110      |  v  |  w  |  y  |  z  |
+
+###### UTF8
+
+| b10-b8 \\ b7-b6 | 00  | 01  | 10  | 11  |
+| :-------------: | :-: | :-: | :-: | :-: |
+|        000      |     |  h  |  b  |  d  |
+|        001      |  f  |  g  | gb  |  k  |
+|        010      | kp  |  l  |  r  |  m  |
+|        011      | mb  | mp  | mv  |  n  |
+|        100      | nd  | ng  | ngb | ny  |
+|        101      | nz  |  p  |  s  |  t  |
+|        110      |  v  |  w  |  y  |  z  |
+
+<!-- There is an alternate arrangement (not used herein) of consonant clusters that
+maximally encodes phonetic symmetries (voiced, nasal, aspirated, yotated) in
+bit patterns, subject to having a dense compact encoding scheme, as shown below.
 
 ###### Canonical
 
 | b10-b8 \\ b7-b6 | 00  | 01  | 10  | 11  |
 | :-------------: | :-: | :-: | :-: | :-: |
-|        000      |  h  |  b  |  v  |  y  |
-|        001      |  d  |  z  |  q  |  g  |
-|        010      |  H  |  p  |  f  |  l  |
-|        011      |  t  |  s  |  K  |  k  |
-|        100      |  w  |  B  |  V  |  Y  |
-|        101      |  N  |  Z  |  Q  |  G  |
-|        110      |  n  |  P  |  m  |  r  |
+|        000      |  h  |  H  |  b  |  v  |
+|        001      |  y  |  d  |  z  |  q  |
+|        010      |  g  |  p  |  f  |  l  |
+|        011      |  r  |  t  |  s  |  K  |
+|        100      |  k  |  w  |  B  |  V  |
+|        101      |  Y  |  D  |  Z  |  Q  |
+|        110      |  G  |  n  |  P  |  m  |
 
 ###### UTF8
 
@@ -127,15 +161,33 @@ having a dense compact encoding scheme.
 |        100      |  w  |  mb |  mv |  ny |
 |        101      |  nd |  nz | ngb |  ng |
 |        110      |  n  |  mp |  m  |  r  |
+-->
 
-Syllables starting with **111** are ignored entirely, irrespective of the
-value of the remaining 9 bits.
+Syllables with consonant codes starting with **111** are ignored entirely.
 
 ##### Vowel
 
-The arrangement of vowel clusters is also meant to maximally encode phonetic
-symmetries (height, nasal) in bit patterns, subject to having a dense compact
-encoding scheme.
+###### Canonical
+
+| b5-b4 \\ b3-b2 | 00  | 01  | 10  | 11  |
+| :------------: | :-: | :-: | :-: | :-: |
+|       00       |  a  |  A  |  X  |  x  |
+|       01       |  e  |  E  |  i  |  I  |
+|       10       |  C  |  c  |  o  |  O  |
+|       11       |  u  |  U  |  —— |  —— |
+
+###### UTF8
+
+| b5-b4 \\ b3-b2 | 00  | 01  | 10  | 11  |
+| :------------: | :-: | :-: | :-: | :-: |
+|       00       |  a  |  añ |  ∉ |  ɛ  |
+|       01       |  e  |  eñ |  i  |  iñ |
+|       10       |  ∅ |  ɔ  |  o  |  oñ |
+|       11       |  u  |  uñ |  —— |  —— |
+
+<!-- There is also an alternate arrangement (not used herein) of vowels that
+maximally encodes phonetic symmetries (height, nasal) in bit patterns,
+subject to having a dense compact encoding scheme, as shown below.
 
 ###### Canonical
 
@@ -154,9 +206,9 @@ encoding scheme.
 |       01       |  i  |  iñ |  o  |  oñ |
 |       10       |  ɛ  |  ɔ  |  u  |  uñ |
 |       11       |  E  |  O  |  —— |  —— |
+-->
 
-Syllables whose vowels start with **111** are ignored entirely, irrespective of
-the value of the other bits.
+Syllables with vowel codes starting with **11** are ignored entirely.
 
 Externally, nasal vowels are followed by an **n** with no tilde. To resolve
 ambiguity with a following syllable starting with an **n** or omitted unaspirated
@@ -186,10 +238,21 @@ and use in code.
 |     0    | Low   | Mid     |
 |     1    | High  | UNKNOWN |
 
-#### SANGO EXAMPLE
+#### SANGO EXAMPLES
 
-| Format    | Value                                 |
-| --------- | ------------------------------------- |
-| SSEs      | 0x8062BE5451320FFF 0xF062BE5451320FFF |
-| Canonical | bx^-kc:Bi:tx_ $bx^-$kc:$Bi:$tx_       |
-| UTF8      | bɛ̂-kɔ̈mbïtɛ BƐ̂-KƆ̈MBÏTƐ                 |
+##### lowercase
+
+| Format    | Value                   |
+| --------- | ----------------------- |
+| SSE       | 0x8_08E_9E5_319_5CC_FFF |
+| Canonical | "bx^-kc:Bi:tx_"         |
+| UTF8      | "bɛ̂-kɔ̈mbïtɛ"            |
+
+
+##### UPPERCASE with space prefix
+
+| Format    | Value                   |
+| --------- | ----------------------- |
+| SSEs      | 0xE_08E_9E5_319_5CC_FFF |
+| Canonical | " =bx^-=kc:=Bi:=tx_"    |
+| UTF8      | " BƐ̂-KƆ̈MBÏTƐ"           |

@@ -9,7 +9,9 @@ import (
 	cuckoo "github.com/panmari/cuckoofilter"
 )
 
-var canonicalRE = regexp.MustCompile(`^([BDGHKPQVYZbdfghklmnpqrstvwyz][AEIOUaceioux][_:^]){0,5}$`)
+var canonicalRE = regexp.MustCompile(`^([-]?[BDGHKPQVYZbdfghklmnpqrstvwyz][AEIOUaceioux][_:^]){0,5}$`)
+
+// TODO: Generate Lemma from Canonical and check for match, inserting hyphens in the former as needed.
 
 func TestCanonicalRowFormat(t *testing.T) {
 	for _, row := range LexiconRows() {
