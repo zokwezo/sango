@@ -16,36 +16,50 @@ import (
 
 type SSE uint64
 
-// Output Lemma
-func (sse SSE) WriteAsUTF8To(s *strings.Builder) {
-	writeAsUTF8To(s, uint64(sse))
+type WriteAsUTF8Options struct {
+	ForSpaceUse                                              string
+	WithHyphen, WithShift, WithHeight, WithNTilde, WithPitch bool
 }
 
-// Output Canonical
+var (
+	AsToneless   = WriteAsUTF8Options{ForSpaceUse: "", WithHyphen: false, WithShift: false, WithHeight: false, WithNTilde: false, WithPitch: false}
+	AsHeightless = WriteAsUTF8Options{ForSpaceUse: " ", WithHyphen: true, WithShift: false, WithHeight: false, WithNTilde: false, WithPitch: true}
+	AsLemma      = WriteAsUTF8Options{ForSpaceUse: " ", WithHyphen: true, WithShift: false, WithHeight: true, WithNTilde: false, WithPitch: true}
+	AsUTF8       = WriteAsUTF8Options{ForSpaceUse: " ", WithHyphen: true, WithShift: true, WithHeight: true, WithNTilde: true, WithPitch: true}
+)
+
+func (sse SSE) WriteUTF8To(s *strings.Builder, options WriteAsUTF8Options) {
+	writeUTF8To(s, uint64(sse), options)
+}
+
+func (sse SSE) WriteAsUTF8To(s *strings.Builder) {
+	writeUTF8To(s, uint64(sse), AsUTF8)
+}
+
+func (sse SSE) WriteAsTonelessTo(s *strings.Builder) {
+	writeUTF8To(s, uint64(sse), AsToneless)
+}
+
+func (sse SSE) WriteAsHeightlessTo(s *strings.Builder) {
+	writeUTF8To(s, uint64(sse), AsHeightless)
+}
+
+func (sse SSE) WriteAsLemmaTo(s *strings.Builder) {
+	writeUTF8To(s, uint64(sse), AsLemma)
+}
+
 func (sse SSE) WriteAsCanonicalTo(s *strings.Builder) {
 	writeAsCanonicalTo(s, uint64(sse))
 }
 
 func CanonicalToSSEs(s string) ([]SSE, error) {
-	var err error
-	codes, b := canonicalToCodes(s)
-	n := len(s)
-	if b != n {
-		e := b + 10
-		etc := "..."
-		if e >= n {
-			e = n
-			etc = ""
-		}
-		err = fmt.Errorf("Error parsing Canonical string starting at s[%v:] = %q", b, s[b:e]+etc)
-	}
-	return codesToSSEs(codes), err
+	return canonicalToSSEs(s)
 }
 
 //////////////////////////////////////////////////////////////////////////////
 // IMPLEMENTATION
 
-func writeAsUTF8To(s *strings.Builder, b uint64) {
+func writeUTF8To(s *strings.Builder, b uint64, options WriteAsUTF8Options) {
 	if (b >> 63) == 0 { // up to 4 unicode runes
 		rr := [4]rune{}
 		for k := range 4 {
@@ -74,7 +88,7 @@ func writeAsUTF8To(s *strings.Builder, b uint64) {
 		}
 		cc[0] = uint16(b&0xFFF) | p0
 		for _, c := range cc {
-			s.WriteString(utf8FromSangoCodeValue(c))
+			s.WriteString(utf8FromSangoCodeValue(c, options))
 		}
 	}
 }
@@ -251,4 +265,20 @@ func codesToSSEs(codes []sseCode) []SSE {
 		flush()
 	}
 	return sses
+}
+
+func canonicalToSSEs(s string) ([]SSE, error) {
+	var err error
+	codes, b := canonicalToCodes(s)
+	n := len(s)
+	if b != n {
+		e := b + 10
+		etc := "..."
+		if e >= n {
+			e = n
+			etc = ""
+		}
+		err = fmt.Errorf("cannot parse Canonical string starting at s[%v:] = %q", b, s[b:e]+etc)
+	}
+	return codesToSSEs(codes), err
 }

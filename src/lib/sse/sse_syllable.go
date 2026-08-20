@@ -90,10 +90,14 @@ func getConsonantCode(code uint16) ConsonantCode { return ConsonantCode(code & C
 func getVowelCode(code uint16) VowelCode         { return VowelCode(code & VowelCode_MASK) }
 func getPitchCode(code uint16) PitchCode         { return PitchCode(code & PitchCode_MASK) }
 
-func utf8FromSangoCodeValue(code uint16) string {
+func utf8FromSangoCodeValue(code uint16, options WriteAsUTF8Options) string {
 	s := ""
 	if getShiftCode(code) == ShiftCode_Invisible {
 		return s
+	}
+	pitch := PitchCode_Low
+	if options.WithPitch {
+		pitch = getPitchCode(code)
 	}
 	switch getConsonantCode(code) {
 	case ConsonantCode_h:
@@ -155,7 +159,7 @@ func utf8FromSangoCodeValue(code uint16) string {
 	default:
 		return ""
 	}
-	switch getPitchCode(code) {
+	switch pitch {
 	case PitchCode_Low:
 		switch getVowelCode(code) {
 		case VowelCode_a:
@@ -289,19 +293,44 @@ func utf8FromSangoCodeValue(code uint16) string {
 			return ""
 		}
 	}
-	switch getShiftCode(code) {
-	case ShiftCode_lower:
-		s = strings.ToLower(s)
-	case ShiftCode_Title:
-		s = strings.ToTitle(s)
-	case ShiftCode_UPPER:
-		s = strings.ToUpper(s)
+	if options.WithShift {
+		switch getShiftCode(code) {
+		case ShiftCode_lower:
+			s = strings.ToLower(s)
+		case ShiftCode_Title:
+			s = strings.ToTitle(s)
+		case ShiftCode_UPPER:
+			s = strings.ToUpper(s)
+		}
+	}
+	if !options.WithHeight {
+		s = strings.ReplaceAll(s, "x", "e")
+		s = strings.ReplaceAll(s, "ɛ", "e")
+		s = strings.ReplaceAll(s, "c", "o")
+		s = strings.ReplaceAll(s, "ɔ", "o")
+		s = strings.ReplaceAll(s, "ẍ", "ë")
+		s = strings.ReplaceAll(s, "ɛ̈", "ë")
+		s = strings.ReplaceAll(s, "c̈", "ö")
+		s = strings.ReplaceAll(s, "ɔ̈", "ö")
+		s = strings.ReplaceAll(s, "x̂", "ê")
+		s = strings.ReplaceAll(s, "ɛ̂", "ê")
+		s = strings.ReplaceAll(s, "ĉ", "ô")
+		s = strings.ReplaceAll(s, "ɔ̂", "ô")
+		s = strings.ReplaceAll(s, "x̣", "ẹ")
+		s = strings.ReplaceAll(s, "ɛ̣", "ẹ")
+		s = strings.ReplaceAll(s, "c̣", "ọ")
+		s = strings.ReplaceAll(s, "ɔ̣", "ọ")
+	}
+	if !options.WithNTilde {
+		s = strings.ReplaceAll(s, "ñ", "n")
 	}
 	if getPrefixCode(code) == PrefixCode_Space {
-		return " " + s
+		return options.ForSpaceUse + s
 	}
-	if getInfixCode(code) == InfixCode_Hyphen {
-		return "-" + s
+	if options.WithHyphen {
+		if getInfixCode(code) == InfixCode_Hyphen {
+			return "-" + s
+		}
 	}
 	return s
 }
