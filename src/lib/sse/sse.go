@@ -16,20 +16,30 @@ import (
 
 type SSE uint64
 
+// Output Lemma
 func (sse SSE) WriteAsUTF8To(s *strings.Builder) {
 	writeAsUTF8To(s, uint64(sse))
 }
 
+// Output Canonical
 func (sse SSE) WriteAsCanonicalTo(s *strings.Builder) {
 	writeAsCanonicalTo(s, uint64(sse))
 }
 
-func CanonicalToSyllables(s string) ([]uint16, int) {
-	return canonicalToSyllables(s)
-}
-
-func SyllablesToSSEs(syllables []uint16) []SSE {
-	return syllablesToSSEs(syllables)
+func CanonicalToSSEs(s string) ([]SSE, error) {
+	var err error
+	codes, b := canonicalToCodes(s)
+	n := len(s)
+	if b != n {
+		e := b + 10
+		etc := "..."
+		if e >= n {
+			e = n
+			etc = ""
+		}
+		err = fmt.Errorf("Error parsing Canonical string starting at s[%v:] = %q", b, s[b:e]+etc)
+	}
+	return codesToSSEs(codes), err
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -64,7 +74,7 @@ func writeAsUTF8To(s *strings.Builder, b uint64) {
 		}
 		cc[0] = uint16(b&0xFFF) | p0
 		for _, c := range cc {
-			s.WriteString(utf8FromSangoSyllableCode(c))
+			s.WriteString(utf8FromSangoCodeValue(c))
 		}
 	}
 }
@@ -98,41 +108,37 @@ func writeAsCanonicalTo(s *strings.Builder, b uint64) {
 		}
 		cc[0] = uint16(b&0xFFF) | p0
 		for _, c := range cc {
-			s.WriteString(canonicalFromSangoSyllableCode(c))
+			s.WriteString(canonicalFromSangoCodeValue(c))
 		}
 	}
 }
 
-const (
-	syllableType_Unicode uint64 = 0x0000_0000_0000_0000
-	syllableType_Sango   uint64 = 0x8000_0000_0000_0000
-	syllableType_Mask    uint64 = 0x8000_0000_0000_0000
+// We are okay with truncating a Unicode rune from 32 bits to 16 bits which
+// is enough to express the entire Basic Multilingual Plane (BMP), since
+// higher planes have only obscure glyphs. However, forgoing even one more bit
+// would rule out interesting runes such as CJK glyphs and yet the MSB is needed
+// to determine whether a code stores a Unicode rune or a Sango syllable.
+// Consequently, the uint16 value must be supplemented with a separate bool
+// to indicate the code variant type.
+type sseCode struct {
+	value   uint16 // if isSango is true, the MSB must be set to 1
+	isSango bool
+}
 
-	undefined_Unicode uint64 = 0x0000_0000_0000_0000
-	undefined_Sango   uint64 = 0xFFFF_FFFF_FFFF_FFFF
-
-	msbs_Mask uint64 = 0xF000_0000_0000_0000
-)
-
-// Returns the accumulated syllables and the index where processing stopped.
+// Returns the accumulated codes and the index where processing stopped.
 // The latter will equal len(s) on success, else the index of the first error.
-func canonicalToSyllables(s string) ([]uint16, int) {
+func canonicalToCodes(s string) ([]sseCode, int) {
 	// Initialize return values
-	var syllables []uint16
+	var codes []sseCode
 
-	// Partition string into syllables.
+	// Partition string into codes.
 	indexes := canonicalRE.FindAllStringSubmatchIndex(s, -1)
 
 	// Bail out if the start of string doesn't match.
 	n := len(indexes)
 	if n == 0 || indexes[0][0] != 0 {
-		return syllables, 0
+		return codes, 0
 	}
-
-	// word := undefined_Sango
-	// msbs := word & msbs_Mask
-	// msb0 := msbs & syllableType_Mask
-	// var currentSyllable int
 
 	for k := range n {
 		ii := indexes[k]
@@ -140,35 +146,109 @@ func canonicalToSyllables(s string) ([]uint16, int) {
 			panic("Bad index length")
 		}
 
-		// Bail out if there is a gap between syllables.
+		// Bail out if there is a gap between codes.
 		if k > 0 && indexes[k][0] != indexes[k-1][1] {
-			return syllables, indexes[k-1][1]
+			return codes, indexes[k-1][1]
 		}
 
-		if ii[2] != -1 { // Unicode syllable
-			codePoint, err := strconv.ParseUint(s[ii[2]:ii[3]], 16, 16)
+		if ii[2] != -1 { // Unicode code
+			value, err := strconv.ParseUint(s[ii[2]:ii[3]], 16, 16)
 			if err != nil {
-				return syllables, ii[0]
+				return codes, ii[0]
 			}
-			syllables = append(syllables, uint16(codePoint))
+			if value != 0 {
+				codes = append(codes, sseCode{value: uint16(value), isSango: false})
+			}
 		} else { // Sango syllable
 			affix := s[ii[4]:ii[5]]
 			shift := s[ii[6]:ii[7]]
 			consonant := s[ii[8]:ii[9]]
 			vowel := s[ii[10]:ii[11]]
 			pitch := s[ii[12]:ii[13]]
-			syllable, err := canonicalToSangoSyllableCode(affix, shift, consonant, vowel, pitch)
+			value, err := canonicalToSangoCodeValue(affix, shift, consonant, vowel, pitch)
 			if err != nil {
-				return syllables, ii[0]
+				return codes, ii[0]
 			}
-			syllables = append(syllables, syllable)
+			if value&ConsonantCode_MASK >= ConsonantCode_END || value&VowelCode_MASK >= VowelCode_END {
+				panic("bad value returned from canonicalToSangoCodeValue")
+			}
+			codes = append(codes, sseCode{value: value, isSango: true})
 		}
 	}
-	return syllables, len(s)
+	return codes, len(s)
 }
 
-func syllablesToSSEs(syllables []uint16) []SSE {
+func codesToSSEs(codes []sseCode) []SSE {
 	var sses []SSE
-	// TODO: Implement and update unit test
+	var sse uint64
+	var prevIsSango bool
+	numCodesSaved := 0
+	var msb4 uint64
+	flush := func() {
+		if prevIsSango {
+			sse <<= (60 - 12*numCodesSaved)
+			sse |= 0xFFFF_FFFF_FFFF_FFFF >> (4 + 12*numCodesSaved)
+		} else {
+			sse <<= (64 - 16*numCodesSaved)
+		}
+		sse |= msb4
+		sses = append(sses, SSE(sse))
+		sse = 0
+		numCodesSaved = 0
+	}
+	for _, code := range codes {
+		if code.isSango {
+			if code.value&ConsonantCode_MASK >= ConsonantCode_END ||
+				code.value&VowelCode_MASK >= VowelCode_END {
+				continue
+			}
+		}
+		for count := range 10 {
+			if count > 5 {
+				panic("infinite loop")
+			}
+			if numCodesSaved == 0 {
+				prevIsSango = code.isSango
+				msb4 = 0
+				if code.isSango {
+					msb4 = uint64(code.value) >> 12 << 60
+				}
+			}
+			if code.isSango && numCodesSaved == 5 ||
+				!code.isSango && numCodesSaved == 4 {
+				// current SSE is full, flush buffer and restart
+				sse |= msb4
+				sses = append(sses, SSE(sse))
+				sse = 0
+				numCodesSaved = 0
+				continue // restart loop
+			}
+			if numCodesSaved != 0 && (prevIsSango != code.isSango || code.isSango && getPrefixCode(code.value) == PrefixCode_Space) {
+				// can't mix unicode and sango nor two sango words in one SSE
+				flush()
+				continue // restart loop
+			}
+			switch code.isSango {
+			case false:
+				if code.value > 0x7FFF && numCodesSaved == 0 {
+					// Large unicode will not fit into the most significant byte since
+					// the first bit is reserved for the kind code. Increment and try again.
+					numCodesSaved = 1
+					continue // restart loop
+				}
+				sse <<= 16
+				sse |= uint64(code.value & 0xFFFF)
+			case true:
+				sse <<= 12
+				sse |= uint64(code.value & 0xFFF)
+			}
+			numCodesSaved += 1
+			break // move on to the next code
+		}
+	}
+	// flush buffer
+	if numCodesSaved != 0 {
+		flush()
+	}
 	return sses
 }

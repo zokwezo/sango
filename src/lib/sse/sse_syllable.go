@@ -10,7 +10,6 @@ import (
 	"strings"
 )
 
-type KindCode uint16
 type PrefixCode uint16
 type ShiftCode uint16
 type InfixCode uint16
@@ -19,9 +18,7 @@ type VowelCode uint16
 type PitchCode uint16
 
 const (
-	KindCode_MASK       uint16        = 0b1_0_00_0_00000_0000_00
-	KindCode_Unicode    KindCode      = 0b0_0_00_0_00000_0000_00
-	KindCode_Sango      KindCode      = 0b1_0_00_0_00000_0000_00
+	InvalidCode_Sango   uint16        = 0b1_1_11_1_11111_1111_11
 	PrefixCode_MASK     uint16        = 0b0_1_00_0_00000_0000_00
 	PrefixCode_None     PrefixCode    = 0b0_0_00_0_00000_0000_00
 	PrefixCode_Space    PrefixCode    = 0b0_1_00_0_00000_0000_00
@@ -62,6 +59,7 @@ const (
 	ConsonantCode_Y     ConsonantCode = 0b0_0_00_0_11001_0000_00 // ny
 	ConsonantCode_z     ConsonantCode = 0b0_0_00_0_11010_0000_00 // z
 	ConsonantCode_Z     ConsonantCode = 0b0_0_00_0_11011_0000_00 // nz
+	ConsonantCode_END   uint16        = 0b0_0_00_0_11100_0000_00
 	VowelCode_MASK      uint16        = 0b0_0_00_0_00000_1111_00
 	VowelCode_a         VowelCode     = 0b0_0_00_0_00000_0000_00 // a
 	VowelCode_A         VowelCode     = 0b0_0_00_0_00000_0001_00 // añ
@@ -77,6 +75,7 @@ const (
 	VowelCode_O         VowelCode     = 0b0_0_00_0_00000_1011_00 // oñ
 	VowelCode_u         VowelCode     = 0b0_0_00_0_00000_1100_00 // u
 	VowelCode_U         VowelCode     = 0b0_0_00_0_00000_1101_00 // uñ
+	VowelCode_END       uint16        = 0b0_0_00_0_00000_1110_00
 	PitchCode_MASK      uint16        = 0b0_0_00_0_00000_0000_11
 	PitchCode_Low       PitchCode     = 0b0_0_00_0_00000_0000_00
 	PitchCode_Mid       PitchCode     = 0b0_0_00_0_00000_0000_01
@@ -84,7 +83,6 @@ const (
 	PitchCode_Unknown   PitchCode     = 0b0_0_00_0_00000_0000_11
 )
 
-func getKindCode(code uint16) KindCode           { return KindCode(code & KindCode_MASK) }
 func getPrefixCode(code uint16) PrefixCode       { return PrefixCode(code & PrefixCode_MASK) }
 func getShiftCode(code uint16) ShiftCode         { return ShiftCode(code & ShiftCode_MASK) }
 func getInfixCode(code uint16) InfixCode         { return InfixCode(code & InfixCode_MASK) }
@@ -92,11 +90,8 @@ func getConsonantCode(code uint16) ConsonantCode { return ConsonantCode(code & C
 func getVowelCode(code uint16) VowelCode         { return VowelCode(code & VowelCode_MASK) }
 func getPitchCode(code uint16) PitchCode         { return PitchCode(code & PitchCode_MASK) }
 
-func utf8FromSangoSyllableCode(code uint16) string {
+func utf8FromSangoCodeValue(code uint16) string {
 	s := ""
-	if getKindCode(code) != KindCode_Sango {
-		panic("code does not represent Sango")
-	}
 	if getShiftCode(code) == ShiftCode_Invisible {
 		return s
 	}
@@ -311,11 +306,8 @@ func utf8FromSangoSyllableCode(code uint16) string {
 	return s
 }
 
-func canonicalFromSangoSyllableCode(code uint16) string {
+func canonicalFromSangoCodeValue(code uint16) string {
 	s := ""
-	if getKindCode(code) != KindCode_Sango {
-		panic("code does not represent Sango")
-	}
 	if getPrefixCode(code) == PrefixCode_Space {
 		s += " "
 	} else if getInfixCode(code) == InfixCode_Hyphen {
@@ -436,8 +428,8 @@ func canonicalFromSangoSyllableCode(code uint16) string {
 
 var canonicalRE = regexp.MustCompile(`U[+]([0-9A-F]{4})|([ -]?)([~=#]?)([hHbBqQdDfgGklrmnpKPstvVwyYzZ])([aAeEiIoOxcuUXC])([_:^]?)`)
 
-func canonicalToSangoSyllableCode(affix, shift, consonant, vowel, pitch string) (uint16, error) {
-	var code uint16
+func canonicalToSangoCodeValue(affix, shift, consonant, vowel, pitch string) (uint16, error) {
+	var code uint16 = 0x8000
 	switch affix {
 	case "":
 		// do nothing
@@ -446,7 +438,7 @@ func canonicalToSangoSyllableCode(affix, shift, consonant, vowel, pitch string) 
 	case "-":
 		code |= uint16(InfixCode_Hyphen)
 	default:
-		return 0xFFFF, fmt.Errorf("bad affix %q", affix)
+		return InvalidCode_Sango, fmt.Errorf("bad affix %q", affix)
 	}
 	switch shift {
 	case "":
@@ -458,7 +450,7 @@ func canonicalToSangoSyllableCode(affix, shift, consonant, vowel, pitch string) 
 	case "#":
 		code |= uint16(ShiftCode_Invisible)
 	default:
-		return 0xFFFF, fmt.Errorf("bad shift %q", shift)
+		return InvalidCode_Sango, fmt.Errorf("bad shift %q", shift)
 	}
 	switch consonant {
 	case "h":
@@ -518,7 +510,7 @@ func canonicalToSangoSyllableCode(affix, shift, consonant, vowel, pitch string) 
 	case "Z":
 		code |= uint16(ConsonantCode_Z)
 	default:
-		return 0xFFFF, fmt.Errorf("bad consonant %q", consonant)
+		return InvalidCode_Sango, fmt.Errorf("bad consonant %q", consonant)
 	}
 	switch vowel {
 	case "a":
@@ -550,7 +542,7 @@ func canonicalToSangoSyllableCode(affix, shift, consonant, vowel, pitch string) 
 	case "C":
 		code |= uint16(VowelCode_C)
 	default:
-		return 0xFFFF, fmt.Errorf("bad vowel %q", vowel)
+		return InvalidCode_Sango, fmt.Errorf("bad vowel %q", vowel)
 	}
 	switch pitch {
 	case "":
@@ -562,7 +554,7 @@ func canonicalToSangoSyllableCode(affix, shift, consonant, vowel, pitch string) 
 	case "^":
 		code |= uint16(PitchCode_High)
 	default:
-		return 0xFFFF, fmt.Errorf("bad pitch %q", pitch)
+		return InvalidCode_Sango, fmt.Errorf("bad pitch %q", pitch)
 	}
 	return code, nil
 }
