@@ -57,16 +57,23 @@ func CanonicalToSSEs(s string) ([]SSE, error) {
 }
 
 func UnpadRight(word uint64) uint64 {
-	for word&0x0_000_000_000_000_FFF == 0x0_000_000_000_000_FFF {
-		word >>= 12
+	if word == 0xF_FFF_FFF_FFF_FFF_FFF {
+		return 0
+	}
+	if word&0x8000_0000_0000_0000 != 0 {
+		for word&0x0_000_000_000_000_FFF == 0x0_000_000_000_000_FFF {
+			word >>= 12
+		}
 	}
 	return word
 }
 
 func PadRight(word uint64) uint64 {
-	for word&0xF_000_000_000_000_000 != 0x8_000_000_000_000_000 {
-		word <<= 12
-		word |= 0xFFF
+	if word&0x8000_0000_0000_0000 != 0 {
+		for word&0x8_000_000_000_000_000 != 0x8_000_000_000_000_000 {
+			word <<= 12
+			word |= 0xFFF
+		}
 	}
 	return word
 }

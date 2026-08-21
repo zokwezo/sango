@@ -143,6 +143,79 @@ func TestWriteAsUTF8To(t *testing.T) {
 	}
 }
 
+func TestWriteEmptyAsTonelessTo(t *testing.T) {
+	sses := []SSE{}
+	var s strings.Builder
+	for _, sse := range sses {
+		sse.WriteAsTonelessTo(&s)
+	}
+	expect := ""
+	actual := s.String()
+	if actual != expect {
+		t.Errorf("in TestWriteEmptyAsTonelessTo(\n%#v\n),\nexpect: %#v\nactual: %#v\n\n",
+			sses, expect, actual)
+	}
+}
+
+func TestWriteEmptyAsHeightlessTo(t *testing.T) {
+	sses := []SSE{}
+	var s strings.Builder
+	for _, sse := range sses {
+		sse.WriteAsHeightlessTo(&s)
+	}
+	expect := ""
+	actual := s.String()
+	if actual != expect {
+		t.Errorf("in TestWriteEmptyAsHeightlessTo(\n%#v\n),\nexpect: %#v\nactual: %#v\n\n",
+			sses, expect, actual)
+	}
+}
+
+func TestWriteEmptyAsLemmaTo(t *testing.T) {
+	sses := []SSE{0xFFFF_FFFF_FFFF_FFFF}
+	var s strings.Builder
+	for _, sse := range sses {
+		sse.WriteAsLemmaTo(&s)
+	}
+	expect := ""
+	actual := s.String()
+	if actual != expect {
+		t.Errorf("in TestWriteEmptyAsLemmaTo(\n%#v\n),\nexpect: %#v\nactual: %#v\n\n",
+			sses, expect, actual)
+	}
+}
+
+func TestWriteEmptyAsUTF8To(t *testing.T) {
+	sses := []SSE{}
+	var s strings.Builder
+	for _, sse := range sses {
+		sse.WriteAsUTF8To(&s)
+	}
+	expect := ""
+	actual := s.String()
+	if actual != expect {
+		t.Errorf("in TestWriteEmptyAsLemmaTo(\n%#v\n),\nexpect: %#v\nactual: %#v\n\n",
+			sses, expect, actual)
+	}
+}
+
+func TestEmptyCanonicalToCodes(t *testing.T) {
+	actual, leftOffAt := canonicalToCodes("")
+	if leftOffAt != 0 {
+		t.Errorf("bad leftOffAt")
+	}
+	if len(actual) != 0 {
+		t.Errorf("found nonempty codes")
+	}
+}
+
+func TestEmptyCodeToSSEs(t *testing.T) {
+	actual := codesToSSEs([]sseCode{})
+	if len(actual) != 0 {
+		t.Errorf("bad codesToSSEs, expected empty array")
+	}
+}
+
 func TestCanonicalToCodes(t *testing.T) {
 	c := "U+65E5U+672CU+8A9EU+306FU+96E3U+3057U+3044U+0021U+0020U+00A7" +
 		"bx^-kc:Bi:tx_~bx^-kc:Bi:tx_U+96E3=bx^-=kc:=Bi:=tx_ bx^-kc:Bi:tx_ ~bx^-kc:Bi:tx_ =bx^-=kc:=Bi:=tx_ ha_HO:Do:ni^"
