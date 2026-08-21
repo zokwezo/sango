@@ -16,19 +16,19 @@ import (
 
 type SSE uint64
 
-type WriteAsUTF8Options struct {
-	ForSpaceUse                                              string
-	WithHyphen, WithShift, WithHeight, WithNTilde, WithPitch bool
+type WriteUTF8Options struct {
+	ForSpaceUse, ForHyphenUse                    string
+	WithShift, WithHeight, WithNTilde, WithPitch bool
 }
 
 var (
-	AsToneless   = WriteAsUTF8Options{ForSpaceUse: "", WithHyphen: false, WithShift: false, WithHeight: false, WithNTilde: false, WithPitch: false}
-	AsHeightless = WriteAsUTF8Options{ForSpaceUse: " ", WithHyphen: true, WithShift: false, WithHeight: false, WithNTilde: false, WithPitch: true}
-	AsLemma      = WriteAsUTF8Options{ForSpaceUse: " ", WithHyphen: true, WithShift: false, WithHeight: true, WithNTilde: false, WithPitch: true}
-	AsUTF8       = WriteAsUTF8Options{ForSpaceUse: " ", WithHyphen: true, WithShift: true, WithHeight: true, WithNTilde: true, WithPitch: true}
+	AsToneless   = WriteUTF8Options{ForSpaceUse: "", ForHyphenUse: "", WithShift: false, WithHeight: false, WithNTilde: false, WithPitch: false}
+	AsHeightless = WriteUTF8Options{ForSpaceUse: " ", ForHyphenUse: "-", WithShift: false, WithHeight: false, WithNTilde: false, WithPitch: true}
+	AsLemma      = WriteUTF8Options{ForSpaceUse: " ", ForHyphenUse: "-", WithShift: false, WithHeight: true, WithNTilde: false, WithPitch: true}
+	AsUTF8       = WriteUTF8Options{ForSpaceUse: " ", ForHyphenUse: "-", WithShift: true, WithHeight: true, WithNTilde: true, WithPitch: true}
 )
 
-func (sse SSE) WriteUTF8To(s *strings.Builder, options WriteAsUTF8Options) {
+func (sse SSE) WriteUTF8To(s *strings.Builder, options WriteUTF8Options) {
 	writeUTF8To(s, uint64(sse), options)
 }
 
@@ -59,7 +59,7 @@ func CanonicalToSSEs(s string) ([]SSE, error) {
 //////////////////////////////////////////////////////////////////////////////
 // IMPLEMENTATION
 
-func writeUTF8To(s *strings.Builder, b uint64, options WriteAsUTF8Options) {
+func writeUTF8To(s *strings.Builder, b uint64, options WriteUTF8Options) {
 	if (b >> 63) == 0 { // up to 4 unicode runes
 		rr := [4]rune{}
 		for k := range 4 {
