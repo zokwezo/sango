@@ -138,6 +138,9 @@ type dictRowsAndCols struct {
 }
 
 var lexiconRowsAndCols = func() dictRowsAndCols {
+	// TODO: Remove the Toneless, Heightless, Lemma, and Canonical columns from this literal table,
+	// then add an word = sse.UnpadRight(SSE) column and regenerate the other columns at startup.
+	// See ../../tools/lex/main.go for how to do this.
 	var rows = DictRows{
 		{"", "", "", "", "DO NOT REMOVE THIS ROW", "Copyright=DanielDWeston2024", "HTTP://WWW.APACHE.ORG/LICENSES/LICENSE-2.0", 0, "https://github.com/zokwezo/sango/blob/main/src/lib/lexicon/lexicon.csv", ""},
 		{"ababaa", "ababâa", "ababâa", "ha_ba_ba^ha_", "NOUN", "", "FOOD", 5, "soybean", "soybean"},
