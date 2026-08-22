@@ -23,8 +23,8 @@ type WriteUTF8Options struct {
 
 var (
 	AsToneless   = WriteUTF8Options{ForSpaceUse: "", ForHyphenUse: "", WithShift: false, WithHeight: false, WithNTilde: false, WithPitch: false}
-	AsHeightless = WriteUTF8Options{ForSpaceUse: " ", ForHyphenUse: "-", WithShift: false, WithHeight: false, WithNTilde: false, WithPitch: true}
-	AsLemma      = WriteUTF8Options{ForSpaceUse: " ", ForHyphenUse: "-", WithShift: false, WithHeight: true, WithNTilde: false, WithPitch: true}
+	AsHeightless = WriteUTF8Options{ForSpaceUse: " ", ForHyphenUse: "-", WithShift: true, WithHeight: false, WithNTilde: false, WithPitch: true}
+	AsLemma      = WriteUTF8Options{ForSpaceUse: " ", ForHyphenUse: "-", WithShift: true, WithHeight: true, WithNTilde: false, WithPitch: true}
 	AsUTF8       = WriteUTF8Options{ForSpaceUse: " ", ForHyphenUse: "-", WithShift: true, WithHeight: true, WithNTilde: true, WithPitch: true}
 )
 
@@ -110,15 +110,13 @@ func writeUTF8To(s *strings.Builder, b uint64, options WriteUTF8Options) {
 			}
 		}
 	} else { // up to 5 Sango syllables
-		p0 := uint16(b >> 60)
-		p := p0             // all but the first syllable
-		if p&0b11 == 0b01 { // if Titlecase
-			p &= 0b1000 // force no space and lowercase
-		} else { // else not Titlecase
-			p &= 0b1011 // force no space, preserve case
+		p0 := uint16(b >> 60 << 12)
+		p := p0               // all but the first syllable
+		p &= ^PrefixCode_MASK // force no space
+		if getShiftCode(p) == ShiftCode_Title {
+			p &= ^ShiftCode_MASK         // force no shift
+			p |= uint16(ShiftCode_lower) // set lowercase
 		}
-		p0 <<= 12
-		p <<= 12
 		cc := [5]uint16{}
 		for k := range 4 {
 			cc[4-k] = uint16(b&0xFFF) | p
@@ -146,8 +144,9 @@ func writeAsCanonicalTo(s *strings.Builder, b uint64) {
 	} else { // up to 5 Sango syllables
 		p0 := uint16(b >> 60)
 		p := p0             // all but the first syllable
-		if p&0b11 == 0b01 { // if Titlecase
-			p &= 0b1000 // force no space and lowercase
+		if p&0b11 == 0b10 { // if Titlecase
+			p &= 0b1000 // force no space
+			p |= 0b0001 // force lowercase
 		} else { // else not Titlecase
 			p &= 0b1011 // force no space, preserve case
 		}

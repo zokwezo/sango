@@ -221,8 +221,9 @@ func isValid(code uint16) bool {
 
 func utf8FromSangoCodeValue(code uint16, options WriteUTF8Options) string {
 	s := ""
-	if getShiftCode(code) == ShiftCode_Invisible {
-		return s
+	shiftCode := getShiftCode(code)
+	if shiftCode == ShiftCode_Invisible {
+		return ""
 	}
 	pitch := PitchCode_Low
 	if options.WithPitch {
@@ -423,7 +424,7 @@ func utf8FromSangoCodeValue(code uint16, options WriteUTF8Options) string {
 		}
 	}
 	if options.WithShift {
-		switch getShiftCode(code) {
+		switch shiftCode {
 		case ShiftCode_lower:
 			s = strings.ToLower(s)
 		case ShiftCode_Title:
