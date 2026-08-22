@@ -57,29 +57,45 @@ func CanonicalToSSEs(s string) ([]SSE, error) {
 }
 
 func UnpadRight(word uint64) uint64 {
-	if word == 0xF_FFF_FFF_FFF_FFF_FFF {
-		return 0
-	}
-	if word&0x8000_0000_0000_0000 != 0 {
-		for word&0x0_000_000_000_000_FFF == 0x0_000_000_000_000_FFF {
+	if word&0x_8000_0000_0000_0000 != 0 {
+		// Sango SSE
+		for word&0xFFF == 0 {
 			word >>= 12
+		}
+	} else {
+		// Unicode SSE
+		for word&0xFFFF == 0 {
+			word >>= 16
 		}
 	}
 	return word
 }
 
 func PadRight(word uint64) uint64 {
-	if word&0x8000_0000_0000_0000 != 0 {
-		for word&0x8_000_000_000_000_000 != 0x8_000_000_000_000_000 {
-			word <<= 12
-			word |= 0xFFF
+	// First try treating as a Sango SSE
+	w := word
+	for w&0x0_FFF_000_000_000_000 == 0 {
+		w <<= 12
+		if w == 0 {
+			break
 		}
 	}
-	return word
+	if w != 0 {
+		return w
+	}
+	// Treat as a Unicode SSE
+	for w&0xFFFF_0000_0000_0000 == 0 {
+		w <<= 16
+		if w == 0 {
+			return w
+		}
+	}
+	return w
 }
 
 //////////////////////////////////////////////////////////////////////////////
 // IMPLEMENTATION
+// TODO: Stop working with bits directly, use named constants instead.
 
 func writeUTF8To(s *strings.Builder, b uint64, options WriteUTF8Options) {
 	if (b >> 63) == 0 { // up to 4 unicode runes
@@ -205,7 +221,7 @@ func canonicalToCodes(s string) ([]sseCode, int) {
 			if err != nil {
 				return codes, ii[0]
 			}
-			if value&ConsonantCode_MASK >= ConsonantCode_END || value&VowelCode_MASK >= VowelCode_END {
+			if !IsValid(value) {
 				panic("bad value returned from canonicalToSangoCodeValue")
 			}
 			codes = append(codes, sseCode{value: value, isSango: true})
@@ -223,7 +239,6 @@ func codesToSSEs(codes []sseCode) []SSE {
 	flush := func() {
 		if prevIsSango {
 			sse <<= (60 - 12*numCodesSaved)
-			sse |= 0xFFFF_FFFF_FFFF_FFFF >> (4 + 12*numCodesSaved)
 		} else {
 			sse <<= (64 - 16*numCodesSaved)
 		}
@@ -234,8 +249,7 @@ func codesToSSEs(codes []sseCode) []SSE {
 	}
 	for _, code := range codes {
 		if code.isSango {
-			if code.value&ConsonantCode_MASK >= ConsonantCode_END ||
-				code.value&VowelCode_MASK >= VowelCode_END {
+			if !IsValid(code.value) {
 				continue
 			}
 		}

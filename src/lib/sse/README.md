@@ -36,7 +36,7 @@ less than U+8000, otherwise set it to zero and continue with the next byte.
 
 | Format    | Value                                                                            |
 | --------- | -------------------------------------------------------------------------------- |
-| SSEs      | [0x65E5672C8A9E306F, 0x000096E330573044, 0x0021002000A70000, 0xF062BE5451320FFF] |
+| SSEs      | [0x65E5672C8A9E306F, 0x000096E330573044, 0x0021002000A70000, 0xF062BE5451320000] |
 | Canonical | "U+65E5U+672CU+8A9EU+306FU+96E3U+3057U+3044U+0021U+0020U+00A7"                   |
 | UTF8      | "日本語は難しい! §"                                                                |
 
@@ -61,10 +61,10 @@ The first 4 bits **1PCC** are global to the word encode the `P`refix and `C`ase:
 
 #### Shift
 
-| B61 \\ B60 |     0     |       1       |
-| :--------: | :-------: | :-----------: |
-|      0     | lower ()  | Title (~)     |
-|      1     | UPPER (=) | Invisible (#) |
+| B61 \\ B60 |     0         |     1     |
+| :--------: | :-----------: | :-------: |
+|      0     | Invisible (#) | lower ()  |
+|      1     | Title (~)     | UPPER (=) |
 
 The shift is applied to UTF8 directly, and the value in parentheses is
 prepended to canonical format. In both cases, invisible shift is unrendered.
@@ -113,56 +113,31 @@ phonetically similar phonemes are adjacent:
 
 | b10-b8 \\ b7-b6 | 00  | 01  | 10  | 11  |
 | :-------------: | :-: | :-: | :-: | :-: |
-|        000      |  h  |  H  |  b  |  B  |
-|        001      |  q  |  Q  |  d  |  D  |
-|        010      |  f  |  g  |  G  |  k  |
-|        011      |  l  |  r  |  m  |  n  |
-|        100      |  p  |  K  |  P  |  s  |
-|        101      |  t  |  v  |  V  |  w  |
-|        110      |  y  |  Y  |  z  |  Z  |
+|        000      |  —  |  —  |  h  |  H  |
+|        001      |  b  |  B  |  q  |  Q  |
+|        010      |  d  |  D  |  f  |  g  |
+|        011      |  G  |  k  |  l  |  r  |
+|        100      |  m  |  n  |  p  |  K  |
+|        101      |  P  |  s  |  t  |  v  |
+|        110      |  V  |  w  |  y  |  Y  |
+|        111      |  z  |  Z  |  —  |  —  |
 
 ###### UTF8
 
 | b10-b8 \\ b7-b6 | 00  | 01  | 10  | 11  |
 | :-------------: | :-: | :-: | :-: | :-: |
-|        000      |     |  h  |  b  | mb  |
-|        001      | gb  | ngb |  d  | nd  |
-|        010      |  f  |  g  | ng  |  k  |
-|        011      |  l  |  r  |  m  |  n  |
-|        100      |  p  | kp  | mp  |  s  |
-|        101      |  t  |  v  | mv  |  w  |
-|        110      |  y  | ny  |  z  | nz  |
+|        000      |  —  |  —  |     |  h  |
+|        001      |  b  | mb  | gb  | ngb |
+|        010      |  d  | nd  |  f  |  g  |
+|        011      | ng  |  k  |  l  |  r  |
+|        100      |  m  |  n  |  p  | kp  |
+|        101      | mp  |  s  |  t  |  v  |
+|        110      | mv  |  w  |  y  | ny  |
+|        110      |  z  | nz  |  y  | ny  |
+|        111      |  z  | nz  |  —  |  —  |
 
-<!-- There is an alternate arrangement (not used herein) of consonant clusters that
-maximally encodes phonetic symmetries (voiced, nasal, aspirated, yotated) in
-bit patterns, subject to having a dense compact encoding scheme, as shown below.
-
-###### Canonical
-
-| b10-b8 \\ b7-b6 | 00  | 01  | 10  | 11  |
-| :-------------: | :-: | :-: | :-: | :-: |
-|        000      |  h  |  H  |  b  |  v  |
-|        001      |  y  |  d  |  z  |  q  |
-|        010      |  g  |  p  |  f  |  l  |
-|        011      |  r  |  t  |  s  |  K  |
-|        100      |  k  |  w  |  B  |  V  |
-|        101      |  Y  |  D  |  Z  |  Q  |
-|        110      |  G  |  n  |  P  |  m  |
-
-###### UTF8
-
-| b10-b8 \\ b7-b6 | 00  | 01  | 10  | 11  |
-| :-------------: | :-: | :-: | :-: | :-: |
-|        000      |     |  b  |  v  |  y  |
-|        001      |  d  |  z  |  gb |  g  |
-|        010      |  h  |  p  |  f  |  l  |
-|        011      |  t  |  s  |  kp |  k  |
-|        100      |  w  |  mb |  mv |  ny |
-|        101      |  nd |  nz | ngb |  ng |
-|        110      |  n  |  mp |  m  |  r  |
--->
-
-Syllables with consonant codes starting with **111** are ignored entirely.
+Syllables with consonant codes marked by a — are ignored entirely.
+Unaspirated h (`0b00010`) is omitted entirely when outputting UTF8.
 
 ##### Vowel
 
@@ -170,44 +145,21 @@ Syllables with consonant codes starting with **111** are ignored entirely.
 
 | b5-b4 \\ b3-b2 | 00  | 01  | 10  | 11  |
 | :------------: | :-: | :-: | :-: | :-: |
-|       00       |  a  |  A  |  X  |  x  |
-|       01       |  e  |  E  |  i  |  I  |
-|       10       |  C  |  c  |  o  |  O  |
-|       11       |  u  |  U  |  —— |  —— |
+|       00       |  —  |  —  |  a  |  A  |
+|       01       |  X  |  x  |  e  |  E  |
+|       10       |  i  |  I  |  C  |  c  |
+|       11       |  o  |  O  |  u  |  U  |
 
 ###### UTF8
 
 | b5-b4 \\ b3-b2 | 00  | 01  | 10  | 11  |
 | :------------: | :-: | :-: | :-: | :-: |
-|       00       |  a  |  añ |  ∉ |  ɛ  |
-|       01       |  e  |  eñ |  i  |  iñ |
-|       10       |  ∅ |  ɔ  |  o  |  oñ |
-|       11       |  u  |  uñ |  —— |  —— |
+|       00       |  —  |  —  |  a  |  añ |
+|       01       |  ∉ |  ɛ  |  e  |  eñ |
+|       10       |  i  |  iñ |  ∅ |  ɔ  |
+|       11       |  o  |  oñ |  u  |  uñ |
 
-<!-- There is also an alternate arrangement (not used herein) of vowels that
-maximally encodes phonetic symmetries (height, nasal) in bit patterns,
-subject to having a dense compact encoding scheme, as shown below.
-
-###### Canonical
-
-| b5-b4 \\ b3-b2 | 00  | 01  | 10  | 11  |
-| :------------: | :-: | :-: | :-: | :-: |
-|       00       |  a  |  A  |  e  |  E  |
-|       01       |  i  |  I  |  o  |  O  |
-|       10       |  x  |  c  |  u  |  U  |
-|       11       |  X  |  C  |  —— |  —— |
-
-###### UTF8
-
-| b5-b4 \\ b3-b2 | 00  | 01  | 10  | 11  |
-| :------------: | :-: | :-: | :-: | :-: |
-|       00       |  a  |  añ |  e  |  eñ |
-|       01       |  i  |  iñ |  o  |  oñ |
-|       10       |  ɛ  |  ɔ  |  u  |  uñ |
-|       11       |  E  |  O  |  —— |  —— |
--->
-
-Syllables with vowel codes starting with **11** are ignored entirely.
+Syllables with vowel codes marked by a — are ignored entirely.
 
 Externally, nasal vowels are followed by an **n** with no tilde. To resolve
 ambiguity with a following syllable starting with an **n** or omitted unaspirated
@@ -232,10 +184,10 @@ unknown pitch with a dot below (**ọ**). Internally, these are represented by
 vowel suffixes **_**, **:**, **^**, and **=** respectively, for ease of typing
 and use in code.
 
-| b1 \\ b0 |   0   |   1     |
-| :------: | :---: | :-----: |
-|     0    | Low   | Mid     |
-|     1    | High  | UNKNOWN |
+| b1 \\ b0 |    0    |   1   |
+| :------: | :-----: | :---: |
+|     0    | UNKNOWN | Low   |
+|     1    | Mid     | High  |
 
 #### SANGO EXAMPLES
 
@@ -243,7 +195,7 @@ and use in code.
 
 | Format    | Value                   |
 | --------- | ----------------------- |
-| SSE       | 0x8_08E_9E5_319_5CC_FFF |
+| SSE       |                         |
 | Canonical | "bx^-kc:Bi:tx_"         |
 | UTF8      | "bɛ̂-kɔ̈mbïtɛ"            |
 
@@ -252,6 +204,6 @@ and use in code.
 
 | Format    | Value                   |
 | --------- | ----------------------- |
-| SSEs      | 0xE_08E_9E5_319_5CC_FFF |
+| SSEs      |                         |
 | Canonical | " =bx^-=kc:=Bi:=tx_"    |
 | UTF8      | " BƐ̂-KƆ̈MBÏTƐ"           |
