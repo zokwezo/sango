@@ -57,40 +57,50 @@ func CanonicalToSSEs(s string) ([]SSE, error) {
 }
 
 func UnpadRight(word uint64) uint64 {
-	if word&0x_8000_0000_0000_0000 != 0 {
-		// Sango SSE
-		for word&0xFFF == 0 {
-			word >>= 12
-		}
-	} else {
-		// Unicode SSE
-		for word&0xFFFF == 0 {
-			word >>= 16
-		}
-	}
-	return word
-}
-
-func PadRight(word uint64) uint64 {
-	// First try treating as a Sango SSE
 	w := word
-	for w&0x0_FFF_000_000_000_000 == 0 {
-		w <<= 12
-		if w == 0 {
-			break
+	if w&0x_8_000_000_000_000_000 != 0 { // Sango word
+		for w&0x000_000_000_000_FFF == 0 {
+			w >>= 12
+			if w == 0 {
+				// Not a valid Sango SSE
+				return word
+			}
 		}
-	}
-	if w != 0 {
-		return w
-	}
-	// Treat as a Unicode SSE
-	for w&0xFFFF_0000_0000_0000 == 0 {
-		w <<= 16
-		if w == 0 {
-			return w
+	} else { // Unicode word
+		for w&0x0000_0000_0000_FFFF == 0 {
+			w >>= 16
+			if w == 0 {
+				// Not a valid Unicode SSE
+				return word
+			}
 		}
 	}
 	return w
+}
+
+func PadRight(word uint64) uint64 {
+	w := word
+	for w&0x_F_FF0_000_000_000_000 == 0 {
+		w <<= 12
+		if w == 0 {
+			// Not a valid Sango SSE
+			break
+		}
+	}
+	if w&0x_8000_0000_0000_0000 != 0 {
+		return w // good Sango word
+	}
+	w = word
+	// NOTE: the first byte must be in [U+0000, U+7FFF]
+	// so as not to be interpreted as a Sango word.
+	for w&0xFFFF_8000_0000_0000 == 0 {
+		w <<= 16
+		if w == 0 {
+			// Not a valid Unicode SSE either
+			return word
+		}
+	}
+	return w // good Unicode
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -105,7 +115,7 @@ func writeUTF8To(s *strings.Builder, b uint64, options WriteUTF8Options) {
 			b >>= 16
 		}
 		for _, r := range rr {
-			if r != 0 {
+			if r != 0x0 && r != 0x10 {
 				s.WriteRune(r)
 			}
 		}
@@ -137,7 +147,7 @@ func writeAsCanonicalTo(s *strings.Builder, b uint64) {
 			b >>= 16
 		}
 		for _, r := range rr {
-			if r != 0 {
+			if r != 0x0 && r != 0x10 {
 				s.WriteString(fmt.Sprintf("%U", r))
 			}
 		}
@@ -207,7 +217,7 @@ func canonicalToCodes(s string) ([]sseCode, int) {
 			if err != nil {
 				return codes, ii[0]
 			}
-			if value != 0 {
+			if value != 0x0 && value != 0x10 {
 				codes = append(codes, sseCode{value: uint16(value), isSango: false})
 			}
 		} else { // Sango syllable
@@ -281,7 +291,13 @@ func codesToSSEs(codes []sseCode) []SSE {
 			case false:
 				if code.value > 0x7FFF && numCodesSaved == 0 {
 					// Large unicode will not fit into the most significant byte since
-					// the first bit is reserved for the kind code. Increment and try again.
+					// the first bit is reserved for the kind code.
+					// Push instead U+0010 as a placeholder and retry.
+					// NOTE: We push U+0010 instead of U+0000 so that
+					// PadRight(UnpadRight(u)) is successful without confusing the
+					// result of UnpadRight as a Sango code.
+					sse <<= 16
+					sse |= 0x0010
 					numCodesSaved = 1
 					continue // restart loop
 				}

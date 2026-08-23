@@ -6,6 +6,172 @@ import (
 	"testing"
 )
 
+func TestUnpadUnicodeWords(t *testing.T) {
+	words := []uint64{
+		0x65E5_672C_8A9E_306F,
+		0x0000_96E3_3057_3044,
+		0x0010_96E3_3057_3044,
+		0x0021_0020_00A7_0000,
+		0x0000_96E3_3057_0000,
+		0x0010_96E3_3057_0000,
+		0x0021_0020_0000_0000,
+		0x0000_96E3_0000_0000,
+		0x0010_96E3_0000_0000,
+		0x0021_0000_0000_0000,
+		0x0000_0000_0000_0000,
+	}
+	expectsUnpadded := []uint64{
+		0x65E5_672C_8A9E_306F,
+		0x0000_96E3_3057_3044,
+		0x0010_96E3_3057_3044,
+		0x0000_0021_0020_00A7,
+		0x0000_0000_96E3_3057,
+		0x0000_0010_96E3_3057,
+		0x0000_0000_0021_0020,
+		0x0000_0000_0000_96E3,
+		0x0000_0000_0010_96E3,
+		0x0000_0000_0000_0021,
+		0x0000_0000_0000_0000,
+	}
+	for k, word := range words {
+		expect := expectsUnpadded[k]
+		actual := UnpadRight(word)
+		if actual != expect {
+			t.Errorf("bad UnpadUnicodeWords[%v](%#016X)\nexpect: %#016X\nactual: %#016X\n", k, word, expect, actual)
+		}
+	}
+}
+
+func TestPadUnicodeWords(t *testing.T) {
+	words := []uint64{
+		0x65E5_672C_8A9E_306F,
+		0x0010_96E3_3057_3044,
+		0x0000_0021_0020_00A7,
+		0x0000_0010_96E3_3057,
+		0x0000_0000_0021_0020,
+		0x0000_0000_0010_96E3,
+		0x0000_0000_0000_0021,
+		0x0000_0000_0000_0000,
+	}
+	expectsPadded := []uint64{
+		0x65E5_672C_8A9E_306F,
+		0x0010_96E3_3057_3044,
+		0x0021_0020_00A7_0000,
+		0x0010_96E3_3057_0000,
+		0x0021_0020_0000_0000,
+		0x0010_96E3_0000_0000,
+		0x0021_0000_0000_0000,
+		0x0000_0000_0000_0000,
+	}
+	for k, word := range words {
+		expect := expectsPadded[k]
+		actual := PadRight(word)
+		if actual != expect {
+			t.Errorf("bad PadUnicodeWords[%v](%#016X)\nexpect: %#016X\nactual: %#016X\n", k, word, expect, actual)
+		}
+	}
+}
+
+func TestUnpadSangoWords(t *testing.T) {
+	words := []uint64{
+		0xD_10B_089_C31_D95_455,
+		0xF_089_0F6_A72_463_000,
+		0x9_B6E_162_595_000_000,
+		0xD_08B_255_000_000_000,
+		0xE_08B_000_000_000_000,
+		0xF_000_000_000_000_000,
+	}
+	expectsUnpadded := []uint64{
+		0xD_10B_089_C31_D95_455,
+		0x000_F_089_0F6_A72_463,
+		0x000_000_9_B6E_162_595,
+		0x000_000_000_D_08B_255,
+		0x000_000_000_000_E_08B,
+		0x000_000_000_000_000_F,
+	}
+	for k, word := range words {
+		expect := expectsUnpadded[k]
+		actual := UnpadRight(word)
+		if actual != expect {
+			t.Errorf("bad UnpadSangoWords[%v](%#016X)\nexpect: %#016X\nactual: %#016X\n", k, word, expect, actual)
+		}
+	}
+}
+
+func TestPadSangoWords(t *testing.T) {
+	words := []uint64{
+		0xD_10B_089_C31_D95_455,
+		0x000_F_089_0F6_A72_463,
+		0x000_000_9_B6E_162_595,
+		0x000_000_000_D_08B_255,
+		0x000_000_000_000_E_08B,
+		0x000_000_000_000_000_F,
+	}
+	expectsPadded := []uint64{
+		0xD_10B_089_C31_D95_455,
+		0xF_089_0F6_A72_463_000,
+		0x9_B6E_162_595_000_000,
+		0xD_08B_255_000_000_000,
+		0xE_08B_000_000_000_000,
+		0xF_000_000_000_000_000,
+	}
+	for k, word := range words {
+		expect := expectsPadded[k]
+		actual := PadRight(word)
+		if actual != expect {
+			t.Errorf("bad PadSangoWords[%v](%#016X)\nexpect: %#016X\nactual: %#016X\n", k, word, expect, actual)
+		}
+	}
+}
+
+func TestUnpadUnicodeFollowedByPad(t *testing.T) {
+	msbs := []uint64{
+		0x0010_9ED2_0000_0000,
+		0x002F_0000_0000_0000,
+		0x0115_0000_0000_0000,
+		0x5143_0000_0000_0000,
+		0x002F_002F_0000_0000,
+		0x0115_0115_0000_0000,
+		0x5143_5143_0000_0000,
+		0x5143_9ED2_0000_0000,
+	}
+	lsbs := []uint64{
+		0x0000_0000_0000_0000,
+		0x0000_0000_0000_002F,
+		0x0000_0000_0000_0115,
+		0x0000_0000_0000_5143,
+		0x0000_0000_0000_9ED2,
+		0x0000_0000_0010_9ED2,
+		0x0000_0000_002F_0000,
+		0x0000_0000_0115_0000,
+		0x0000_0000_5143_0000,
+		0x0000_0000_9ED2_0000,
+		0x0000_0000_002F_002F,
+		0x0000_0000_0115_0115,
+		0x0000_0000_5143_5143,
+		0x0000_0000_5143_9ED2,
+		0x0000_0000_9ED2_9ED2,
+	}
+	for _, msb := range msbs {
+		for _, lsb := range lsbs {
+			word := msb | lsb
+			unpadded := UnpadRight(word)
+			padded := PadRight(unpadded)
+			reunpadded := UnpadRight(padded)
+			if padded != word {
+				t.Errorf("\n    word = %#016X  unpadded = %#016X\n  padded = %#016X\n", word, unpadded, padded)
+				return
+			}
+			if reunpadded != unpadded {
+				t.Errorf("\n    word = %#016X  padded = %#016X\n  reunpadded = %#016X\n", unpadded, padded, reunpadded)
+				return
+			}
+		}
+	}
+}
+
+//////////////////////////////////////////////////////////////////////////////
+
 func TestCanonicalToCodes(t *testing.T) {
 	c := `U+65E5U+672CU+8A9EU+306FU+96E3U+3057U+3044U+0021U+0020U+00A7 ~ha_HO:-Do:ni^ ` +
 		`=ha_HO:-Do:ni^ ha^Dx_ ba^ha_-mo_-tx_nx_ ~bx^-kc:Bi:tx_bx^-kc:Bi:tx_U+96E3` +
@@ -70,10 +236,10 @@ func TestCodesToSSEs(t *testing.T) {
 		s(0xB595), s(0xD089), s(0x90F6), s(0x9272), s(0x9463),
 	}
 	expect := []SSE{
-		0x65E5_672C_8A9E_306F, 0x0000_96E3_3057_3044, 0x0021_0020_00A7_0000,
+		0x65E5_672C_8A9E_306F, 0x0010_96E3_3057_3044, 0x0021_0020_00A7_0000,
 		0xE_089_0F6_A72_463_000, 0xF_089_0F6_A72_463_000, 0xD_08B_255_000_000_000,
 		0xD_10B_089_C31_D95_455, 0xE_117_B6E_162_595_117, 0x9_B6E_162_595_000_000,
-		0x0000_96E3_0000_0000, 0xB_117_B6E_162_595_000, 0xD_117_B6E_162_595_000,
+		0x0010_96E3_0000_0000, 0xB_117_B6E_162_595_000, 0xD_117_B6E_162_595_000,
 		0xE_117_B6E_162_595_000, 0xF_117_B6E_162_595_000, 0xD_089_0F6_272_463_000,
 	}
 	dumpSSEs := func(sses []SSE) string {
@@ -94,10 +260,10 @@ func TestCodesToSSEs(t *testing.T) {
 
 func TestWriteAsUTF8MixedKind(t *testing.T) {
 	sses := []SSE{
-		0x65E5_672C_8A9E_306F, 0x0000_96E3_3057_3044, 0x0021_0020_00A7_0000,
+		0x65E5_672C_8A9E_306F, 0x0010_96E3_3057_3044, 0x0021_0020_00A7_0000,
 		0xE_089_0F6_A72_463_000, 0xF_089_0F6_A72_463_000, 0xD_08B_255_000_000_000,
 		0xD_10B_089_C31_D95_455, 0xE_117_B6E_162_595_117, 0x9_B6E_162_595_000_000,
-		0x0000_96E3_0000_0000, 0xB_117_B6E_162_595_000, 0xD_117_B6E_162_595_000,
+		0x0010_96E3_0000_0000, 0xB_117_B6E_162_595_000, 0xD_117_B6E_162_595_000,
 		0xE_117_B6E_162_595_000, 0xF_117_B6E_162_595_000, 0xD_089_0F6_272_463_000,
 	}
 	var s strings.Builder
@@ -118,10 +284,10 @@ func TestWriteAsUTF8MixedKind(t *testing.T) {
 
 func TestWriteAsTonelessMixedKind(t *testing.T) {
 	sses := []SSE{
-		0x65E5_672C_8A9E_306F, 0x0000_96E3_3057_3044, 0x0021_0020_00A7_0000,
+		0x65E5_672C_8A9E_306F, 0x0010_96E3_3057_3044, 0x0021_0020_00A7_0000,
 		0xE_089_0F6_A72_463_000, 0xF_089_0F6_A72_463_000, 0xD_08B_255_000_000_000,
 		0xD_10B_089_C31_D95_455, 0xE_117_B6E_162_595_117, 0x9_B6E_162_595_000_000,
-		0x0000_96E3_0000_0000, 0xB_117_B6E_162_595_000, 0xD_117_B6E_162_595_000,
+		0x0010_96E3_0000_0000, 0xB_117_B6E_162_595_000, 0xD_117_B6E_162_595_000,
 		0xE_117_B6E_162_595_000, 0xF_117_B6E_162_595_000, 0xD_089_0F6_272_463_000,
 	}
 	var s strings.Builder
@@ -305,10 +471,10 @@ func TestGoodCanonicalToSSEs(t *testing.T) {
 		` =ha_HO:-Do:ni^ ha^Dx_ ba^ha_-mo_-tx_nx_ ~bx^-kc:Bi:tx_bx^-kc:Bi:tx_U+96E3` +
 		`=bx^-=kc:=Bi:=tx_ bx^-kc:Bi:tx_ ~bx^-kc:Bi:tx_ =bx^-=kc:=Bi:=tx_ ha_HO:Do:ni^`
 	expect := []SSE{
-		0x65E5_672C_8A9E_306F, 0x0000_96E3_3057_3044, 0x0021_0020_00A7_0000,
+		0x65E5_672C_8A9E_306F, 0x0010_96E3_3057_3044, 0x0021_0020_00A7_0000,
 		0xE_089_0F6_A72_463_000, 0xF_089_0F6_A72_463_000, 0xD_08B_255_000_000_000,
 		0xD_10B_089_C31_D95_455, 0xE_117_B6E_162_595_117, 0x9_B6E_162_595_000_000,
-		0x0_000_96E_300_000_000, 0xB_117_B6E_162_595_000, 0xD_117_B6E_162_595_000,
+		0x0_010_96E_300_000_000, 0xB_117_B6E_162_595_000, 0xD_117_B6E_162_595_000,
 		0xE_117_B6E_162_595_000, 0xF_117_B6E_162_595_000, 0xD_089_0F6_272_463_000,
 	}
 	dumpSSEs := func(sses []SSE) string {
@@ -357,7 +523,7 @@ func TestBadCanonicalToSSEs(t *testing.T) {
 		` ~ha_HO:-Do:ni^ =ha_HO:-jo:ni^ ha^Dx_ ba^ha_-mo_-tx_nx_ ~bx^-kc:Bi:tx_bx^-kc:Bi:tx_` +
 		`U+96E3=bx^-=kc:=Bi:=tx_ bx^-kc:Bi:tx_ ~bx^-kc:Bi:tx_ =bx^-=kc:=Bi:=tx_ ha_HO:Do:ni^`
 	expect := []SSE{
-		0x65E5_672C_8A9E_306F, 0x0000_96E3_3057_3044, 0x0021_0020_00A7_0000,
+		0x65E5_672C_8A9E_306F, 0x0010_96E3_3057_3044, 0x0021_0020_00A7_0000,
 		0xE_089_0F6_A72_463_000, 0xF_089_0F6_000_000_000,
 	} // results up to broken parse
 	dumpSSEs := func(sses []SSE) string {
@@ -386,7 +552,7 @@ func TestCanonicalToSSEsForUnknownPitch(t *testing.T) {
 	expect := []SSE{
 		0xA_088_0F4_A70_460_000, 0xF_088_0F4_A70_460_000, 0xD_088_254_000_000_000,
 		0xD_108_088_C30_D94_454, 0xE_114_B6C_160_594_114, 0x9_B6C_160_594_000_000,
-		0x0_000_96E_300_000_000, 0xB_114_B6C_160_594_000, 0xD_114_B6C_160_594_000,
+		0x0_010_96E_300_000_000, 0xB_114_B6C_160_594_000, 0xD_114_B6C_160_594_000,
 		0xE_114_B6C_160_594_000, 0xF_114_B6C_160_594_000, 0xD_088_0F4_270_460_000,
 	}
 	dumpSSEs := func(sses []SSE) string {
