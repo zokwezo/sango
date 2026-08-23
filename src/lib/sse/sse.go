@@ -16,36 +16,47 @@ import (
 
 type SSE uint64
 
-type WriteUTF8Options struct {
+type WriteUtf8Options struct {
 	ForSpaceUse, ForHyphenUse                    string
 	WithShift, WithHeight, WithNTilde, WithPitch bool
 }
 
 var (
-	AsToneless   = WriteUTF8Options{ForSpaceUse: "", ForHyphenUse: "", WithShift: false, WithHeight: false, WithNTilde: false, WithPitch: false}
-	AsHeightless = WriteUTF8Options{ForSpaceUse: " ", ForHyphenUse: "-", WithShift: true, WithHeight: false, WithNTilde: false, WithPitch: true}
-	AsLemma      = WriteUTF8Options{ForSpaceUse: " ", ForHyphenUse: "-", WithShift: true, WithHeight: true, WithNTilde: false, WithPitch: true}
-	AsUTF8       = WriteUTF8Options{ForSpaceUse: " ", ForHyphenUse: "-", WithShift: true, WithHeight: true, WithNTilde: true, WithPitch: true}
+	AsToneless   = WriteUtf8Options{ForSpaceUse: "", ForHyphenUse: "", WithShift: false, WithHeight: false, WithNTilde: false, WithPitch: false}
+	AsHeightless = WriteUtf8Options{ForSpaceUse: " ", ForHyphenUse: "-", WithShift: true, WithHeight: false, WithNTilde: false, WithPitch: true}
+	AsLemma      = WriteUtf8Options{ForSpaceUse: " ", ForHyphenUse: "-", WithShift: true, WithHeight: true, WithNTilde: false, WithPitch: true}
+	AsUtf8       = WriteUtf8Options{ForSpaceUse: " ", ForHyphenUse: "-", WithShift: true, WithHeight: true, WithNTilde: true, WithPitch: true}
 )
 
-func (sse SSE) WriteUTF8To(s *strings.Builder, options WriteUTF8Options) {
-	writeUTF8To(s, uint64(sse), options)
+type FromUtf8Options struct {
+	TreatClosedVowelAsUnknownHeight bool
+	TreatLowPitchAsUnknownPitch     bool
 }
 
-func (sse SSE) WriteAsUTF8To(s *strings.Builder) {
-	writeUTF8To(s, uint64(sse), AsUTF8)
+var (
+	FromToneless   = FromUtf8Options{TreatClosedVowelAsUnknownHeight: true, TreatLowPitchAsUnknownPitch: true}
+	FromHeightless = FromUtf8Options{TreatClosedVowelAsUnknownHeight: true, TreatLowPitchAsUnknownPitch: false}
+	FromLemma      = FromUtf8Options{TreatClosedVowelAsUnknownHeight: false, TreatLowPitchAsUnknownPitch: false}
+)
+
+func (sse SSE) WriteUtf8To(s *strings.Builder, options WriteUtf8Options) {
+	writeUtf8To(s, uint64(sse), options)
+}
+
+func (sse SSE) WriteAsUtf8To(s *strings.Builder) {
+	writeUtf8To(s, uint64(sse), AsUtf8)
 }
 
 func (sse SSE) WriteAsTonelessTo(s *strings.Builder) {
-	writeUTF8To(s, uint64(sse), AsToneless)
+	writeUtf8To(s, uint64(sse), AsToneless)
 }
 
 func (sse SSE) WriteAsHeightlessTo(s *strings.Builder) {
-	writeUTF8To(s, uint64(sse), AsHeightless)
+	writeUtf8To(s, uint64(sse), AsHeightless)
 }
 
 func (sse SSE) WriteAsLemmaTo(s *strings.Builder) {
-	writeUTF8To(s, uint64(sse), AsLemma)
+	writeUtf8To(s, uint64(sse), AsLemma)
 }
 
 func (sse SSE) WriteAsCanonicalTo(s *strings.Builder) {
@@ -54,6 +65,10 @@ func (sse SSE) WriteAsCanonicalTo(s *strings.Builder) {
 
 func CanonicalToSSEs(s string) ([]SSE, error) {
 	return canonicalToSSEs(s)
+}
+
+func Utf8ToSSEs(s string, options FromUtf8Options) ([]SSE, error) {
+	return utf8ToSSEs(s, options)
 }
 
 func UnpadRight(word uint64) uint64 {
@@ -105,9 +120,8 @@ func PadRight(word uint64) uint64 {
 
 //////////////////////////////////////////////////////////////////////////////
 // IMPLEMENTATION
-// TODO: Stop working with bits directly, use named constants instead.
 
-func writeUTF8To(s *strings.Builder, b uint64, options WriteUTF8Options) {
+func writeUtf8To(s *strings.Builder, b uint64, options WriteUtf8Options) {
 	if (b >> 63) == 0 { // up to 4 unicode runes
 		rr := [4]rune{}
 		for k := range 4 {
@@ -239,6 +253,56 @@ func canonicalToCodes(s string) ([]sseCode, int) {
 	return codes, len(s)
 }
 
+func utf8ToCodes(s string, options FromUtf8Options) ([]sseCode, int) {
+	// Initialize return values
+	var codes []sseCode
+
+	// Partition string into codes.
+	indexes := utf8RE.FindAllStringSubmatchIndex(s, -1)
+
+	// Bail out if the start of string doesn't match.
+	n := len(indexes)
+	if n == 0 || indexes[0][0] != 0 {
+		return codes, 0
+	}
+
+	for k := range n {
+		ii := indexes[k]
+		if len(ii) != 10 {
+			panic("Bad index length")
+		}
+
+		// Bail out if there is a gap between codes.
+		if k > 0 && indexes[k][0] != indexes[k-1][1] {
+			return codes, indexes[k-1][1]
+		}
+
+		if ii[8] != -1 { // Unicode code
+			value := s[ii[8]:ii[9]]
+			if value != "\x00" && value != "\x10" {
+				v := []rune(value)
+				if len(v) != 1 || v[0] > 0xFFFF {
+					return codes, ii[8]
+				}
+				codes = append(codes, sseCode{value: uint16(v[0]), isSango: false})
+			}
+		} else { // Sango syllable
+			affix := s[ii[2]:ii[3]]
+			consonant := s[ii[4]:ii[5]]
+			vowel := s[ii[6]:ii[7]]
+			value, err := utf8ToSangoCodeValue(affix, consonant, vowel, options)
+			if err != nil {
+				return codes, ii[0]
+			}
+			if !IsValid(value) {
+				panic("bad value returned from utf8ToSangoCodeValue")
+			}
+			codes = append(codes, sseCode{value: value, isSango: true})
+		}
+	}
+	return codes, len(s)
+}
+
 func codesToSSEs(codes []sseCode) []SSE {
 	var sses []SSE
 	var sse uint64
@@ -330,6 +394,22 @@ func canonicalToSSEs(s string) ([]SSE, error) {
 			etc = ""
 		}
 		err = fmt.Errorf("cannot parse Canonical string starting at s[%v:] = %q", b, s[b:e]+etc)
+	}
+	return codesToSSEs(codes), err
+}
+
+func utf8ToSSEs(s string, options FromUtf8Options) ([]SSE, error) {
+	var err error
+	codes, b := utf8ToCodes(s, options)
+	n := len(s)
+	if b != n {
+		e := b + 10
+		etc := "..."
+		if e >= n {
+			e = n
+			etc = ""
+		}
+		err = fmt.Errorf("cannot parse Utf8 string starting at s[%v:] = %q", b, s[b:e]+etc)
 	}
 	return codesToSSEs(codes), err
 }

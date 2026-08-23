@@ -219,7 +219,7 @@ func isValid(code uint16) bool {
 		hasValidPitch(code)
 }
 
-func utf8FromSangoCodeValue(code uint16, options WriteUTF8Options) string {
+func utf8FromSangoCodeValue(code uint16, options WriteUtf8Options) string {
 	s := ""
 	shiftCode := getShiftCode(code)
 	if shiftCode == ShiftCode_Invisible {
@@ -583,7 +583,13 @@ func canonicalFromSangoCodeValue(code uint16) string {
 	return s
 }
 
-var canonicalRE = regexp.MustCompile(`U[+]([0-9A-F]{4})|([ -]?)([~=#]?)([hHbBqQdDfgGklrmnpKPstvVwyYzZ])([aAeEiIoOxcuUXC])([_:^]?)`)
+var canonicalRE = regexp.MustCompile(
+	`U[+]([0-9A-F]{4})|([ -]?)([~=#]?)([hHbBqQdDfgGklrmnpKPstvVwyYzZ])([aAeEiIoOxcuUXC])([_:^]?)`)
+var utf8RE = regexp.MustCompile(
+	`([ -]?)([b|d|f|gb|g|h|kp|k|l|mb|mp|mv|m|nd|ngb|ng|ny|nz|n|p|r|s|t|v|w|y|z])` +
+		`([äñ|âñ|ạñ|an|ëñ|êñ|ẹñ|en|ïñ|îñ|ịñ|in|öñ|ôñ|ọñ|on|üñ|ûñ|ụñ|un` +
+		`|än|ân|ạn|añ|ën|ên|ẹn|eñ|ïn|în|ịn|iñ|ön|ôn|ọn|oñ|ün|ûn|ụn|uñ` +
+		`|ɛ̈|ɛ̂|ɛ̣|ɛ|ɔ̈|ɔ̂|ɔ̣|ɔ|ẍ|x̂|x̣|x|c̈|ĉ|c̣|c|ä|â|ạ|a|ë|ê|ẹ|e|ï|î|i|ị|ö|ô|ọ|o|ü|û|ụ|u])|(.)`)
 
 func canonicalToSangoCodeValue(affix, shift, consonant, vowel, pitch string) (uint16, error) {
 	var code uint16 = 0x8000
@@ -713,6 +719,143 @@ func canonicalToSangoCodeValue(affix, shift, consonant, vowel, pitch string) (ui
 	default:
 		return IsSango_MASK, fmt.Errorf("bad pitch %q", pitch)
 	}
+	return code, nil
+}
+
+func utf8ToSangoCodeValue(affix, consonant, vowel string, options FromUtf8Options) (uint16, error) {
+	// TODO: Implement.
+	var code uint16 = 0x8000
+	return code, fmt.Errorf("utf8ToSangoCodeValue UNIMPLEMENTED")
+	switch affix {
+	case "":
+		// do nothing
+	case " ":
+		code |= uint16(PrefixCode_Space)
+	case "-":
+		code |= uint16(InfixCode_Hyphen)
+	default:
+		return IsSango_MASK, fmt.Errorf("bad affix %q", affix)
+	}
+	/*
+		switch shift {
+		case "":
+			code |= uint16(ShiftCode_lower)
+		case "~":
+			code |= uint16(ShiftCode_Title)
+		case "=":
+			code |= uint16(ShiftCode_UPPER)
+		case "#":
+			code |= uint16(ShiftCode_Invisible)
+		default:
+			return IsSango_MASK, fmt.Errorf("bad shift %q", shift)
+		}
+	*/
+	switch consonant {
+	case "h":
+		code |= uint16(ConsonantCode_h)
+	case "H":
+		code |= uint16(ConsonantCode_H)
+	case "b":
+		code |= uint16(ConsonantCode_b)
+	case "B":
+		code |= uint16(ConsonantCode_B)
+	case "q":
+		code |= uint16(ConsonantCode_q)
+	case "Q":
+		code |= uint16(ConsonantCode_Q)
+	case "d":
+		code |= uint16(ConsonantCode_d)
+	case "D":
+		code |= uint16(ConsonantCode_D)
+	case "f":
+		code |= uint16(ConsonantCode_f)
+	case "g":
+		code |= uint16(ConsonantCode_g)
+	case "G":
+		code |= uint16(ConsonantCode_G)
+	case "k":
+		code |= uint16(ConsonantCode_k)
+	case "l":
+		code |= uint16(ConsonantCode_l)
+	case "r":
+		code |= uint16(ConsonantCode_r)
+	case "m":
+		code |= uint16(ConsonantCode_m)
+	case "n":
+		code |= uint16(ConsonantCode_n)
+	case "p":
+		code |= uint16(ConsonantCode_p)
+	case "K":
+		code |= uint16(ConsonantCode_K)
+	case "P":
+		code |= uint16(ConsonantCode_P)
+	case "s":
+		code |= uint16(ConsonantCode_s)
+	case "t":
+		code |= uint16(ConsonantCode_t)
+	case "v":
+		code |= uint16(ConsonantCode_v)
+	case "V":
+		code |= uint16(ConsonantCode_V)
+	case "w":
+		code |= uint16(ConsonantCode_w)
+	case "y":
+		code |= uint16(ConsonantCode_y)
+	case "Y":
+		code |= uint16(ConsonantCode_Y)
+	case "z":
+		code |= uint16(ConsonantCode_z)
+	case "Z":
+		code |= uint16(ConsonantCode_Z)
+	default:
+		return IsSango_MASK, fmt.Errorf("bad consonant %q", consonant)
+	}
+	switch vowel {
+	case "a":
+		code |= uint16(VowelCode_a)
+	case "A":
+		code |= uint16(VowelCode_A)
+	case "e":
+		code |= uint16(VowelCode_e)
+	case "E":
+		code |= uint16(VowelCode_E)
+	case "i":
+		code |= uint16(VowelCode_i)
+	case "I":
+		code |= uint16(VowelCode_I)
+	case "o":
+		code |= uint16(VowelCode_o)
+	case "O":
+		code |= uint16(VowelCode_O)
+	case "x":
+		code |= uint16(VowelCode_x)
+	case "c":
+		code |= uint16(VowelCode_c)
+	case "u":
+		code |= uint16(VowelCode_u)
+	case "U":
+		code |= uint16(VowelCode_U)
+	case "X":
+		code |= uint16(VowelCode_X)
+	case "C":
+		code |= uint16(VowelCode_C)
+	default:
+		return IsSango_MASK, fmt.Errorf("bad vowel %q", vowel)
+	}
+	/*
+		switch pitch {
+		case "":
+			code |= uint16(PitchCode_Unknown)
+		case "_":
+			code |= uint16(PitchCode_Low)
+		case ":":
+			code |= uint16(PitchCode_Mid)
+		case "^":
+			code |= uint16(PitchCode_High)
+		default:
+			return IsSango_MASK, fmt.Errorf("bad pitch %q", pitch)
+		}
+	*/
 	return code, nil
 }
 
