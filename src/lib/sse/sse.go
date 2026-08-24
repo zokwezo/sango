@@ -10,6 +10,7 @@ package sse
 
 import (
 	"fmt"
+	"log"
 	"strconv"
 	"strings"
 )
@@ -29,14 +30,14 @@ var (
 )
 
 type FromUtf8Options struct {
-	TreatClosedVowelAsUnknownHeight bool
-	TreatLowPitchAsUnknownPitch     bool
+	TreatClosedVowelAsUnknownHeight  bool
+	TreatUnmarkedPitchAsUnknownPitch bool
 }
 
 var (
-	FromToneless   = FromUtf8Options{TreatClosedVowelAsUnknownHeight: true, TreatLowPitchAsUnknownPitch: true}
-	FromHeightless = FromUtf8Options{TreatClosedVowelAsUnknownHeight: true, TreatLowPitchAsUnknownPitch: false}
-	FromLemma      = FromUtf8Options{TreatClosedVowelAsUnknownHeight: false, TreatLowPitchAsUnknownPitch: false}
+	FromToneless   = FromUtf8Options{TreatClosedVowelAsUnknownHeight: true, TreatUnmarkedPitchAsUnknownPitch: true}
+	FromHeightless = FromUtf8Options{TreatClosedVowelAsUnknownHeight: true, TreatUnmarkedPitchAsUnknownPitch: false}
+	FromLemma      = FromUtf8Options{TreatClosedVowelAsUnknownHeight: false, TreatUnmarkedPitchAsUnknownPitch: false}
 )
 
 func (sse SSE) WriteUtf8To(s *strings.Builder, options WriteUtf8Options) {
@@ -203,6 +204,7 @@ type sseCode struct {
 // Returns the accumulated codes and the index where processing stopped.
 // The latter will equal len(s) on success, else the index of the first error.
 func canonicalToCodes(s string) ([]sseCode, int) {
+	log.Printf("s = %q\n", s)
 	// Initialize return values
 	var codes []sseCode
 
@@ -211,7 +213,7 @@ func canonicalToCodes(s string) ([]sseCode, int) {
 
 	// Bail out if the start of string doesn't match.
 	n := len(indexes)
-	if n == 0 || indexes[0][0] != 0 {
+	if n == 0 || indexes[0][canonicalRE_WholeBegin] != 0 {
 		return codes, 0
 	}
 
@@ -222,27 +224,27 @@ func canonicalToCodes(s string) ([]sseCode, int) {
 		}
 
 		// Bail out if there is a gap between codes.
-		if k > 0 && indexes[k][0] != indexes[k-1][1] {
-			return codes, indexes[k-1][1]
+		if k > 0 && indexes[k][canonicalRE_WholeBegin] != indexes[k-1][canonicalRE_WholeEnd] {
+			return codes, indexes[k-1][canonicalRE_WholeEnd]
 		}
 
-		if ii[2] != -1 { // Unicode code
-			value, err := strconv.ParseUint(s[ii[2]:ii[3]], 16, 16)
+		if ii[canonicalRE_UnicodeHexBegin] != -1 { // Unicode code
+			value, err := strconv.ParseUint(s[ii[canonicalRE_UnicodeHexBegin]:ii[canonicalRE_UnicodeHexEnd]], 16, 16)
 			if err != nil {
-				return codes, ii[0]
+				return codes, ii[canonicalRE_WholeBegin]
 			}
 			if value != 0x0 && value != 0x10 {
 				codes = append(codes, sseCode{value: uint16(value), isSango: false})
 			}
 		} else { // Sango syllable
-			affix := s[ii[4]:ii[5]]
-			shift := s[ii[6]:ii[7]]
-			consonant := s[ii[8]:ii[9]]
-			vowel := s[ii[10]:ii[11]]
-			pitch := s[ii[12]:ii[13]]
+			affix := s[ii[canonicalRE_AffixBegin]:ii[canonicalRE_AffixEnd]]
+			shift := s[ii[canonicalRE_ShiftBegin]:ii[canonicalRE_ShiftEnd]]
+			consonant := s[ii[canonicalRE_ConsonantBegin]:ii[canonicalRE_ConsonantEnd]]
+			vowel := s[ii[canonicalRE_VowelBegin]:ii[11]]
+			pitch := s[ii[canonicalRE_PitchBegin]:ii[canonicalRE_PitchEnd]]
 			value, err := canonicalToSangoCodeValue(affix, shift, consonant, vowel, pitch)
 			if err != nil {
-				return codes, ii[0]
+				return codes, ii[canonicalRE_WholeBegin]
 			}
 			if !IsValid(value) {
 				panic("bad value returned from canonicalToSangoCodeValue")
@@ -254,56 +256,176 @@ func canonicalToCodes(s string) ([]sseCode, int) {
 }
 
 func utf8ToCodes(s string, options FromUtf8Options) ([]sseCode, int) {
+	log.Printf("s = %q\n", s)
+	log.Printf("options = %#v\n", options)
 	// Initialize return values
 	var codes []sseCode
 
 	// Partition string into codes.
 	indexes := utf8RE.FindAllStringSubmatchIndex(s, -1)
+	log.Printf("indexes(%q) =\n%v\n", s, indexes)
 
 	// Bail out if the start of string doesn't match.
 	n := len(indexes)
-	if n == 0 || indexes[0][0] != 0 {
+	log.Printf("There are %v intervals:\n", n)
+	if n == 0 || indexes[0][utf8RE_WholeBegin] != 0 {
+		log.Println("Bad start")
 		return codes, 0
 	}
 
+	log.Printf("Looping through each of %v intervals\n", n)
 	for k := range n {
-		ii := indexes[k]
-		if len(ii) != 10 {
+		log.Printf("indexes[%v] = %v\n", k, indexes[k])
+		// Bail out if there is a gap between codes.
+		if k > 0 && indexes[k][utf8RE_WholeBegin] != indexes[k-1][utf8RE_WholeEnd] {
+			return codes, indexes[k-1][utf8RE_WholeEnd]
+		}
+		if len(indexes[k]) != 18 {
 			panic("Bad index length")
 		}
-
-		// Bail out if there is a gap between codes.
-		if k > 0 && indexes[k][0] != indexes[k-1][1] {
-			return codes, indexes[k-1][1]
+		/*
+			    if k + 1 < n {
+			  	  // If the consonant ends in "n" and the next syllable has no affix
+					  // and a consonant that is one of "", "d", "g", "gb", "y", "z", then move the
+					  // falsely attributed nasal N to the start of the next syllable's consonant.
+						nasal := s(indexes[k][12]:indexes[k][13])
+						log.Printf("nasal = %q\n", nasal)
+						if nasal == "n" || nasal == "N" {
+						  nextAffix := s(indexes[k+1][utf8RE_AffixBegin]:indexes[k+1][utf8RE_AffixEnd])
+						  nextConsonant := s(indexes[k+1][utf8RE_ConsonantBegin]:indexes[k+1][utf8RE_ConsonantEnd])
+						  log.Printf("nextAffix = %q\n", nextAffix)
+						  log.Printf("nextConsonant = %q\n", nextConsonant)
+						  if nextAffix == "" {
+							  switch nextConsonant {
+			          case "":
+			            fallthrough
+			          case "D":
+			            fallthrough
+			          case "G":
+			            fallthrough
+			          case "GB":
+			            fallthrough
+			          case "Gb":
+			            fallthrough
+			          case "Y":
+			            fallthrough
+			          case "Z":
+			            fallthrough
+			          case "d":
+			            fallthrough
+			          case "g":
+			            fallthrough
+			          case "gB":
+			            fallthrough
+			          case "gb":
+			            fallthrough
+			          case "y":
+			            fallthrough
+			          case "z":
+			            // Move nasal to start of next syllable
+									for j := range
+									indexes[k+1][utf8RE_WholeBegin] -= 1
+									indexes[k+1][utf8RE_AffixBegin] -= 1
+									indexes[k+1][utf8RE_AffixEnd] -= 1
+							  default:
+								  // Do nothing
+								}
+							}
+						}
+					}
+		*/
+		for x := range 8 {
+			x0 := 2 * x
+			x1 := x0 + 1
+			y0 := indexes[k][x0]
+			y1 := indexes[k][x1]
+			value := ""
+			if y0 >= 0 && y1 <= n {
+				value = s[y0:y1]
+				log.Printf("%v.%v: s[%v:%v] = %q\n", k, x, y0, y1, value)
+			} else {
+				log.Printf("%v.%v: s[%v:%v] interval is invalid\n", k, x, y0, y1)
+			}
 		}
 
-		if ii[8] != -1 { // Unicode code
-			value := s[ii[8]:ii[9]]
-			if value != "\x00" && value != "\x10" {
-				v := []rune(value)
-				if len(v) != 1 || v[0] > 0xFFFF {
-					return codes, ii[8]
+		log.Printf("indexes[%v] = %v\n", k, indexes[k])
+		x0, x1 := indexes[k][utf8RE_WholeBegin], indexes[k][utf8RE_WholeEnd]
+		log.Printf("currMatch = %q\n", s[x0:x1])
+		if y0, y1 := indexes[k][utf8RE_UnicodeBegin], indexes[k][utf8RE_UnicodeEnd]; y0 != -1 && y1 != -1 { // Unicode code
+			log.Println("Entering Unicode")
+			value := ""
+			if y0 != -1 && y1 != -1 {
+				value = s[y0:y1]
+				log.Printf("%v: s[%v:%v] = %q\n", k, y0, y1, value)
+			} else {
+				log.Printf("%v: s[%v:%v] interval is invalid\n", k, y0, y1)
+			}
+			log.Println("")
+			v := []rune(value)
+			log.Println("")
+			switch len(v) {
+			case 1:
+				log.Println("")
+				if unicode := v[0]; unicode != 0 && unicode != 16 && unicode <= 0xFFFF {
+					log.Println("good unicode")
+					codes = append(codes, sseCode{value: uint16(unicode), isSango: false})
+				} else {
+					log.Println("bad unicode")
+					return codes, y0
 				}
-				codes = append(codes, sseCode{value: uint16(v[0]), isSango: false})
+				log.Println("")
+			case 0:
+				log.Println("")
+				panic("v is empty") // should not have passed the regexp!
+			default:
+				panic("Multi-rune unicode") // should not have passed the regexp!
 			}
-		} else { // Sango syllable
-			affix := s[ii[2]:ii[3]]
-			consonant := s[ii[4]:ii[5]]
-			vowel := s[ii[6]:ii[7]]
-			value, err := utf8ToSangoCodeValue(affix, consonant, vowel, options)
+			log.Println("Leaving Unicode")
+		} else if indexes[k][utf8RE_AffixBegin] != -1 && indexes[k][utf8RE_AffixEnd] != -1 { // Sango syllable
+			log.Println("")
+			affix := s[indexes[k][utf8RE_AffixBegin]:indexes[k][utf8RE_AffixEnd]]
+			log.Printf("affix     = %q\n", affix)
+			consonant := s[indexes[k][utf8RE_ConsonantBegin]:indexes[k][utf8RE_ConsonantEnd]]
+			log.Printf("consonant = %q\n", consonant)
+			vowel := ""
+			if indexes[k][utf8RE_OpenVowelBegin] != -1 && indexes[k][utf8RE_OpenVowelEnd] != -1 {
+				vowel = s[indexes[k][utf8RE_OpenVowelBegin]:indexes[k][utf8RE_OpenVowelEnd]]
+			} else if indexes[k][utf8RE_CloseVowelBegin] != -1 && indexes[k][utf8RE_CloseVowelEnd] != -1 {
+				vowel = s[indexes[k][utf8RE_CloseVowelBegin]:indexes[k][utf8RE_CloseVowelEnd]]
+			} else {
+				panic("Missing vowel")
+			}
+			log.Printf("vowel     = %q\n", vowel)
+			nasal := ""
+			if indexes[k][utf8RE_NasalBegin] != -1 && indexes[k][utf8RE_NasalEnd] != -1 {
+				nasal = s[indexes[k][utf8RE_NasalBegin]:indexes[k][utf8RE_NasalEnd]]
+			}
+			value, err := utf8ToSangoCodeValue(affix, consonant, vowel, nasal, options)
+			log.Printf("value = %#X  err = %v\n", value, err)
 			if err != nil {
-				return codes, ii[0]
+				log.Println("")
+				return codes, x0
 			}
+			log.Println("")
 			if !IsValid(value) {
+				log.Println("")
 				panic("bad value returned from utf8ToSangoCodeValue")
 			}
+			log.Println("")
 			codes = append(codes, sseCode{value: value, isSango: true})
+			log.Println("Leaving Sango syllable")
+		} else {
+			log.Println("")
+			panic("Bad kind")
 		}
+		log.Println("")
 	}
+	log.Println("")
 	return codes, len(s)
 }
 
 func codesToSSEs(codes []sseCode) []SSE {
+	log.Printf("codes = %v\n", codes)
 	var sses []SSE
 	var sse uint64
 	var prevIsSango bool
@@ -383,6 +505,7 @@ func codesToSSEs(codes []sseCode) []SSE {
 }
 
 func canonicalToSSEs(s string) ([]SSE, error) {
+	log.Printf("s = %q\n", s)
 	var err error
 	codes, b := canonicalToCodes(s)
 	n := len(s)
@@ -399,9 +522,14 @@ func canonicalToSSEs(s string) ([]SSE, error) {
 }
 
 func utf8ToSSEs(s string, options FromUtf8Options) ([]SSE, error) {
+	log.Printf("s = %q\n", s)
+	log.Printf("options = %#v\n", options)
 	var err error
+	log.Printf("In utf8ToSSEs: s = %q\n", s)
 	codes, b := utf8ToCodes(s, options)
+	log.Printf("In utf8ToSSEs: codes = %v\n", codes)
 	n := len(s)
+	log.Printf("In utf8ToSSEs: b = %v n = %v\n", b, n)
 	if b != n {
 		e := b + 10
 		etc := "..."

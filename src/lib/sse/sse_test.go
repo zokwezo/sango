@@ -2,11 +2,24 @@ package sse
 
 import (
 	"fmt"
+	"io"
+	"log"
+	"os"
 	"strings"
 	"testing"
 )
 
+func TestMain(m *testing.M) {
+	// Set global flags for all tests in this package
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
+	log.SetOutput(io.Discard)
+
+	// Run the test suite
+	os.Exit(m.Run())
+}
+
 func TestUnpadUnicodeWords(t *testing.T) {
+	log.Println("ENTER TestUnpadUnicodeWords")
 	words := []uint64{
 		0x65E5_672C_8A9E_306F,
 		0x0000_96E3_3057_3044,
@@ -40,9 +53,11 @@ func TestUnpadUnicodeWords(t *testing.T) {
 			t.Errorf("bad UnpadUnicodeWords[%v](%#016X)\nexpect: %#016X\nactual: %#016X\n", k, word, expect, actual)
 		}
 	}
+	log.Println("LEAVE TestUnpadUnicodeWords")
 }
 
 func TestPadUnicodeWords(t *testing.T) {
+	log.Println("ENTER TestPadUnicodeWords")
 	words := []uint64{
 		0x65E5_672C_8A9E_306F,
 		0x0010_96E3_3057_3044,
@@ -70,9 +85,11 @@ func TestPadUnicodeWords(t *testing.T) {
 			t.Errorf("bad PadUnicodeWords[%v](%#016X)\nexpect: %#016X\nactual: %#016X\n", k, word, expect, actual)
 		}
 	}
+	log.Println("LEAVE TestPadUnicodeWords")
 }
 
 func TestUnpadSangoWords(t *testing.T) {
+	log.Println("ENTER TestUnpadSangoWords")
 	words := []uint64{
 		0xD_10B_089_C31_D95_455,
 		0xF_089_0F6_A72_463_000,
@@ -96,9 +113,11 @@ func TestUnpadSangoWords(t *testing.T) {
 			t.Errorf("bad UnpadSangoWords[%v](%#016X)\nexpect: %#016X\nactual: %#016X\n", k, word, expect, actual)
 		}
 	}
+	log.Println("LEAVE TestUnpadSangoWords")
 }
 
 func TestPadSangoWords(t *testing.T) {
+	log.Println("ENTER TestPadSangoWords")
 	words := []uint64{
 		0xD_10B_089_C31_D95_455,
 		0x000_F_089_0F6_A72_463,
@@ -122,9 +141,11 @@ func TestPadSangoWords(t *testing.T) {
 			t.Errorf("bad PadSangoWords[%v](%#016X)\nexpect: %#016X\nactual: %#016X\n", k, word, expect, actual)
 		}
 	}
+	log.Println("LEAVE TestPadSangoWords")
 }
 
 func TestUnpadUnicodeFollowedByPad(t *testing.T) {
+	log.Println("ENTER TestUnpadUnicodeFollowedByPad")
 	msbs := []uint64{
 		0x0010_9ED2_0000_0000,
 		0x002F_0000_0000_0000,
@@ -168,11 +189,13 @@ func TestUnpadUnicodeFollowedByPad(t *testing.T) {
 			}
 		}
 	}
+	log.Println("LEAVE TestUnpadUnicodeFollowedByPad")
 }
 
 //////////////////////////////////////////////////////////////////////////////
 
 func TestEmptyCanonicalToCodes(t *testing.T) {
+	log.Println("ENTER TestEmptyCanonicalToCodes")
 	actual, leftOffAt := canonicalToCodes("")
 	if leftOffAt != 0 {
 		t.Errorf("bad leftOffAt")
@@ -180,9 +203,11 @@ func TestEmptyCanonicalToCodes(t *testing.T) {
 	if len(actual) != 0 {
 		t.Errorf("found nonempty codes")
 	}
+	log.Println("LEAVE TestEmptyCanonicalToCodes")
 }
 
 func TestCanonicalToCodes(t *testing.T) {
+	log.Println("ENTER TestCanonicalToCodes")
 	c := `U+65E5U+672CU+8A9EU+306FU+96E3U+3057U+3044U+0021U+0020U+00A7 ~ha_HO:-Do:ni^ ` +
 		`=ha_HO:-Do:ni^ ha^Dx_ ba^ha_-mo_-tx_nx_ ~bx^-kc:Bi:tx_bx^-kc:Bi:tx_U+96E3` +
 		`=bx^-=kc:=Bi:=tx_ bx^-kc:Bi:tx_ ~bx^-kc:Bi:tx_ =bx^-=kc:=Bi:=tx_ ha_HO:Do:ni^`
@@ -226,9 +251,11 @@ func TestCanonicalToCodes(t *testing.T) {
 	if actualHex != expectHex {
 		t.Errorf("in TestCanonicalToCodes: bad canonicalToCodes\nexpect: %v\nactual: %v\n", expectHex, actualHex)
 	}
+	log.Println("LEAVE TestCanonicalToCodes")
 }
 
 func TestGoodCanonicalToSSEs(t *testing.T) {
+	log.Println("ENTER TestGoodCanonicalToSSEs")
 	c := `U+65E5U+672CU+8A9EU+306FU+96E3U+3057U+3044U+0021U+0020U+00A7 ~ha_HO:-Do:ni^` +
 		` =ha_HO:-Do:ni^ ha^Dx_ ba^ha_-mo_-tx_nx_ ~bx^-kc:Bi:tx_bx^-kc:Bi:tx_U+96E3` +
 		`=bx^-=kc:=Bi:=tx_ bx^-kc:Bi:tx_ ~bx^-kc:Bi:tx_ =bx^-=kc:=Bi:=tx_ ha_HO:Do:ni^`
@@ -256,9 +283,11 @@ func TestGoodCanonicalToSSEs(t *testing.T) {
 	if actualHex != expectHex {
 		t.Errorf("bad GoodCanonicalToSSEs\nexpect: %v\nactual: %v\n", expectHex, actualHex)
 	}
+	log.Println("LEAVE TestGoodCanonicalToSSEs")
 }
 
 func TestBadCanonicalToSSEs(t *testing.T) {
+	log.Println("ENTER TestBadCanonicalToSSEs")
 	c := `U+65E5U+672CU+8A9EU+306FU+96E3U+3057U+3044U+0021U+0020U+00A7` +
 		` ~ha_HO:-Do:ni^ =ha_HO:-jo:ni^ ha^Dx_ ba^ha_-mo_-tx_nx_ ~bx^-kc:Bi:tx_bx^-kc:Bi:tx_` +
 		`U+96E3=bx^-=kc:=Bi:=tx_ bx^-kc:Bi:tx_ ~bx^-kc:Bi:tx_ =bx^-=kc:=Bi:=tx_ ha_HO:Do:ni^`
@@ -284,9 +313,11 @@ func TestBadCanonicalToSSEs(t *testing.T) {
 	if actualHex != expectHex {
 		t.Errorf("bad BadCanonicalToSSEs\nexpect: %v\nactual: %v\n", expectHex, actualHex)
 	}
+	log.Println("LEAVE TestBadCanonicalToSSEs")
 }
 
 func TestCanonicalToSSEsForUnknownPitch(t *testing.T) {
+	log.Println("ENTER TestCanonicalToSSEsForUnknownPitch")
 	c := `~haHO-Doni =haHO-Doni haDx baha-mo-txnx ~bx-kcBitxbx-kcBitxU+96E3` +
 		`=bx-=kc=Bi=tx bx-kcBitx ~bx-kcBitx =bx-=kc=Bi=tx haHODoni`
 	expect := []SSE{
@@ -312,9 +343,11 @@ func TestCanonicalToSSEsForUnknownPitch(t *testing.T) {
 	if actualHex != expectHex {
 		t.Errorf("bad GoodCanonicalToSSEs\nexpect: %v\nactual: %v\n", expectHex, actualHex)
 	}
+	log.Println("LEAVE TestCanonicalToSSEsForUnknownPitch")
 }
 
 func TestCanonicalToSSEsToCanonical(t *testing.T) {
+	log.Println("ENTER TestCanonicalToSSEsToCanonical")
 	c := `~ha~HO-Doni =haHO-Doni haDx baha-mo-txnx ~bx-kcBitxbx-kcBitxU+96E3` +
 		`=bx-=kc=Bi=tx bx-kcBitx ~bx-kcBitx =bx-=kc=Bi=tx haHODoni`
 	sses, err := CanonicalToSSEs(c)
@@ -326,18 +359,20 @@ func TestCanonicalToSSEsToCanonical(t *testing.T) {
 	for _, sse := range sses {
 		sse.WriteAsCanonicalTo(&s)
 	}
-	// expect := c, but with Titlecase suppressed for nonleading syllables.
+	// expect c, but with Titlecase suppressed for nonleading syllables.
 	expect := `~haHO-Doni =ha=HO-=Do=ni haDx baha-mo-txnx ~bx-kcBitx` +
 		`bx-kcBitxU+96E3=bx-=kc=Bi=tx bx-kcBitx ~bx-kcBitx =bx-=kc=Bi=tx haHODoni`
 	actual := s.String()
 	if actual != expect {
 		t.Errorf("bad BadCanonicalToSSEs\nexpect: %v\nactual: %v\n", expect, actual)
 	}
+	log.Println("LEAVE TestCanonicalToSSEsToCanonical")
 }
 
 //////////////////////////////////////////////////////////////////////////////
 
 func TestEmptyUtf8ToCodes(t *testing.T) {
+	log.Println("ENTER TestEmptyUtf8ToCodes")
 	actual, leftOffAt := utf8ToCodes("", FromLemma)
 	if leftOffAt != 0 {
 		t.Errorf("bad leftOffAt")
@@ -345,29 +380,28 @@ func TestEmptyUtf8ToCodes(t *testing.T) {
 	if len(actual) != 0 {
 		t.Errorf("found nonempty codes")
 	}
+	log.Println("LEAVE TestEmptyUtf8ToCodes")
 }
 
 func TestUtf8ToCodes(t *testing.T) {
-	c := `日本語は難しい! § A` // höñ-ndönî AHÖÑ-NDÖNÎ ândɛ bâa-mo-tɛnɛ` +
-	// ` BƐ̂-kɔ̈mbïtɛbɛ̂-kɔ̈mbïtɛ難BƐ̂-KƆ̈MBÏTƐ bɛ̂-kɔ̈mbïtɛ BƐ̂-kɔ̈mbïtɛ BƐ̂-KƆ̈MBÏTƐ ahöñndönî`
+	log.Println("ENTER TestUtf8ToCodes")
+	c := `日本語は難しい! § Ahöñ-ndönî AHÖÑ-NDÖNÎ ândɛ bâa-mo-tɛnɛ` +
+		` BƐ̂-kɔ̈mbïtɛbɛ̂-kɔ̈mbïtɛ難BƐ̂-KƆ̈MBÏTƐ bɛ̂-kɔ̈mbïtɛ BƐ̂-kɔ̈mbïtɛ BƐ̂-KƆ̈MBÏTƐ ahöñndönî`
 	u := func(v uint16) sseCode { return sseCode{value: v, isSango: false} }
-	// s := func(v uint16) sseCode { return sseCode{value: v, isSango: true} }
+	s := func(v uint16) sseCode { return sseCode{value: v, isSango: true} }
 	expect := []sseCode{
 		u(0x65E5), u(0x672C), u(0x8A9E), u(0x306F), u(0x96E3),
 		u(0x3057), u(0x3044), u(0x0021), u(0x0020), u(0x00A7),
-		u(0x0020), u(0x0041), // comment
-		/* TODO: Uncomment
-		s(0xE089), s(0x90F6), s(0x9A72), s(0x9463), s(0xF089),
-		s(0x90F6), s(0x9A72), s(0x9463), s(0xD08B), s(0x9255),
+		s(0xF089), s(0x90F6), s(0x9A76), s(0x90A3), s(0xF089),
+		s(0xB0F6), s(0xBA76), s(0xB0A3), s(0xD08F), s(0x9215),
 		s(0xD10B), s(0x9089), s(0x9C31), s(0x9D95), s(0x9455),
-		s(0xE117), s(0x9B6E), s(0x9162), s(0x9595), s(0x9117),
+		s(0xF117), s(0x9B6E), s(0x9162), s(0x9595), s(0x9117),
 		s(0x9B6E), s(0x9162), s(0x9595),
 		u(0x96E3),
 		s(0xB117), s(0xBB6E), s(0xB162), s(0xB595), s(0xD117),
-		s(0x9B6E), s(0x9162), s(0x9595), s(0xE117), s(0x9B6E),
+		s(0x9B6E), s(0x9162), s(0x9595), s(0xF117), s(0x9B6E),
 		s(0x9162), s(0x9595), s(0xF117), s(0xBB6E), s(0xB162),
-		s(0xB595), s(0xD089), s(0x90F6), s(0x9272), s(0x9463),
-		*/
+		s(0xB595), s(0xD089), s(0x90F6), s(0x9276), s(0x90A3),
 	}
 	expectLen := len(c)
 	actual, actualLen := utf8ToCodes(c, FromLemma)
@@ -393,19 +427,19 @@ func TestUtf8ToCodes(t *testing.T) {
 	if actualHex != expectHex {
 		t.Errorf("in TestUtf8ToCodes: bad utf8ToCodes\nexpect: %v\nactual: %v\n", expectHex, actualHex)
 	}
+	log.Println("LEAVE TestUtf8ToCodes")
 }
 
 func TestGoodUtf8ToSSEs(t *testing.T) {
-	c := `日本語は難しい! § ` // Ahöñ-ndönî AHÖÑ-NDÖNÎ ândɛ bâa-mo-tɛnɛ ` +
-	// `BƐ̂-kɔ̈mbïtɛbɛ̂-kɔ̈mbïtɛ難BƐ̂-KƆ̈MBÏTƐ bɛ̂-kɔ̈mbïtɛ BƐ̂-kɔ̈mbïtɛ BƐ̂-KƆ̈MBÏTƐ ahöñndönî`
+	log.Println("ENTER TestGoodUtf8ToSSEs")
+	c := `日本語は難しい! § Ahöñ-ndönî AHÖÑ-NDÖNÎ ândɛ bâa-mo-tɛnɛ ` +
+		`BƐ̂-kɔ̈mbïtɛbɛ̂-kɔ̈mbïtɛ難BƐ̂-KƆ̈MBÏTƐ bɛ̂-kɔ̈mbïtɛ BƐ̂-kɔ̈mbïtɛ BƐ̂-KƆ̈MBÏTƐ ahöñndönî`
 	expect := []SSE{
-		0x65E5_672C_8A9E_306F, 0x0010_96E3_3057_3044, 0x0021_0020_00A7_0020,
-		/*
-			0xE_089_0F6_A72_463_000, 0xF_089_0F6_A72_463_000, 0xD_08B_255_000_000_000,
-			0xD_10B_089_C31_D95_455, 0xE_117_B6E_162_595_117, 0x9_B6E_162_595_000_000,
-			0x0_010_96E_300_000_000, 0xB_117_B6E_162_595_000, 0xD_117_B6E_162_595_000,
-			0xE_117_B6E_162_595_000, 0xF_117_B6E_162_595_000, 0xD_089_0F6_272_463_000,
-		*/
+		0x65E5_672C_8A9E_306F, 0x0010_96E3_3057_3044, 0x0021_0020_00A7_0000,
+		0xF_089_0F6_A76_0A3_000, 0xF_089_0F6_A76_0A3_000, 0xD_08F_215_000_000_000,
+		0xD_10B_089_C31_D95_455, 0xF_117_B6E_162_595_117, 0x9_B6E_162_595_000_000,
+		0x0_010_96E_300_000_000, 0xB_117_B6E_162_595_000, 0xD_117_B6E_162_595_000,
+		0xF_117_B6E_162_595_000, 0xF_117_B6E_162_595_000, 0xD_089_0F6_276_0A3_000,
 	}
 	dumpSSEs := func(sses []SSE) string {
 		s := "{"
@@ -424,16 +458,13 @@ func TestGoodUtf8ToSSEs(t *testing.T) {
 	if actualHex != expectHex {
 		t.Errorf("bad GoodUtf8ToSSEs\nexpect: %v\nactual: %v\n", expectHex, actualHex)
 	}
+	log.Println("LEAVE TestGoodUtf8ToSSEs")
 }
 
 func TestBadUtf8ToSSEs(t *testing.T) {
-	c := `日本語は難しい! § Ahöñ-ndönî AHÖÑ-JÖNÎ ândɛ bâa-mo-tɛnɛ ` +
-		`BƐ̂-kɔ̈mbïtɛbɛ̂-kɔ̈mbïtɛ難BƐ̂-KƆ̈MBÏTƐ bɛ̂-kɔ̈mbïtɛ BƐ̂-kɔ̈mbïtɛ BƐ̂-KƆ̈MBÏTƐ ahöñndönî`
-	expect := []SSE{
-		0x65E5_672C_8A9E_306F, 0x0010_96E3_3057_3044, 0x0021_0020_00A7_0020,
-		0x0041_0000_0000_0000, // comment
-		// 0xE_089_0F6_A72_463_000, 0xF_089_0F6_000_000_000,
-	} // results up to broken parse
+	log.Println("ENTER TestBadUtf8ToSSEs")
+	c := `日本語𓋹はしい!`
+	expect := []SSE{0x65E5_672C_8A9E_0000} // results up to broken parse
 	dumpSSEs := func(sses []SSE) string {
 		s := "{"
 		for _, sse := range sses {
@@ -442,9 +473,9 @@ func TestBadUtf8ToSSEs(t *testing.T) {
 		s += " }"
 		return s
 	}
-	expectErr := fmt.Errorf("cannot parse Utf8 string starting at s[27:] = %q", "höñ-ndö...")
+	expectErr := fmt.Errorf(`cannot parse Utf8 string starting at s[9:] = "𓋹はし..."`)
 	actual, actualErr := Utf8ToSSEs(c, FromLemma)
-	if actualErr.Error() != expectErr.Error() {
+	if actualErr == nil || actualErr.Error() != expectErr.Error() {
 		t.Errorf("expected error not returned from Utf8ToSSEs\nactualErr = %v\nexpectErr = %v", actualErr, expectErr)
 	}
 	actualHex := dumpSSEs(actual)
@@ -452,19 +483,18 @@ func TestBadUtf8ToSSEs(t *testing.T) {
 	if actualHex != expectHex {
 		t.Errorf("bad BadUtf8ToSSEs\nexpect: %v\nactual: %v\n", expectHex, actualHex)
 	}
+	log.Println("LEAVE TestBadUtf8ToSSEs")
 }
 
-func TestUtf8ToSSEsForUnknownPitch(t *testing.T) {
-	c := `Ahöñ-ndönî AHÖÑ-NDÖNÎ ândɛ bâa-mo-tɛnɛ` +
-		` BƐ̂-kɔ̈mbïtɛbɛ̂-kɔ̈mbïtɛ難BƐ̂-KƆ̈MBÏTƐ bɛ̂-kɔ̈mbïtɛ BƐ̂-kɔ̈mbïtɛ BƐ̂-KƆ̈MBÏTƐ ahöñndönî`
+func TestUtf8ToSSEsFromToneless(t *testing.T) {
+	log.Println("ENTER TestUtf8ToSSEsFromToneless")
+	c := `Ahonndoni AHONNDONI ande baamotene` +
+		` BE-kombitebe-kombite難BƐ̂-KƆ̈MBÏTƐ bɛ̂-kɔ̈mbïtɛ BƐ̂-kɔ̈mbïtɛ BƐ̂-KƆ̈MBÏTƐ ahöñndönî`
 	expect := []SSE{
-		0x0041_0000_0000_0000,
-		/*
-			0xA_088_0F4_A70_460_000, 0xF_088_0F4_A70_460_000, 0xD_088_254_000_000_000,
-			0xD_108_088_C30_D94_454, 0xE_114_B6C_160_594_114, 0x9_B6C_160_594_000_000,
-			0x0_010_96E_300_000_000, 0xB_114_B6C_160_594_000, 0xD_114_B6C_160_594_000,
-			0xE_114_B6C_160_594_000, 0xF_114_B6C_160_594_000, 0xD_088_0F4_270_460_000,
-		*/
+		0xB_088_0F4_274_0A0_000, 0xF_088_0F4_274_0A0_000, 0xD_08C_218_000_000_000,
+		0xD_108_088_430_59C_098, 0xF_118_B70_160_598_118, 0x9_B70_160_598_000_000,
+		0x0_010_96E_300_000_000, 0xB_117_B6E_162_594_000, 0xD_117_B6E_162_594_000,
+		0xF_117_B6E_162_594_000, 0xF_117_B6E_162_594_000, 0xD_088_0F6_276_0A3_000,
 	}
 	dumpSSEs := func(sses []SSE) string {
 		s := "{"
@@ -474,23 +504,25 @@ func TestUtf8ToSSEsForUnknownPitch(t *testing.T) {
 		s += " }"
 		return s
 	}
-	actual, _ := Utf8ToSSEs(c, FromLemma)
-	/*
-		if err != nil {
-			t.Errorf("unexpected error returned from Utf8ToSSEs\nerr = %v", err)
-		}
-	*/
+	actual, err := Utf8ToSSEs(c, FromToneless)
+	if err != nil {
+		t.Errorf("unexpected error returned from Utf8ToSSEs\nerr = %v", err)
+	}
 	actualHex := dumpSSEs(actual)
 	expectHex := dumpSSEs(expect)
 	if actualHex != expectHex {
+		log.Println("bad GoodUtf8ToSSEs")
 		t.Errorf("bad GoodUtf8ToSSEs\nexpect: %v\nactual: %v\n", expectHex, actualHex)
+	} else {
+		log.Println("good GoodUtf8ToSSEs")
 	}
+	log.Println("LEAVE TestUtf8ToSSEsFromToneless")
 }
 
-/*
 func TestUtf8ToSSEsToUtf8(t *testing.T) {
+	log.Println("ENTER TestUtf8ToSSEsToUtf8")
 	c := `Ahöñ-ndönî AHÖÑ-NDÖNÎ ândɛ bâa-mo-tɛnɛ` +
-	` BƐ̂-kɔ̈mbïtɛbɛ̂-kɔ̈mbïtɛ難BƐ̂-KƆ̈MBÏTƐ bɛ̂-kɔ̈mbïtɛ BƐ̂-kɔ̈mbïtɛ BƐ̂-KƆ̈MBÏTƐ ahöñndönî`
+		` BƐ̂-kɔ̈mbïtɛbɛ̂-kɔ̈mbïtɛ難BƐ̂-KƆ̈MBÏTƐ bɛ̂-kɔ̈mbïtɛ BƐ̂-kɔ̈mbïtɛ BƐ̂-KƆ̈MBÏTƐ ahöñndönî`
 	sses, err := Utf8ToSSEs(c, FromLemma)
 	if err != nil {
 		t.Errorf("unexpected error returned from Utf8ToSSEs\nerr = %v", err)
@@ -500,19 +532,27 @@ func TestUtf8ToSSEsToUtf8(t *testing.T) {
 	for _, sse := range sses {
 		sse.WriteAsUtf8To(&s)
 	}
-	// expect := c, but with Titlecase suppressed for nonleading syllables.
-	expect := `~haHO-Doni =ha=HO-=Do=ni haDx baha-mo-txnx ~bx-kcBitx` +
-		`bx-kcBitxU+96E3=bx-=kc=Bi=tx bx-kcBitx ~bx-kcBitx =bx-=kc=Bi=tx haHODoni`
+	// TODO: Fix logic. There are two errors:
+	// 1) Set UPPER case only if a syllable has more than one letter,
+	//    otherwise set Title case.
+	//    If any syllable in a word has UPPER, set all to UPPER.
+	// 2) Consonantal N of the next syllable is being falsely absorbed
+	//    into the nasal of the current one.
+	//    Suppress if the following consonant is empty or
+	//    starts with "", "d", "g", "gb", "y", "z"
+	expect := `AHÖÑ-NDÖÑÎ AHÖÑ-NDÖÑÎ âñdɛ bâa-mo-tɛnɛ` +
+		` BƐ̂-KƆ̈MBÏTƐBƐ̂-kɔ̈mbïtɛ難BƐ̂-KƆ̈MBÏTƐ bɛ̂-kɔ̈mbïtɛ BƐ̂-KƆ̈MBÏTƐ BƐ̂-KƆ̈MBÏTƐ ahöñndöñî`
 	actual := s.String()
 	if actual != expect {
 		t.Errorf("bad BadUtf8ToSSEs\nexpect: %v\nactual: %v\n", expect, actual)
 	}
+	log.Println("LEAVE TestUtf8ToSSEsToUtf8")
 }
-*/
 
 //////////////////////////////////////////////////////////////////////////////
 
 func TestCodesToSSEs(t *testing.T) {
+	log.Println("ENTER TestCodesToSSEs")
 	u := func(v uint16) sseCode { return sseCode{value: v, isSango: false} }
 	s := func(v uint16) sseCode { return sseCode{value: v, isSango: true} }
 	codes := []sseCode{
@@ -550,9 +590,11 @@ func TestCodesToSSEs(t *testing.T) {
 	if actualHex != expectHex {
 		t.Errorf("bad codesToSSEs\nexpect: %v\nactual: %v\n", expectHex, actualHex)
 	}
+	log.Println("LEAVE TestCodesToSSEs")
 }
 
 func TestWriteAsUtf8MixedKind(t *testing.T) {
+	log.Println("ENTER TestWriteAsUtf8MixedKind")
 	sses := []SSE{
 		0x65E5_672C_8A9E_306F, 0x0010_96E3_3057_3044, 0x0021_0020_00A7_0000,
 		0xE_089_0F6_A72_463_000, 0xF_089_0F6_A72_463_000, 0xD_08B_255_000_000_000,
@@ -574,9 +616,11 @@ func TestWriteAsUtf8MixedKind(t *testing.T) {
 		t.Errorf("in TestWriteAsUtf8MixedKindTo(\n%#v\n),\nexpect: %#v\nactual: %#v\n\n",
 			sses, expect, actual)
 	}
+	log.Println("LEAVE TestWriteAsUtf8MixedKind")
 }
 
 func TestWriteAsTonelessMixedKind(t *testing.T) {
+	log.Println("ENTER TestWriteAsTonelessMixedKind")
 	sses := []SSE{
 		0x65E5_672C_8A9E_306F, 0x0010_96E3_3057_3044, 0x0021_0020_00A7_0000,
 		0xE_089_0F6_A72_463_000, 0xF_089_0F6_A72_463_000, 0xD_08B_255_000_000_000,
@@ -597,9 +641,11 @@ func TestWriteAsTonelessMixedKind(t *testing.T) {
 		t.Errorf("in TestWriteAsTonelessMixedKindTo(\n%#v\n),\nexpect: %#v\nactual: %#v\n\n",
 			sses, expect, actual)
 	}
+	log.Println("LEAVE TestWriteAsTonelessMixedKind")
 }
 
 func TestWriteAsToneless(t *testing.T) {
+	log.Println("ENTER TestWriteAsToneless")
 	sses := []SSE{
 		0xE_089_0F6_A72_463_000, 0xF_089_0F6_A72_463_000, 0xD_08B_255_000_000_000,
 		0xD_10B_089_C31_D95_455, 0xE_117_B6E_162_595_117, 0x9_B6E_162_595_000_000,
@@ -619,9 +665,11 @@ func TestWriteAsToneless(t *testing.T) {
 		t.Errorf("in TestWriteAsTonelessTo(\n%#v\n),\nexpect: %#v\nactual: %#v\n\n",
 			sses, expect, actual)
 	}
+	log.Println("LEAVE TestWriteAsToneless")
 }
 
 func TestWriteAsHeightless(t *testing.T) {
+	log.Println("ENTER TestWriteAsHeightless")
 	sses := []SSE{
 		0xE_089_0F6_A72_463_000, 0xF_089_0F6_A72_463_000, 0xD_08B_255_000_000_000,
 		0xD_10B_089_C31_D95_455, 0xE_117_B6E_162_595_117, 0x9_B6E_162_595_000_000,
@@ -641,9 +689,11 @@ func TestWriteAsHeightless(t *testing.T) {
 		t.Errorf("in TestWriteAsHeightlessTo(\n%#v\n),\nexpect: %#v\nactual: %#v\n\n",
 			sses, expect, actual)
 	}
+	log.Println("LEAVE TestWriteAsHeightless")
 }
 
 func TestWriteAsLemma(t *testing.T) {
+	log.Println("ENTER TestWriteAsLemma")
 	sses := []SSE{
 		0xE_089_0F6_A72_463_000, 0xF_089_0F6_A72_463_000, 0xD_08B_255_000_000_000,
 		0xD_10B_089_C31_D95_455, 0xE_117_B6E_162_595_117, 0x9_B6E_162_595_000_000,
@@ -663,9 +713,11 @@ func TestWriteAsLemma(t *testing.T) {
 		t.Errorf("in TestWriteAsLemmaTo(\n%#v\n),\nexpect: %#v\nactual: %#v\n\n",
 			sses, expect, actual)
 	}
+	log.Println("LEAVE TestWriteAsLemma")
 }
 
 func TestWriteAsLemmaForUnknownPitch(t *testing.T) {
+	log.Println("ENTER TestWriteAsLemmaForUnknownPitch")
 	sses := []SSE{
 		0xA_088_0F4_A70_460_000, 0xF_088_0F4_A70_460_000, 0xD_088_254_000_000_000,
 		0xD_108_088_C30_D94_454, 0xE_114_B6C_160_594_114, 0x9_B6C_160_594_000_000,
@@ -685,9 +737,11 @@ func TestWriteAsLemmaForUnknownPitch(t *testing.T) {
 		t.Errorf("in TestWriteAsLemmaTo(\n%#v\n),\nexpect: %#v\nactual: %#v\n\n",
 			sses, expect, actual)
 	}
+	log.Println("LEAVE TestWriteAsLemmaForUnknownPitch")
 }
 
 func TestWriteAsCanonicalForUnknownPitch(t *testing.T) {
+	log.Println("ENTER TestWriteAsCanonicalForUnknownPitch")
 	sses := []SSE{
 		0xA_088_0F4_A70_460_000, 0xF_088_0F4_A70_460_000, 0xD_088_254_000_000_000,
 		0xD_108_088_C30_D94_454, 0xE_114_B6C_160_594_114, 0x9_B6C_160_594_000_000,
@@ -707,9 +761,11 @@ func TestWriteAsCanonicalForUnknownPitch(t *testing.T) {
 		t.Errorf("in TestWriteAsLemmaTo(\n%#v\n),\nexpect: %#v\nactual: %#v\n\n",
 			sses, expect, actual)
 	}
+	log.Println("LEAVE TestWriteAsCanonicalForUnknownPitch")
 }
 
 func TestWriteEmptyAsToneless(t *testing.T) {
+	log.Println("ENTER TestWriteEmptyAsToneless")
 	sses := []SSE{}
 	var s strings.Builder
 	for _, sse := range sses {
@@ -721,9 +777,11 @@ func TestWriteEmptyAsToneless(t *testing.T) {
 		t.Errorf("in TestWriteEmptyAsTonelessTo(\n%#v\n),\nexpect: %#v\nactual: %#v\n\n",
 			sses, expect, actual)
 	}
+	log.Println("LEAVE TestWriteEmptyAsToneless")
 }
 
 func TestWriteEmptyAsHeightless(t *testing.T) {
+	log.Println("ENTER TestWriteEmptyAsHeightless")
 	sses := []SSE{}
 	var s strings.Builder
 	for _, sse := range sses {
@@ -735,9 +793,11 @@ func TestWriteEmptyAsHeightless(t *testing.T) {
 		t.Errorf("in TestWriteEmptyAsHeightlessTo(\n%#v\n),\nexpect: %#v\nactual: %#v\n\n",
 			sses, expect, actual)
 	}
+	log.Println("LEAVE TestWriteEmptyAsHeightless")
 }
 
 func TestWriteEmptyAsLemma(t *testing.T) {
+	log.Println("ENTER TestWriteEmptyAsLemma")
 	sses := []SSE{}
 	var s strings.Builder
 	for _, sse := range sses {
@@ -749,9 +809,11 @@ func TestWriteEmptyAsLemma(t *testing.T) {
 		t.Errorf("in TestWriteEmptyAsLemmaTo(\n%#v\n),\nexpect: %#v\nactual: %#v\n\n",
 			sses, expect, actual)
 	}
+	log.Println("LEAVE TestWriteEmptyAsLemma")
 }
 
 func TestWriteEmptyAsUtf8(t *testing.T) {
+	log.Println("ENTER TestWriteEmptyAsUtf8")
 	sses := []SSE{}
 	var s strings.Builder
 	for _, sse := range sses {
@@ -763,11 +825,13 @@ func TestWriteEmptyAsUtf8(t *testing.T) {
 		t.Errorf("in TestWriteEmptyAsLemmaTo(\n%#v\n),\nexpect: %#v\nactual: %#v\n\n",
 			sses, expect, actual)
 	}
+	log.Println("LEAVE TestWriteEmptyAsUtf8")
 }
 
 //////////////////////////////////////////////////////////////////////////////
 
 func TestWriteAsUtf8(t *testing.T) {
+	log.Println("ENTER TestWriteAsUtf8")
 	sses := []SSE{
 		0xE_089_0F6_A72_463_000, 0xF_089_0F6_A72_463_000, 0xD_08B_255_000_000_000,
 		0xD_10B_089_C31_D95_455, 0xE_117_B6E_162_595_117, 0x9_B6E_162_595_000_000,
@@ -787,4 +851,5 @@ func TestWriteAsUtf8(t *testing.T) {
 		t.Errorf("in TestWriteAsLemmaTo(\n%#v\n),\nexpect: %#v\nactual: %#v\n\n",
 			sses, expect, actual)
 	}
+	log.Println("LEAVE TestWriteAsUtf8")
 }

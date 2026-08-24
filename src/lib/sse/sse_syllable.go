@@ -6,6 +6,7 @@ package sse
 
 import (
 	"fmt"
+	"log"
 	"regexp"
 	"strings"
 )
@@ -92,6 +93,50 @@ func getInfixCode(code uint16) InfixCode         { return InfixCode(code & Infix
 func getConsonantCode(code uint16) ConsonantCode { return ConsonantCode(code & ConsonantCode_MASK) }
 func getVowelCode(code uint16) VowelCode         { return VowelCode(code & VowelCode_MASK) }
 func getPitchCode(code uint16) PitchCode         { return PitchCode(code & PitchCode_MASK) }
+
+var canonicalRE = regexp.MustCompile(
+	`U[+]([0-9A-F]{4})|([ -]?)([~=#]?)([hHbBqQdDfgGklrmnpKPstvVwyYzZ])([aAeEiIoOxcuUXC])([_:^]?)`)
+
+const (
+	canonicalRE_WholeBegin = iota
+	canonicalRE_WholeEnd
+	canonicalRE_UnicodeHexBegin
+	canonicalRE_UnicodeHexEnd
+	canonicalRE_AffixBegin
+	canonicalRE_AffixEnd
+	canonicalRE_ShiftBegin
+	canonicalRE_ShiftEnd
+	canonicalRE_ConsonantBegin
+	canonicalRE_ConsonantEnd
+	canonicalRE_VowelBegin
+	canonicalRE_VowelEnd
+	canonicalRE_PitchBegin
+	canonicalRE_PitchEnd
+)
+
+var utf8RE = regexp.MustCompile(
+	`([ -]?)((?i)b|d|f|gb|g|h|kp|k|l|mb|mp|mv|m|nd|ngb|ng|ny|nz|n|p|r|s|t|v|w|y|z|)` +
+		`((?i)(ɛ̈|ɛ̂|ɛ̣|ɛ|ɔ̈|ɔ̂|ɔ̣|ɔ|ẍ|x̂|x̣|x|c̈|ĉ|c̣|c)|((ä|â|ạ|a|ë|ê|ẹ|e|ï|î|i|ị|ö|ô|ọ|o|ü|û|ụ|u)(ñ|n|)))|(.)`) //
+const (
+	utf8RE_WholeBegin = iota
+	utf8RE_WholeEnd
+	utf8RE_AffixBegin
+	utf8RE_AffixEnd
+	utf8RE_ConsonantBegin
+	utf8RE_ConsonantEnd
+	utf8RE_VowelPlusNasalBegin
+	utf8RE_VowelPlusNasalEnd
+	utf8RE_OpenVowelBegin
+	utf8RE_OpenVowelEnd
+	utf8RE_CloseVowelPlusNasalBegin
+	utf8RE_CloseVowelPlusNasalEnd
+	utf8RE_CloseVowelBegin
+	utf8RE_CloseVowelEnd
+	utf8RE_NasalBegin
+	utf8RE_NasalEnd
+	utf8RE_UnicodeBegin
+	utf8RE_UnicodeEnd
+)
 
 func isSango(code uint16) bool {
 	switch code & IsSango_MASK {
@@ -583,14 +628,6 @@ func canonicalFromSangoCodeValue(code uint16) string {
 	return s
 }
 
-var canonicalRE = regexp.MustCompile(
-	`U[+]([0-9A-F]{4})|([ -]?)([~=#]?)([hHbBqQdDfgGklrmnpKPstvVwyYzZ])([aAeEiIoOxcuUXC])([_:^]?)`)
-var utf8RE = regexp.MustCompile(
-	`([ -]?)([b|d|f|gb|g|h|kp|k|l|mb|mp|mv|m|nd|ngb|ng|ny|nz|n|p|r|s|t|v|w|y|z])` +
-		`([äñ|âñ|ạñ|an|ëñ|êñ|ẹñ|en|ïñ|îñ|ịñ|in|öñ|ôñ|ọñ|on|üñ|ûñ|ụñ|un` +
-		`|än|ân|ạn|añ|ën|ên|ẹn|eñ|ïn|în|ịn|iñ|ön|ôn|ọn|oñ|ün|ûn|ụn|uñ` +
-		`|ɛ̈|ɛ̂|ɛ̣|ɛ|ɔ̈|ɔ̂|ɔ̣|ɔ|ẍ|x̂|x̣|x|c̈|ĉ|c̣|c|ä|â|ạ|a|ë|ê|ẹ|e|ï|î|i|ị|ö|ô|ọ|o|ü|û|ụ|u])|(.)`)
-
 func canonicalToSangoCodeValue(affix, shift, consonant, vowel, pitch string) (uint16, error) {
 	var code uint16 = 0x8000
 	switch affix {
@@ -722,10 +759,9 @@ func canonicalToSangoCodeValue(affix, shift, consonant, vowel, pitch string) (ui
 	return code, nil
 }
 
-func utf8ToSangoCodeValue(affix, consonant, vowel string, options FromUtf8Options) (uint16, error) {
-	// TODO: Implement.
+func utf8ToSangoCodeValue(affix, consonant, vowel, nasal string, options FromUtf8Options) (uint16, error) {
+	log.Printf("affix = %q consonant = %q vowel = %q nasal = %q options = %#v\n", affix, consonant, vowel, nasal, options)
 	var code uint16 = 0x8000
-	return code, fmt.Errorf("utf8ToSangoCodeValue UNIMPLEMENTED")
 	switch affix {
 	case "":
 		// do nothing
@@ -736,42 +772,60 @@ func utf8ToSangoCodeValue(affix, consonant, vowel string, options FromUtf8Option
 	default:
 		return IsSango_MASK, fmt.Errorf("bad affix %q", affix)
 	}
-	/*
-		switch shift {
-		case "":
-			code |= uint16(ShiftCode_lower)
-		case "~":
-			code |= uint16(ShiftCode_Title)
-		case "=":
-			code |= uint16(ShiftCode_UPPER)
-		case "#":
-			code |= uint16(ShiftCode_Invisible)
-		default:
-			return IsSango_MASK, fmt.Errorf("bad shift %q", shift)
-		}
-	*/
-	switch consonant {
-	case "h":
+	isNasal := false
+	switch strings.ToLower(nasal) {
+	case "":
+		isNasal = false
+	case "ñ":
+		isNasal = true
+	case "n":
+		isNasal = true
+	default:
+		return IsSango_MASK, fmt.Errorf("bad nasal %q", nasal)
+	}
+	syllable := consonant + vowel + nasal
+	log.Printf("syllable      = %q\n", syllable)
+	syllableLower := strings.ToLower(syllable)
+	log.Printf("syllableLower = %q\n", syllableLower)
+	syllableTitle := strings.ToTitle(syllable)
+	log.Printf("syllableTitle = %q\n", syllableTitle)
+	syllableUpper := strings.ToUpper(syllable)
+	log.Printf("syllableUpper = %q\n", syllableUpper)
+	switch syllable {
+	case syllableUpper:
+		code |= uint16(ShiftCode_UPPER)
+	case syllableTitle:
+		log.Println("Title")
+		code |= uint16(ShiftCode_Title)
+	case syllableLower:
+		log.Println("lower")
+		code |= uint16(ShiftCode_lower)
+	default:
+		log.Println("Bad shift")
+		return IsSango_MASK, fmt.Errorf("bad case of syllable %q", syllable)
+	}
+	switch strings.ToLower(consonant) {
+	case "":
 		code |= uint16(ConsonantCode_h)
-	case "H":
+	case "h":
 		code |= uint16(ConsonantCode_H)
 	case "b":
 		code |= uint16(ConsonantCode_b)
-	case "B":
+	case "mb":
 		code |= uint16(ConsonantCode_B)
-	case "q":
+	case "gb":
 		code |= uint16(ConsonantCode_q)
-	case "Q":
+	case "ngb":
 		code |= uint16(ConsonantCode_Q)
 	case "d":
 		code |= uint16(ConsonantCode_d)
-	case "D":
+	case "nd":
 		code |= uint16(ConsonantCode_D)
 	case "f":
 		code |= uint16(ConsonantCode_f)
 	case "g":
 		code |= uint16(ConsonantCode_g)
-	case "G":
+	case "ng":
 		code |= uint16(ConsonantCode_G)
 	case "k":
 		code |= uint16(ConsonantCode_k)
@@ -785,9 +839,9 @@ func utf8ToSangoCodeValue(affix, consonant, vowel string, options FromUtf8Option
 		code |= uint16(ConsonantCode_n)
 	case "p":
 		code |= uint16(ConsonantCode_p)
-	case "K":
+	case "kp":
 		code |= uint16(ConsonantCode_K)
-	case "P":
+	case "mp":
 		code |= uint16(ConsonantCode_P)
 	case "s":
 		code |= uint16(ConsonantCode_s)
@@ -795,67 +849,149 @@ func utf8ToSangoCodeValue(affix, consonant, vowel string, options FromUtf8Option
 		code |= uint16(ConsonantCode_t)
 	case "v":
 		code |= uint16(ConsonantCode_v)
-	case "V":
+	case "mv":
 		code |= uint16(ConsonantCode_V)
 	case "w":
 		code |= uint16(ConsonantCode_w)
 	case "y":
 		code |= uint16(ConsonantCode_y)
-	case "Y":
+	case "ny":
 		code |= uint16(ConsonantCode_Y)
 	case "z":
 		code |= uint16(ConsonantCode_z)
-	case "Z":
+	case "nz":
 		code |= uint16(ConsonantCode_Z)
 	default:
 		return IsSango_MASK, fmt.Errorf("bad consonant %q", consonant)
 	}
-	switch vowel {
-	case "a":
-		code |= uint16(VowelCode_a)
-	case "A":
-		code |= uint16(VowelCode_A)
-	case "e":
-		code |= uint16(VowelCode_e)
-	case "E":
-		code |= uint16(VowelCode_E)
-	case "i":
-		code |= uint16(VowelCode_i)
-	case "I":
-		code |= uint16(VowelCode_I)
-	case "o":
-		code |= uint16(VowelCode_o)
-	case "O":
-		code |= uint16(VowelCode_O)
-	case "x":
+	pitchCode_Low := PitchCode_Low
+	if options.TreatUnmarkedPitchAsUnknownPitch {
+		pitchCode_Low = PitchCode_Unknown
+	}
+	vowelCode_a := VowelCode_a
+	vowelCode_e := VowelCode_e
+	vowelCode_i := VowelCode_i
+	vowelCode_o := VowelCode_o
+	vowelCode_u := VowelCode_u
+	if isNasal {
+		vowelCode_a = VowelCode_A
+		vowelCode_e = VowelCode_E
+		vowelCode_i = VowelCode_I
+		vowelCode_o = VowelCode_O
+		vowelCode_u = VowelCode_U
+	}
+	switch strings.ToLower(vowel) {
+	case "ɛ̈":
 		code |= uint16(VowelCode_x)
-	case "c":
+		code |= uint16(PitchCode_Mid)
+	case "ɛ̂":
+		code |= uint16(VowelCode_x)
+		code |= uint16(PitchCode_High)
+	case "ɛ̣":
+		code |= uint16(VowelCode_x)
+		code |= uint16(PitchCode_Unknown)
+	case "ɛ":
+		code |= uint16(VowelCode_x)
+		code |= uint16(pitchCode_Low)
+	case "ɔ̈":
 		code |= uint16(VowelCode_c)
-	case "u":
-		code |= uint16(VowelCode_u)
-	case "U":
-		code |= uint16(VowelCode_U)
-	case "X":
+		code |= uint16(PitchCode_Mid)
+	case "ɔ̂":
+		code |= uint16(VowelCode_c)
+		code |= uint16(PitchCode_High)
+	case "ɔ̣":
+		code |= uint16(VowelCode_c)
+		code |= uint16(PitchCode_Unknown)
+	case "ɔ":
+		code |= uint16(VowelCode_c)
+		code |= uint16(pitchCode_Low)
+	case "ẍ":
 		code |= uint16(VowelCode_X)
-	case "C":
+		code |= uint16(PitchCode_Mid)
+	case "x̂":
+		code |= uint16(VowelCode_X)
+		code |= uint16(PitchCode_High)
+	case "x̣":
+		code |= uint16(VowelCode_X)
+		code |= uint16(PitchCode_Unknown)
+	case "x":
+		code |= uint16(VowelCode_X)
+		code |= uint16(pitchCode_Low)
+	case "c̈":
 		code |= uint16(VowelCode_C)
+		code |= uint16(PitchCode_Mid)
+	case "ĉ":
+		code |= uint16(VowelCode_C)
+		code |= uint16(PitchCode_High)
+	case "c̣":
+		code |= uint16(VowelCode_C)
+		code |= uint16(PitchCode_Unknown)
+	case "c":
+		code |= uint16(VowelCode_C)
+		code |= uint16(pitchCode_Low)
+	case "ä":
+		code |= uint16(vowelCode_a)
+		code |= uint16(PitchCode_Mid)
+	case "â":
+		code |= uint16(vowelCode_a)
+		code |= uint16(PitchCode_High)
+	case "ạ":
+		code |= uint16(vowelCode_a)
+		code |= uint16(PitchCode_Unknown)
+	case "a":
+		code |= uint16(vowelCode_a)
+		code |= uint16(pitchCode_Low)
+	case "ë":
+		code |= uint16(vowelCode_e)
+		code |= uint16(PitchCode_Mid)
+	case "ê":
+		code |= uint16(vowelCode_e)
+		code |= uint16(PitchCode_High)
+	case "ẹ":
+		code |= uint16(vowelCode_e)
+		code |= uint16(PitchCode_Unknown)
+	case "e":
+		code |= uint16(vowelCode_e)
+		code |= uint16(pitchCode_Low)
+	case "ï":
+		code |= uint16(vowelCode_i)
+		code |= uint16(PitchCode_Mid)
+	case "î":
+		code |= uint16(vowelCode_i)
+		code |= uint16(PitchCode_High)
+	case "i":
+		code |= uint16(vowelCode_i)
+		code |= uint16(PitchCode_Unknown)
+	case "ị":
+		code |= uint16(vowelCode_i)
+		code |= uint16(pitchCode_Low)
+	case "ö":
+		code |= uint16(vowelCode_o)
+		code |= uint16(PitchCode_Mid)
+	case "ô":
+		code |= uint16(vowelCode_o)
+		code |= uint16(PitchCode_High)
+	case "ọ":
+		code |= uint16(vowelCode_o)
+		code |= uint16(PitchCode_Unknown)
+	case "o":
+		code |= uint16(vowelCode_o)
+		code |= uint16(pitchCode_Low)
+	case "ü":
+		code |= uint16(vowelCode_u)
+		code |= uint16(PitchCode_Mid)
+	case "û":
+		code |= uint16(vowelCode_u)
+		code |= uint16(PitchCode_High)
+	case "ụ":
+		code |= uint16(vowelCode_u)
+		code |= uint16(PitchCode_Unknown)
+	case "u":
+		code |= uint16(vowelCode_u)
+		code |= uint16(pitchCode_Low)
 	default:
 		return IsSango_MASK, fmt.Errorf("bad vowel %q", vowel)
 	}
-	/*
-		switch pitch {
-		case "":
-			code |= uint16(PitchCode_Unknown)
-		case "_":
-			code |= uint16(PitchCode_Low)
-		case ":":
-			code |= uint16(PitchCode_Mid)
-		case "^":
-			code |= uint16(PitchCode_High)
-		default:
-			return IsSango_MASK, fmt.Errorf("bad pitch %q", pitch)
-		}
-	*/
 	return code, nil
 }
 
