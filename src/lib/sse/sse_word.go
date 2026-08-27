@@ -297,9 +297,6 @@ func utf8ToCodes(s string, options FromUtf8Options) ([]sseCode, int) {
 							*n1Curr -= 1
 							*w0Next -= 1
 							*c0Next -= 1
-							// TODO: This works fine, but the next loop iteration looks at Next as Curr
-							//       and the modification does not stick, even though we used pointers
-							//       specifically to make them stick. Find out what is going wrong.
 						}
 					}
 				}

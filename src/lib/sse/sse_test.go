@@ -542,8 +542,6 @@ func TestUtf8ToSSEsToUtf8(t *testing.T) {
 	for _, sse := range sses {
 		sse.WriteAsUtf8To(&s)
 	}
-	// TODO: Set UPPER case only if a syllable has more than one letter, otherwise set Title case.
-	//       If any syllable in a word has UPPER, set all to UPPER.
 	expect := `Ahöñ-ndönî AHÖÑ-NDÖNÎ ândɛ bâa-mo-tɛnɛ` +
 		` BƐ̂-KƆ̈MBÏTƐBƐ̂-kɔ̈mbïtɛ難BƐ̂-KƆ̈MBÏTƐ bɛ̂-kɔ̈mbïtɛ BƐ̂-KƆ̈MBÏTƐ BƐ̂-KƆ̈MBÏTƐ ahöñndönî`
 	actual := s.String()
