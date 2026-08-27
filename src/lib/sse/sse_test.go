@@ -18,134 +18,154 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
-func TestUnpadUnicodeWords(t *testing.T) {
-	log.Println("ENTER TestUnpadUnicodeWords")
-	words := []uint64{
-		0x65E5_672C_8A9E_306F,
-		0x0000_96E3_3057_3044,
-		0x0010_96E3_3057_3044,
-		0x0021_0020_00A7_0000,
-		0x0000_96E3_3057_0000,
-		0x0010_96E3_3057_0000,
-		0x0021_0020_0000_0000,
-		0x0000_96E3_0000_0000,
-		0x0010_96E3_0000_0000,
-		0x0021_0000_0000_0000,
-		0x0000_0000_0000_0000,
+func TestUnpadRight(t *testing.T) {
+	log.Println("ENTER TestUnpadRight")
+	testCases := [][2]uint64{
+		{0x65E5_672C_8A9E_306F, 0x65E5_672C_8A9E_306F},
+		{0x0010_96E3_3057_3044, 0x0010_96E3_3057_3044},
+		{0x0021_0020_00A7_0000, 0x0000_0021_0020_00A7},
+		{0x0010_96E3_3057_0000, 0x0000_0010_96E3_3057},
+		{0x0021_0020_0000_0000, 0x0000_0000_0021_0020},
+		{0x0010_96E3_0000_0000, 0x0000_0000_0010_96E3},
+		{0x0021_0000_0000_0000, 0x0000_0000_0000_0021},
+		{0x0000_0000_0000_0000, 0x0000_0000_0000_0000},
+		{0xD_10B_089_C31_D95_455, 0xD_10B_089_C31_D95_455},
+		{0xF_089_0F6_A72_463_000, 0x000_F_089_0F6_A72_463},
+		{0x9_B6E_162_595_000_000, 0x000_000_9_B6E_162_595},
+		{0xD_08B_255_000_000_000, 0x000_000_000_D_08B_255},
+		{0xE_08B_000_000_000_000, 0x000_000_000_000_E_08B},
+		{0xF_000_000_000_000_000, 0x000_000_000_000_000_F},
 	}
-	expectsUnpadded := []uint64{
-		0x65E5_672C_8A9E_306F,
-		0x0000_96E3_3057_3044,
-		0x0010_96E3_3057_3044,
-		0x0000_0021_0020_00A7,
-		0x0000_0000_96E3_3057,
-		0x0000_0010_96E3_3057,
-		0x0000_0000_0021_0020,
-		0x0000_0000_0000_96E3,
-		0x0000_0000_0010_96E3,
-		0x0000_0000_0000_0021,
-		0x0000_0000_0000_0000,
-	}
-	for k, word := range words {
-		expect := expectsUnpadded[k]
+	for k, testCase := range testCases {
+		word := testCase[0]
+		expect := testCase[1]
 		actual := unpadRight(word)
 		if actual != expect {
-			t.Errorf("bad UnpadUnicodeWords[%v](%#016X)\nexpect: %#016X\nactual: %#016X\n", k, word, expect, actual)
+			t.Errorf("bad UnpadRight[%v](%#016X)\nexpect: %#016X\nactual: %#016X\n", k, word, expect, actual)
+		}
+		// check idempotence
+		actual2 := unpadRight(actual)
+		if actual2 != actual {
+			t.Errorf("bad UnpadRight[%v](%#016X)\nactual2: %#016X\nexpect: %#016X\n", k, actual, actual2, expect)
+		}
+		// check roundtrip
+		word2 := padRight(expect)
+		if word2 != word {
+			t.Errorf("bad PadRight[%v](%#016X)\nword2: %#016X\nword: %#016X\n", k, expect, word2, word)
 		}
 	}
-	log.Println("LEAVE TestUnpadUnicodeWords")
+	log.Println("LEAVE TestUnpadRight")
 }
 
-func TestPadUnicodeWords(t *testing.T) {
-	log.Println("ENTER TestPadUnicodeWords")
-	words := []uint64{
-		0x65E5_672C_8A9E_306F,
-		0x0010_96E3_3057_3044,
-		0x0000_0021_0020_00A7,
-		0x0000_0010_96E3_3057,
-		0x0000_0000_0021_0020,
-		0x0000_0000_0010_96E3,
-		0x0000_0000_0000_0021,
-		0x0000_0000_0000_0000,
+func TestPadRight(t *testing.T) {
+	log.Println("ENTER TestPadRight")
+	testCases := [][2]uint64{
+		{0x65E5_672C_8A9E_306F, 0x65E5_672C_8A9E_306F},
+		{0x0010_96E3_3057_3044, 0x0010_96E3_3057_3044},
+		{0x0000_0021_0020_00A7, 0x0021_0020_00A7_0000},
+		{0x0000_0010_96E3_3057, 0x0010_96E3_3057_0000},
+		{0x0000_0000_0021_0020, 0x0021_0020_0000_0000},
+		{0x0000_0000_0010_96E3, 0x0010_96E3_0000_0000},
+		{0x0000_0000_0000_0021, 0x0021_0000_0000_0000},
+		{0x0000_0000_0000_0000, 0x0000_0000_0000_0000},
+		{0xD_10B_089_C31_D95_455, 0xD_10B_089_C31_D95_455},
+		{0x000_F_089_0F6_A72_463, 0xF_089_0F6_A72_463_000},
+		{0x000_000_9_B6E_162_595, 0x9_B6E_162_595_000_000},
+		{0x000_000_000_D_08B_255, 0xD_08B_255_000_000_000},
+		{0x000_000_000_000_E_08B, 0xE_08B_000_000_000_000},
+		{0x000_000_000_000_000_F, 0xF_000_000_000_000_000},
 	}
-	expectsPadded := []uint64{
-		0x65E5_672C_8A9E_306F,
-		0x0010_96E3_3057_3044,
-		0x0021_0020_00A7_0000,
-		0x0010_96E3_3057_0000,
-		0x0021_0020_0000_0000,
-		0x0010_96E3_0000_0000,
-		0x0021_0000_0000_0000,
-		0x0000_0000_0000_0000,
-	}
-	for k, word := range words {
-		expect := expectsPadded[k]
+	for k, testCase := range testCases {
+		word := testCase[0]
+		expect := testCase[1]
 		actual := padRight(word)
 		if actual != expect {
-			t.Errorf("bad PadUnicodeWords[%v](%#016X)\nexpect: %#016X\nactual: %#016X\n", k, word, expect, actual)
+			t.Errorf("bad PadRight[%v](%#016X)\nexpect: %#016X\nactual: %#016X\n", k, word, expect, actual)
+		}
+		// check idempotence
+		actual2 := padRight(actual)
+		if actual2 != actual {
+			t.Errorf("bad PadRight[%v](%#016X)\nactual2: %#016X\nexpect: %#016X\n", k, actual, actual2, expect)
+		}
+		// check roundtrip
+		word2 := unpadRight(expect)
+		if word2 != word {
+			t.Errorf("bad UnpadRight[%v](%#016X)\nword2: %#016X\nword: %#016X\n", k, expect, word2, word)
 		}
 	}
-	log.Println("LEAVE TestPadUnicodeWords")
+	log.Println("LEAVE TestPadRight")
 }
 
-func TestUnpadSangoWords(t *testing.T) {
-	log.Println("ENTER TestUnpadSangoWords")
-	words := []uint64{
-		0xD_10B_089_C31_D95_455,
-		0xF_089_0F6_A72_463_000,
-		0x9_B6E_162_595_000_000,
-		0xD_08B_255_000_000_000,
-		0xE_08B_000_000_000_000,
-		0xF_000_000_000_000_000,
+func TestGetShortCode(t *testing.T) {
+	log.Println("ENTER TestGetShortCode")
+	testCases := [][2]uint64{
+		{0x65E5_672C_8A9E_306F, 0x65E5_672C_8A9E_306F},
+		{0x0010_96E3_3057_3044, 0x0010_96E3_3057_3044},
+		{0x0021_0020_00A7_0000, 0x0000_0021_0020_00A7},
+		{0x0010_96E3_3057_0000, 0x0000_0010_96E3_3057},
+		{0x0021_0020_0000_0000, 0x0000_0000_0021_0020},
+		{0x0010_96E3_0000_0000, 0x0000_0000_0010_96E3},
+		{0x0021_0000_0000_0000, 0x0000_0000_0000_0021},
+		{0x0000_0000_0000_0000, 0x0000_0000_0000_0000},
+		{0xD_10B_089_C31_D95_455, 0xD_10B_089_C31_D95_455},
+		{0xF_089_0F6_A72_463_000, 0x000_F_089_0F6_A72_463},
+		{0x9_B6E_162_595_000_000, 0x000_000_9_B6E_162_595},
+		{0xD_08B_255_000_000_000, 0x000_000_000_D_08B_255},
+		{0xE_08B_000_000_000_000, 0x000_000_000_000_E_08B},
+		{0xF_000_000_000_000_000, 0x000_000_000_000_000_F},
 	}
-	expectsUnpadded := []uint64{
-		0xD_10B_089_C31_D95_455,
-		0x000_F_089_0F6_A72_463,
-		0x000_000_9_B6E_162_595,
-		0x000_000_000_D_08B_255,
-		0x000_000_000_000_E_08B,
-		0x000_000_000_000_000_F,
-	}
-	for k, word := range words {
-		expect := expectsUnpadded[k]
-		actual := unpadRight(word)
+	for k, testCase := range testCases {
+		sse := SSE(testCase[0])
+		expect := testCase[1]
+		actual := sse.GetShortCode()
 		if actual != expect {
-			t.Errorf("bad UnpadSangoWords[%v](%#016X)\nexpect: %#016X\nactual: %#016X\n", k, word, expect, actual)
+			t.Errorf("bad GetShortCode[%v](%#016X)\nexpect: %#016X\nactual: %#016X\n", k, sse, expect, actual)
+		}
+		// check roundtrip
+		sse2 := FromShortCode(expect)
+		if sse2 != sse {
+			t.Errorf("bad PadRight[%v](%#016X)\nsse2: %#016X\nsse: %#016X\n", k, expect, sse2, sse)
 		}
 	}
-	log.Println("LEAVE TestUnpadSangoWords")
+	log.Println("LEAVE TestGetShortCode")
 }
 
-func TestPadSangoWords(t *testing.T) {
-	log.Println("ENTER TestPadSangoWords")
-	words := []uint64{
-		0xD_10B_089_C31_D95_455,
-		0x000_F_089_0F6_A72_463,
-		0x000_000_9_B6E_162_595,
-		0x000_000_000_D_08B_255,
-		0x000_000_000_000_E_08B,
-		0x000_000_000_000_000_F,
+func TestFromShortCode(t *testing.T) {
+	log.Println("ENTER TestFromShortCode")
+	testCases := [][2]uint64{
+		{0x65E5_672C_8A9E_306F, 0x65E5_672C_8A9E_306F},
+		{0x0010_96E3_3057_3044, 0x0010_96E3_3057_3044},
+		{0x0000_0021_0020_00A7, 0x0021_0020_00A7_0000},
+		{0x0000_0010_96E3_3057, 0x0010_96E3_3057_0000},
+		{0x0000_0000_0021_0020, 0x0021_0020_0000_0000},
+		{0x0000_0000_0010_96E3, 0x0010_96E3_0000_0000},
+		{0x0000_0000_0000_0021, 0x0021_0000_0000_0000},
+		{0x0000_0000_0000_0000, 0x0000_0000_0000_0000},
+		{0xD_10B_089_C31_D95_455, 0xD_10B_089_C31_D95_455},
+		{0x000_F_089_0F6_A72_463, 0xF_089_0F6_A72_463_000},
+		{0x000_000_9_B6E_162_595, 0x9_B6E_162_595_000_000},
+		{0x000_000_000_D_08B_255, 0xD_08B_255_000_000_000},
+		{0x000_000_000_000_E_08B, 0xE_08B_000_000_000_000},
+		{0x000_000_000_000_000_F, 0xF_000_000_000_000_000},
 	}
-	expectsPadded := []uint64{
-		0xD_10B_089_C31_D95_455,
-		0xF_089_0F6_A72_463_000,
-		0x9_B6E_162_595_000_000,
-		0xD_08B_255_000_000_000,
-		0xE_08B_000_000_000_000,
-		0xF_000_000_000_000_000,
-	}
-	for k, word := range words {
-		expect := expectsPadded[k]
-		actual := padRight(word)
+	for k, testCase := range testCases {
+		word := testCase[0]
+		expect := SSE(testCase[1])
+		actual := FromShortCode(word)
 		if actual != expect {
-			t.Errorf("bad PadSangoWords[%v](%#016X)\nexpect: %#016X\nactual: %#016X\n", k, word, expect, actual)
+			t.Errorf("bad PadRight[%v](%#016X)\nexpect: %#016X\nactual: %#016X\n", k, word, expect, actual)
+		}
+		// check roundtrip
+		word2 := expect.GetShortCode()
+		if word2 != word {
+			t.Errorf("bad UnpadRight[%v](%#016X)\nword2: %#016X\nword: %#016X\n", k, expect, word2, word)
 		}
 	}
-	log.Println("LEAVE TestPadSangoWords")
+	log.Println("LEAVE TestFromShortCode")
 }
 
-func TestUnpadUnicodeFollowedByPad(t *testing.T) {
-	log.Println("ENTER TestUnpadUnicodeFollowedByPad")
+func TestUnpadFollowedByPad(t *testing.T) {
+	log.Println("ENTER TestUnpadFollowedByPad")
 	msbs := []uint64{
 		0x0010_9ED2_0000_0000,
 		0x002F_0000_0000_0000,
@@ -189,7 +209,7 @@ func TestUnpadUnicodeFollowedByPad(t *testing.T) {
 			}
 		}
 	}
-	log.Println("LEAVE TestUnpadUnicodeFollowedByPad")
+	log.Println("LEAVE TestUnpadFollowedByPad")
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -216,16 +236,16 @@ func TestCanonicalToCodes(t *testing.T) {
 	expect := []sseCode{
 		u(0x65E5), u(0x672C), u(0x8A9E), u(0x306F), u(0x96E3),
 		u(0x3057), u(0x3044), u(0x0021), u(0x0020), u(0x00A7),
-		s(0xE089), s(0x90F6), s(0x9A72), s(0x9463), s(0xF089),
-		s(0x90F6), s(0x9A72), s(0x9463), s(0xD08B), s(0x9255),
-		s(0xD10B), s(0x9089), s(0x9C31), s(0x9D95), s(0x9455),
-		s(0xE117), s(0x9B6E), s(0x9162), s(0x9595), s(0x9117),
-		s(0x9B6E), s(0x9162), s(0x9595),
+		s(0xE089), s(0x9236), s(0x9C72), s(0x9423), s(0xF089),
+		s(0x9236), s(0x9C72), s(0x9423), s(0xD08B), s(0x9455),
+		s(0xD0CB), s(0x9089), s(0x9B31), s(0x9E55), s(0x9415),
+		s(0xE0D7), s(0x9A6E), s(0x9362), s(0x9655), s(0x90D7),
+		s(0x9A6E), s(0x9362), s(0x9655),
 		u(0x96E3),
-		s(0xB117), s(0xBB6E), s(0xB162), s(0xB595), s(0xD117),
-		s(0x9B6E), s(0x9162), s(0x9595), s(0xE117), s(0x9B6E),
-		s(0x9162), s(0x9595), s(0xF117), s(0xBB6E), s(0xB162),
-		s(0xB595), s(0xD089), s(0x90F6), s(0x9272), s(0x9463),
+		s(0xB0D7), s(0xBA6E), s(0xB362), s(0xB655), s(0xD0D7),
+		s(0x9A6E), s(0x9362), s(0x9655), s(0xE0D7), s(0x9A6E),
+		s(0x9362), s(0x9655), s(0xF0D7), s(0xBA6E), s(0xB362),
+		s(0xB655), s(0xD089), s(0x9236), s(0x9472), s(0x9423),
 	}
 	expectLen := len(c)
 	actual, actualLen := canonicalToCodes(c)
@@ -261,10 +281,10 @@ func TestGoodCanonicalToSSEs(t *testing.T) {
 		`bx^-=kc:=Bi:=tx_ bx^-kc:Bi:tx_ ~bx^-kc:Bi:tx_ ~bx^-=kc:=Bi:=tx_ ha_HO:Do:ni^`
 	expect := []SSE{
 		0x65E5_672C_8A9E_306F, 0x0010_96E3_3057_3044, 0x0021_0020_00A7_0000,
-		0xE_089_0F6_A72_463_000, 0xF_089_0F6_A72_463_000, 0xD_08B_255_000_000_000,
-		0xD_10B_089_C31_D95_455, 0xE_117_B6E_162_595_117, 0x9_B6E_162_595_000_000,
-		0x0_010_96E_300_000_000, 0xB_117_B6E_162_595_000, 0xD_117_B6E_162_595_000,
-		0xE_117_B6E_162_595_000, 0xF_117_B6E_162_595_000, 0xD_089_0F6_272_463_000,
+		0xE_089_236_C72_423_000, 0xF_089_236_C72_423_000, 0xD_08B_455_000_000_000,
+		0xD_0CB_089_B31_E55_415, 0xE_0D7_A6E_362_655_0D7, 0x9_A6E_362_655_000_000,
+		0x0_010_96E_300_000_000, 0xB_0D7_A6E_362_655_000, 0xD_0D7_A6E_362_655_000,
+		0xE_0D7_A6E_362_655_000, 0xF_0D7_A6E_362_655_000, 0xD_089_236_472_423_000,
 	}
 	dumpSSEs := func(sses []SSE) string {
 		s := "{"
@@ -293,7 +313,7 @@ func TestBadCanonicalToSSEs(t *testing.T) {
 		`U+96E3=bx^-=kc:=Bi:=tx_ bx^-kc:Bi:tx_ ~bx^-kc:Bi:tx_ =bx^-=kc:=Bi:=tx_ ha_HO:Do:ni^`
 	expect := []SSE{
 		0x65E5_672C_8A9E_306F, 0x0010_96E3_3057_3044, 0x0021_0020_00A7_0000,
-		0xE_089_0F6_A72_463_000, 0xF_089_0F6_000_000_000,
+		0xE_089_236_C72_423_000, 0xF_089_236_000_000_000,
 	} // results up to broken parse
 	dumpSSEs := func(sses []SSE) string {
 		s := "{"
@@ -321,10 +341,10 @@ func TestCanonicalToSSEsForUnknownPitch(t *testing.T) {
 	c := `~haHO-Doni =haHO-Doni haDx baha-mo-txnx ~bx-kcBitxbx-kcBitxU+96E3` +
 		`=bx-=kc=Bi=tx bx-kcBitx ~bx-kcBitx =bx-=kc=Bi=tx haHODoni`
 	expect := []SSE{
-		0xA_088_0F4_A70_460_000, 0xF_088_0F4_A70_460_000, 0xD_088_254_000_000_000,
-		0xD_108_088_C30_D94_454, 0xE_114_B6C_160_594_114, 0x9_B6C_160_594_000_000,
-		0x0_010_96E_300_000_000, 0xB_114_B6C_160_594_000, 0xD_114_B6C_160_594_000,
-		0xE_114_B6C_160_594_000, 0xF_114_B6C_160_594_000, 0xD_088_0F4_270_460_000,
+		0xA_088_234_C70_420_000, 0xF_088_234_C70_420_000, 0xD_088_454_000_000_000,
+		0xD_0C8_088_B30_E54_414, 0xE_0D4_A6C_360_654_0D4, 0x9_A6C_360_654_000_000,
+		0x0_010_96E_300_000_000, 0xB_0D4_A6C_360_654_000, 0xD_0D4_A6C_360_654_000,
+		0xE_0D4_A6C_360_654_000, 0xF_0D4_A6C_360_654_000, 0xD_088_234_470_420_000,
 	}
 	dumpSSEs := func(sses []SSE) string {
 		s := "{"
@@ -392,18 +412,18 @@ func TestUtf8ToCodes(t *testing.T) {
 	expect := []sseCode{
 		u(0x65E5), u(0x672C), u(0x8A9E), u(0x306F), u(0x96E3), // `日本語は難`
 		u(0x3057), u(0x3044), u(0x0021), u(0x0020), u(0x00A7), // `しい! §`
-		s(0xE089), s(0x90F6), s(0x9A72), s(0x9463), // ` Ahöñ-ndönî`
-		s(0xE089), s(0xB0F6), s(0xBA72), s(0xB463), // ` AHÖÑ-NDÖNÎ`
-		s(0xD08B), s(0x9255), // ` ândɛ`
-		s(0xD10B), s(0x9089), s(0x9C31), s(0x9D95), s(0x9455), // ` bâa-mo-tɛnɛ`
-		s(0xF117), s(0x9B6E), s(0x9162), s(0x9595), // ` BƐ̂-kɔ̈mbïtɛb`
-		s(0x9117), s(0x9B6E), s(0x9162), s(0x9595), //  `bɛ̂-kɔ̈mbïtɛ`
+		s(0xE089), s(0x9236), s(0x9C72), s(0x9423), // ` Ahöñ-ndönî`
+		s(0xE089), s(0xB236), s(0xBC72), s(0xB423), // ` AHÖÑ-NDÖNÎ`
+		s(0xD08B), s(0x9455), // ` ândɛ`
+		s(0xD0CB), s(0x9089), s(0x9B31), s(0x9E55), s(0x9415), // ` bâa-mo-tɛnɛ`
+		s(0xF0D7), s(0x9A6E), s(0x9362), s(0x9655), // ` BƐ̂-kɔ̈mbïtɛb`
+		s(0x90D7), s(0x9A6E), s(0x9362), s(0x9655), //  `bɛ̂-kɔ̈mbïtɛ`
 		u(0x96E3),                                  //  `難`
-		s(0xB117), s(0xBB6E), s(0xB162), s(0xB595), //  `BƐ̂-KƆ̈MBÏTƐ`
-		s(0xD117), s(0x9B6E), s(0x9162), s(0x9595), // ` bɛ̂-kɔ̈mbïtɛ`
-		s(0xF117), s(0x9B6E), s(0x9162), s(0x9595), // ` BƐ̂-kɔ̈mbïtɛ`
-		s(0xF117), s(0xBB6E), s(0xB162), s(0xB595), // ` BƐ̂-KƆ̈MBÏTƐ`
-		s(0xD089), s(0x90F6), s(0x9272), s(0x9463), // ` ahöñndönî`
+		s(0xB0D7), s(0xBA6E), s(0xB362), s(0xB655), //  `BƐ̂-KƆ̈MBÏTƐ`
+		s(0xD0D7), s(0x9A6E), s(0x9362), s(0x9655), // ` bɛ̂-kɔ̈mbïtɛ`
+		s(0xF0D7), s(0x9A6E), s(0x9362), s(0x9655), // ` BƐ̂-kɔ̈mbïtɛ`
+		s(0xF0D7), s(0xBA6E), s(0xB362), s(0xB655), // ` BƐ̂-KƆ̈MBÏTƐ`
+		s(0xD089), s(0x9236), s(0x9472), s(0x9423), // ` ahöñndönî`
 	}
 	expectLen := len(c)
 	actual, actualLen := utf8ToCodes(c, FromLemma)
@@ -438,18 +458,18 @@ func TestGoodUtf8ToSSEs(t *testing.T) {
 		` BƐ̂-kɔ̈mbïtɛbɛ̂-kɔ̈mbïtɛ難BƐ̂-KƆ̈MBÏTƐ bɛ̂-kɔ̈mbïtɛ BƐ̂-kɔ̈mbïtɛ BƐ̂-KƆ̈MBÏTƐ ahöñndönî`
 	expect := []SSE{
 		0x65E5_672C_8A9E_306F, 0x0010_96E3_3057_3044, 0x0021_0020_00A7_0000, // `日本語は難しい! §`
-		0xE_089_0F6_A72_463_000, // ` Ahöñ-ndönî`
-		0xF_089_0F6_A72_463_000, // ` AHÖÑ-NDÖNÎ`
-		0xD_08B_255_000_000_000, // ` ândɛ`
-		0xD_10B_089_C31_D95_455, // ` bâa-mo-tɛnɛ`
-		0xF_117_B6E_162_595_117, // ` BƐ̂-kɔ̈mbïtɛb`  // if any syllable is UPPER, the whole word is
-		0x9_B6E_162_595_000_000, //  `bɛ̂-kɔ̈mbïtɛ`
+		0xE_089_236_C72_423_000, // ` Ahöñ-ndönî`
+		0xF_089_236_C72_423_000, // ` AHÖÑ-NDÖNÎ`
+		0xD_08B_455_000_000_000, // ` ândɛ`
+		0xD_0CB_089_B31_E55_415, // ` bâa-mo-tɛnɛ`
+		0xF_0D7_A6E_362_655_0D7, // ` BƐ̂-kɔ̈mbïtɛbɛ̂`  [if any syllable is UPPER, the whole word is]
+		0x9_A6E_362_655_000_000, //    `-kɔ̈mbïtɛ`
 		0x0010_96E3_0000_0000,   //  `難`
-		0xB_117_B6E_162_595_000, //  `BƐ̂-KƆ̈MBÏTƐ`
-		0xD_117_B6E_162_595_000, // ` bɛ̂-kɔ̈mbïtɛ`
-		0xF_117_B6E_162_595_000, // ` BƐ̂-kɔ̈mbïtɛ`
-		0xF_117_B6E_162_595_000, // ` BƐ̂-KƆ̈MBÏTƐ`
-		0xD_089_0F6_272_463_000, // ` ahöñndönî`
+		0xB_0D7_A6E_362_655_000, //  `BƐ̂-KƆ̈MBÏTƐ`
+		0xD_0D7_A6E_362_655_000, // ` bɛ̂-kɔ̈mbïtɛ`
+		0xF_0D7_A6E_362_655_000, // ` BƐ̂-kɔ̈mbïtɛ`
+		0xF_0D7_A6E_362_655_000, // ` BƐ̂-KƆ̈MBÏTƐ`
+		0xD_089_236_472_423_000, // ` ahöñndönî`
 	}
 	dumpSSEs := func(sses []SSE) string {
 		s := "{"
@@ -501,10 +521,10 @@ func TestUtf8ToSSEsFromToneless(t *testing.T) {
 	c := `Ahonndoni AHONNDONI ande baamotene` +
 		` BE-kombitebe-kombite難BƐ̂-KƆ̈MBÏTƐ bɛ̂-kɔ̈mbïtɛ BƐ̂-kɔ̈mbïtɛ BƐ̂-KƆ̈MBÏTƐ ahöñndönî`
 	expect := []SSE{
-		0xA_088_0F4_270_460_000, 0xF_088_0F4_270_460_000, 0xD_088_258_000_000_000,
-		0xD_108_088_430_598_458, 0xF_118_B70_160_598_118, 0x9_B70_160_598_000_000,
-		0x0_010_96E_300_000_000, 0xB_117_B6E_162_594_000, 0xD_117_B6E_162_594_000,
-		0xF_117_B6E_162_594_000, 0xF_117_B6E_162_594_000, 0xD_088_0F6_272_463_000,
+		0xA_088_234_470_420_000, 0xF_088_234_470_420_000, 0xD_088_458_000_000_000,
+		0xD_0C8_088_330_658_418, 0xF_0D8_A70_360_658_0D8, 0x9_A70_360_658_000_000,
+		0x0_010_96E_300_000_000, 0xB_0D7_A6E_362_654_000, 0xD_0D7_A6E_362_654_000,
+		0xF_0D7_A6E_362_654_000, 0xF_0D7_A6E_362_654_000, 0xD_088_236_472_423_000,
 	}
 	dumpSSEs := func(sses []SSE) string {
 		s := "{"
@@ -560,33 +580,33 @@ func TestCodesToSSEs(t *testing.T) {
 	codes := []sseCode{
 		u(0x65E5), u(0x672C), u(0x8A9E), u(0x306F), u(0x96E3), // `日本語は難`
 		u(0x3057), u(0x3044), u(0x0021), u(0x0020), u(0x00A7), // `しい! §`
-		s(0xE089), s(0x90F6), s(0x9A72), s(0x9463), // ` Ahöñ-ndönî`
-		s(0xE089), s(0xB0F6), s(0xBA72), s(0xB463), // ` AHÖÑ-NDÖNÎ`
-		s(0xD08B), s(0x9255), // ` ândɛ`
-		s(0xD10B), s(0x9089), s(0x9C31), s(0x9D95), s(0x9455), // ` bâa-mo-tɛnɛ`
-		s(0xF117), s(0x9B6E), s(0x9162), s(0x9595), // ` BƐ̂-kɔ̈mbïtɛb`
-		s(0x9117), s(0x9B6E), s(0x9162), s(0x9595), //  `bɛ̂-kɔ̈mbïtɛ`
+		s(0xE089), s(0x9236), s(0x9C72), s(0x9423), // ` Ahöñ-ndönî`
+		s(0xE089), s(0xB236), s(0xBC72), s(0xB423), // ` AHÖÑ-NDÖNÎ`
+		s(0xD08B), s(0x9455), // ` ândɛ`
+		s(0xD0CB), s(0x9089), s(0x9B31), s(0x9E55), s(0x9415), // ` bâa-mo-tɛnɛ`
+		s(0xF0D7), s(0x9A6E), s(0x9362), s(0x9655), // ` BƐ̂-kɔ̈mbïtɛb`
+		s(0x90D7), s(0x9A6E), s(0x9362), s(0x9655), //  `bɛ̂-kɔ̈mbïtɛ`
 		u(0x96E3),                                  //  `難`
-		s(0xB117), s(0xBB6E), s(0xB162), s(0xB595), //  `BƐ̂-KƆ̈MBÏTƐ`
-		s(0xD117), s(0x9B6E), s(0x9162), s(0x9595), // ` bɛ̂-kɔ̈mbïtɛ`
-		s(0xF117), s(0x9B6E), s(0x9162), s(0x9595), // ` BƐ̂-kɔ̈mbïtɛ`
-		s(0xF117), s(0xBB6E), s(0xB162), s(0xB595), // ` BƐ̂-KƆ̈MBÏTƐ`
-		s(0xD089), s(0x90F6), s(0x9272), s(0x9463), // ` ahöñndönî`
+		s(0xB0D7), s(0xBA6E), s(0xB362), s(0xB655), //  `BƐ̂-KƆ̈MBÏTƐ`
+		s(0xD0D7), s(0x9A6E), s(0x9362), s(0x9655), // ` bɛ̂-kɔ̈mbïtɛ`
+		s(0xF0D7), s(0x9A6E), s(0x9362), s(0x9655), // ` BƐ̂-kɔ̈mbïtɛ`
+		s(0xF0D7), s(0xBA6E), s(0xB362), s(0xB655), // ` BƐ̂-KƆ̈MBÏTƐ`
+		s(0xD089), s(0x9236), s(0x9472), s(0x9423), // ` ahöñndönî`
 	}
 	expect := []SSE{
 		0x65E5_672C_8A9E_306F, 0x0010_96E3_3057_3044, 0x0021_0020_00A7_0000, // `日本語は難しい! §`
-		0xE_089_0F6_A72_463_000, // ` Ahöñ-ndönî`
-		0xF_089_0F6_A72_463_000, // ` AHÖÑ-NDÖNÎ`
-		0xD_08B_255_000_000_000, // ` ândɛ`
-		0xD_10B_089_C31_D95_455, // ` bâa-mo-tɛnɛ`
-		0xF_117_B6E_162_595_117, // ` BƐ̂-kɔ̈mbïtɛb`  // if any syllable is UPPER, the whole word is
-		0x9_B6E_162_595_000_000, //  `bɛ̂-kɔ̈mbïtɛ`
+		0xE_089_236_C72_423_000, // ` Ahöñ-ndönî`
+		0xF_089_236_C72_423_000, // ` AHÖÑ-NDÖNÎ`
+		0xD_08B_455_000_000_000, // ` ândɛ`
+		0xD_0CB_089_B31_E55_415, // ` bâa-mo-tɛnɛ`
+		0xF_0D7_A6E_362_655_0D7, // ` BƐ̂-kɔ̈mbïtɛbɛ̂`  [if any syllable is UPPER, the whole word is]
+		0x9_A6E_362_655_000_000, //    `-kɔ̈mbïtɛ`
 		0x0010_96E3_0000_0000,   //  `難`
-		0xB_117_B6E_162_595_000, //  `BƐ̂-KƆ̈MBÏTƐ`
-		0xD_117_B6E_162_595_000, // ` bɛ̂-kɔ̈mbïtɛ`
-		0xF_117_B6E_162_595_000, // ` BƐ̂-kɔ̈mbïtɛ`
-		0xF_117_B6E_162_595_000, // ` BƐ̂-KƆ̈MBÏTƐ`
-		0xD_089_0F6_272_463_000, // ` ahöñndönî`
+		0xB_0D7_A6E_362_655_000, //  `BƐ̂-KƆ̈MBÏTƐ`
+		0xD_0D7_A6E_362_655_000, // ` bɛ̂-kɔ̈mbïtɛ`
+		0xF_0D7_A6E_362_655_000, // ` BƐ̂-kɔ̈mbïtɛ`
+		0xF_0D7_A6E_362_655_000, // ` BƐ̂-KƆ̈MBÏTƐ`
+		0xD_089_236_472_423_000, // ` ahöñndönî`
 	}
 	dumpSSEs := func(sses []SSE) string {
 		s := "{"
@@ -608,11 +628,19 @@ func TestCodesToSSEs(t *testing.T) {
 func TestWriteAsUtf8MixedKind(t *testing.T) {
 	log.Println("ENTER TestWriteAsUtf8MixedKind")
 	sses := []SSE{
-		0x65E5_672C_8A9E_306F, 0x0010_96E3_3057_3044, 0x0021_0020_00A7_0000,
-		0xE_089_0F6_A72_463_000, 0xF_089_0F6_A72_463_000, 0xD_08B_255_000_000_000,
-		0xD_10B_089_C31_D95_455, 0xE_117_B6E_162_595_117, 0x9_B6E_162_595_000_000,
-		0x0010_96E3_0000_0000, 0xB_117_B6E_162_595_000, 0xD_117_B6E_162_595_000,
-		0xE_117_B6E_162_595_000, 0xF_117_B6E_162_595_000, 0xD_089_0F6_272_463_000,
+		0x65E5_672C_8A9E_306F, 0x0010_96E3_3057_3044, 0x0021_0020_00A7_0000, // `日本語は難しい! §`
+		0xE_089_236_C72_423_000, // ` Ahöñ-ndönî`
+		0xF_089_236_C72_423_000, // ` AHÖÑ-NDÖNÎ`
+		0xD_08B_455_000_000_000, // ` ândɛ`
+		0xD_0CB_089_B31_E55_415, // ` bâa-mo-tɛnɛ`
+		0xF_0D7_A6E_362_655_0D7, // ` BƐ̂-kɔ̈mbïtɛbɛ̂`  [if any syllable is UPPER, the whole word is]
+		0x9_A6E_362_655_000_000, //    `-kɔ̈mbïtɛ`
+		0x0010_96E3_0000_0000,   //  `難`
+		0xB_0D7_A6E_362_655_000, //  `BƐ̂-KƆ̈MBÏTƐ`
+		0xD_0D7_A6E_362_655_000, // ` bɛ̂-kɔ̈mbïtɛ`
+		0xF_0D7_A6E_362_655_000, // ` BƐ̂-kɔ̈mbïtɛ`
+		0xF_0D7_A6E_362_655_000, // ` BƐ̂-KƆ̈MBÏTƐ`
+		0xD_089_236_472_423_000, // ` ahöñndönî`
 	}
 	var s strings.Builder
 	for _, sse := range sses {
@@ -621,8 +649,8 @@ func TestWriteAsUtf8MixedKind(t *testing.T) {
 	}
 	s.WriteString("|")
 	expect := `|日本語は|難しい|! §| Ahöñ-ndönî| AHÖÑ-NDÖNÎ` +
-		`| ândɛ| bâa-mo-tɛnɛ| BƐ̂-kɔ̈mbïtɛbɛ̂|-kɔ̈mbïtɛ|難|BƐ̂-KƆ̈MBÏTƐ` +
-		`| bɛ̂-kɔ̈mbïtɛ| BƐ̂-kɔ̈mbïtɛ| BƐ̂-KƆ̈MBÏTƐ| ahöñndönî|`
+		`| ândɛ| bâa-mo-tɛnɛ| BƐ̂-KƆ̈MBÏTƐBƐ̂|-kɔ̈mbïtɛ|難|BƐ̂-KƆ̈MBÏTƐ` +
+		`| bɛ̂-kɔ̈mbïtɛ| BƐ̂-KƆ̈MBÏTƐ| BƐ̂-KƆ̈MBÏTƐ| ahöñndönî|`
 	actual := s.String()
 	if actual != expect {
 		t.Errorf("in TestWriteAsUtf8MixedKindTo(\n%#v\n),\nexpect: %#v\nactual: %#v\n\n",
@@ -634,11 +662,19 @@ func TestWriteAsUtf8MixedKind(t *testing.T) {
 func TestWriteAsTonelessMixedKind(t *testing.T) {
 	log.Println("ENTER TestWriteAsTonelessMixedKind")
 	sses := []SSE{
-		0x65E5_672C_8A9E_306F, 0x0010_96E3_3057_3044, 0x0021_0020_00A7_0000,
-		0xE_089_0F6_A72_463_000, 0xF_089_0F6_A72_463_000, 0xD_08B_255_000_000_000,
-		0xD_10B_089_C31_D95_455, 0xE_117_B6E_162_595_117, 0x9_B6E_162_595_000_000,
-		0x0010_96E3_0000_0000, 0xB_117_B6E_162_595_000, 0xD_117_B6E_162_595_000,
-		0xE_117_B6E_162_595_000, 0xF_117_B6E_162_595_000, 0xD_089_0F6_272_463_000,
+		0x65E5_672C_8A9E_306F, 0x0010_96E3_3057_3044, 0x0021_0020_00A7_0000, // `日本語は難しい! §`
+		0xE_089_236_C72_423_000, // ` Ahöñ-ndönî`
+		0xF_089_236_C72_423_000, // ` AHÖÑ-NDÖNÎ`
+		0xD_08B_455_000_000_000, // ` ândɛ`
+		0xD_0CB_089_B31_E55_415, // ` bâa-mo-tɛnɛ`
+		0xE_0D7_A6E_362_655_0D7, // ` Bɛ̂-kɔ̈mbïtɛbɛ̂`  [if any syllable is UPPER, the whole word is]
+		0x9_A6E_362_655_000_000, //    `-kɔ̈mbïtɛ`
+		0x0010_96E3_0000_0000,   //  `難`
+		0xB_0D7_A6E_362_655_000, //  `BƐ̂-KƆ̈MBÏTƐ`
+		0xD_0D7_A6E_362_655_000, // ` bɛ̂-kɔ̈mbïtɛ`
+		0xF_0D7_A6E_362_655_000, // ` BƐ̂-kɔ̈mbïtɛ`
+		0xF_0D7_A6E_362_655_000, // ` BƐ̂-KƆ̈MBÏTƐ`
+		0xD_089_236_472_423_000, // ` ahöñndönî`
 	}
 	var s strings.Builder
 	for _, sse := range sses {
@@ -659,10 +695,17 @@ func TestWriteAsTonelessMixedKind(t *testing.T) {
 func TestWriteAsToneless(t *testing.T) {
 	log.Println("ENTER TestWriteAsToneless")
 	sses := []SSE{
-		0xE_089_0F6_A72_463_000, 0xF_089_0F6_A72_463_000, 0xD_08B_255_000_000_000,
-		0xD_10B_089_C31_D95_455, 0xE_117_B6E_162_595_117, 0x9_B6E_162_595_000_000,
-		0xB_117_B6E_162_595_000, 0xD_117_B6E_162_595_000, 0xE_117_B6E_162_595_000,
-		0xF_117_B6E_162_595_000, 0xD_089_0F6_272_463_000,
+		0xE_089_236_C72_423_000, // ` Ahöñ-ndönî`
+		0xF_089_236_C72_423_000, // ` AHÖÑ-NDÖNÎ`
+		0xD_08B_455_000_000_000, // ` ândɛ`
+		0xD_0CB_089_B31_E55_415, // ` bâa-mo-tɛnɛ`
+		0xE_0D7_A6E_362_655_0D7, // ` Bɛ̂-kɔ̈mbïtɛbɛ̂`  [if any syllable is UPPER, the whole word is]
+		0x9_A6E_362_655_000_000, //    `-kɔ̈mbïtɛ`
+		0xB_0D7_A6E_362_655_000, //  `BƐ̂-KƆ̈MBÏTƐ`
+		0xD_0D7_A6E_362_655_000, // ` bɛ̂-kɔ̈mbïtɛ`
+		0xF_0D7_A6E_362_655_000, // ` BƐ̂-kɔ̈mbïtɛ`
+		0xF_0D7_A6E_362_655_000, // ` BƐ̂-KƆ̈MBÏTƐ`
+		0xD_089_236_472_423_000, // ` ahöñndönî`
 	}
 	var s strings.Builder
 	for _, sse := range sses {
@@ -683,10 +726,17 @@ func TestWriteAsToneless(t *testing.T) {
 func TestWriteAsHeightless(t *testing.T) {
 	log.Println("ENTER TestWriteAsHeightless")
 	sses := []SSE{
-		0xE_089_0F6_A72_463_000, 0xF_089_0F6_A72_463_000, 0xD_08B_255_000_000_000,
-		0xD_10B_089_C31_D95_455, 0xE_117_B6E_162_595_117, 0x9_B6E_162_595_000_000,
-		0xB_117_B6E_162_595_000, 0xD_117_B6E_162_595_000, 0xE_117_B6E_162_595_000,
-		0xF_117_B6E_162_595_000, 0xD_089_0F6_272_463_000,
+		0xE_089_236_C72_423_000, // ` Ahöñ-ndönî`
+		0xF_089_236_C72_423_000, // ` AHÖÑ-NDÖNÎ`
+		0xD_08B_455_000_000_000, // ` ândɛ`
+		0xD_0CB_089_B31_E55_415, // ` bâa-mo-tɛnɛ`
+		0xE_0D7_A6E_362_655_0D7, // ` Bɛ̂-kɔ̈mbïtɛbɛ̂`  [if any syllable is UPPER, the whole word is]
+		0x9_A6E_362_655_000_000, //    `-kɔ̈mbïtɛ`
+		0xB_0D7_A6E_362_655_000, //  `BƐ̂-KƆ̈MBÏTƐ`
+		0xD_0D7_A6E_362_655_000, // ` bɛ̂-kɔ̈mbïtɛ`
+		0xE_0D7_A6E_362_655_000, // ` Bɛ̂-kɔ̈mbïtɛ`
+		0xF_0D7_A6E_362_655_000, // ` BƐ̂-KƆ̈MBÏTƐ`
+		0xD_089_236_472_423_000, // ` ahöñndönî`
 	}
 	var s strings.Builder
 	for _, sse := range sses {
@@ -707,10 +757,17 @@ func TestWriteAsHeightless(t *testing.T) {
 func TestWriteAsLemma(t *testing.T) {
 	log.Println("ENTER TestWriteAsLemma")
 	sses := []SSE{
-		0xE_089_0F6_A72_463_000, 0xF_089_0F6_A72_463_000, 0xD_08B_255_000_000_000,
-		0xD_10B_089_C31_D95_455, 0xE_117_B6E_162_595_117, 0x9_B6E_162_595_000_000,
-		0xB_117_B6E_162_595_000, 0xD_117_B6E_162_595_000, 0xE_117_B6E_162_595_000,
-		0xF_117_B6E_162_595_000, 0xD_089_0F6_272_463_000,
+		0xE_089_236_C72_423_000, // ` Ahöñ-ndönî`
+		0xF_089_236_C72_423_000, // ` AHÖÑ-NDÖNÎ`
+		0xD_08B_455_000_000_000, // ` ândɛ`
+		0xD_0CB_089_B31_E55_415, // ` bâa-mo-tɛnɛ`
+		0xE_0D7_A6E_362_655_0D7, // ` Bɛ̂-kɔ̈mbïtɛbɛ̂`  [if any syllable is UPPER, the whole word is]
+		0x9_A6E_362_655_000_000, //    `-kɔ̈mbïtɛ`
+		0xB_0D7_A6E_362_655_000, //  `BƐ̂-KƆ̈MBÏTƐ`
+		0xD_0D7_A6E_362_655_000, // ` bɛ̂-kɔ̈mbïtɛ`
+		0xE_0D7_A6E_362_655_000, // ` Bɛ̂-kɔ̈mbïtɛ`
+		0xF_0D7_A6E_362_655_000, // ` BƐ̂-KƆ̈MBÏTƐ`
+		0xD_089_236_472_423_000, // ` ahöñndönî`
 	}
 	var s strings.Builder
 	for _, sse := range sses {
@@ -731,10 +788,17 @@ func TestWriteAsLemma(t *testing.T) {
 func TestWriteAsLemmaForUnknownPitch(t *testing.T) {
 	log.Println("ENTER TestWriteAsLemmaForUnknownPitch")
 	sses := []SSE{
-		0xA_088_0F4_A70_460_000, 0xF_088_0F4_A70_460_000, 0xD_088_254_000_000_000,
-		0xD_108_088_C30_D94_454, 0xE_114_B6C_160_594_114, 0x9_B6C_160_594_000_000,
-		0x0_000_96E_300_000_000, 0xB_114_B6C_160_594_000, 0xD_114_B6C_160_594_000,
-		0xE_114_B6C_160_594_000, 0xF_114_B6C_160_594_000, 0xD_088_0F4_270_460_000,
+		0xE_088_234_C70_420_000, // ` Ahöñ-ndönî`
+		0xF_088_234_C70_420_000, // ` AHÖÑ-NDÖNÎ`
+		0xD_088_454_000_000_000, // ` ândɛ`
+		0xD_0C8_088_B30_E54_414, // ` bâa-mo-tɛnɛ`
+		0xE_0D4_A6C_360_654_0D4, // ` Bɛ̂-kɔ̈mbïtɛbɛ̂`  [if any syllable is UPPER, the whole word is]
+		0x9_A6C_360_654_000_000, //    `-kɔ̈mbïtɛ`
+		0xB_0D4_A6C_360_654_000, //  `BƐ̂-KƆ̈MBÏTƐ`
+		0xD_0D4_A6C_360_654_000, // ` bɛ̂-kɔ̈mbïtɛ`
+		0xE_0D4_A6C_360_654_000, // ` Bɛ̂-kɔ̈mbïtɛ`
+		0xF_0D4_A6C_360_654_000, // ` BƐ̂-KƆ̈MBÏTƐ`
+		0xD_088_234_470_420_000, // ` ahöñndönî`
 	}
 	var s strings.Builder
 	for _, sse := range sses {
@@ -742,8 +806,8 @@ func TestWriteAsLemmaForUnknownPitch(t *testing.T) {
 		sse.WriteAsLemmaTo(&s)
 	}
 	s.WriteString("|")
-	expect := `|Ạhọn-ndọnị| ẠHỌÑ-NDỌNỊ| ạndɛ̣| bạạ-mọ-tɛ̣nɛ̣| BƐ̣-kɔ̣mbịtɛ̣bɛ̣|` +
-		`-kɔ̣mbịtɛ̣|難|BƐ̣-KƆ̣MBỊTƐ̣| bɛ̣-kɔ̣mbịtɛ̣| BƐ̣-kɔ̣mbịtɛ̣| BƐ̣-KƆ̣MBỊTƐ̣| ạhọnndọnị|`
+	expect := `| Ạhọn-ndọnị| ẠHỌÑ-NDỌNỊ| ạndɛ̣| bạạ-mọ-tɛ̣nɛ̣| BƐ̣-kɔ̣mbịtɛ̣bɛ̣|` +
+		`-kɔ̣mbịtɛ̣|BƐ̣-KƆ̣MBỊTƐ̣| bɛ̣-kɔ̣mbịtɛ̣| BƐ̣-kɔ̣mbịtɛ̣| BƐ̣-KƆ̣MBỊTƐ̣| ạhọnndọnị|`
 	actual := s.String()
 	if actual != expect {
 		t.Errorf("in TestWriteAsLemmaTo(\n%#v\n),\nexpect: %#v\nactual: %#v\n\n",
@@ -755,10 +819,18 @@ func TestWriteAsLemmaForUnknownPitch(t *testing.T) {
 func TestWriteAsCanonicalForUnknownPitch(t *testing.T) {
 	log.Println("ENTER TestWriteAsCanonicalForUnknownPitch")
 	sses := []SSE{
-		0xA_088_0F4_A70_460_000, 0xF_088_0F4_A70_460_000, 0xD_088_254_000_000_000,
-		0xD_108_088_C30_D94_454, 0xE_114_B6C_160_594_114, 0x9_B6C_160_594_000_000,
-		0x0_000_96E_300_000_000, 0xB_114_B6C_160_594_000, 0xD_114_B6C_160_594_000,
-		0xE_114_B6C_160_594_000, 0xF_114_B6C_160_594_000, 0xD_088_0F4_270_460_000,
+		0xE_088_234_C70_420_000, // ` Ahöñ-ndönî`
+		0xF_088_234_C70_420_000, // ` AHÖÑ-NDÖNÎ`
+		0xD_088_454_000_000_000, // ` ândɛ`
+		0xD_0C8_088_B30_E54_414, // ` bâa-mo-tɛnɛ`
+		0xE_0D4_A6C_360_654_0D4, // ` Bɛ̂-kɔ̈mbïtɛbɛ̂`  [if any syllable is UPPER, the whole word is]
+		0x9_A6C_360_654_000_000, //    `-kɔ̈mbïtɛ`
+		0x0010_96E3_0000_0000,   //  `難`
+		0xB_0D4_A6C_360_654_000, //  `BƐ̂-KƆ̈MBÏTƐ`
+		0xD_0D4_A6C_360_654_000, // ` bɛ̂-kɔ̈mbïtɛ`
+		0xE_0D4_A6C_360_654_000, // ` Bɛ̂-kɔ̈mbïtɛ`
+		0xF_0D4_A6C_360_654_000, // ` BƐ̂-KƆ̈MBÏTƐ`
+		0xD_088_234_470_420_000, // ` ahöñndönî`
 	}
 	var s strings.Builder
 	for _, sse := range sses {
@@ -766,7 +838,7 @@ func TestWriteAsCanonicalForUnknownPitch(t *testing.T) {
 		sse.WriteAsCanonicalTo(&s)
 	}
 	s.WriteString("|")
-	expect := `|~haHO-Doni| =ha=HO-=Do=ni| haDx| baha-mo-txnx| ~bx-kcBitxbx|-kcBitx` +
+	expect := `| ~haHO-Doni| =ha=HO-=Do=ni| haDx| baha-mo-txnx| ~bx-kcBitxbx|-kcBitx` +
 		`|U+96E3|=bx-=kc=Bi=tx| bx-kcBitx| ~bx-kcBitx| =bx-=kc=Bi=tx| haHODoni|`
 	actual := s.String()
 	if actual != expect {
@@ -845,10 +917,17 @@ func TestWriteEmptyAsUtf8(t *testing.T) {
 func TestWriteAsUtf8(t *testing.T) {
 	log.Println("ENTER TestWriteAsUtf8")
 	sses := []SSE{
-		0xE_089_0F6_A72_463_000, 0xF_089_0F6_A72_463_000, 0xD_08B_255_000_000_000,
-		0xD_10B_089_C31_D95_455, 0xE_117_B6E_162_595_117, 0x9_B6E_162_595_000_000,
-		0xB_117_B6E_162_595_000, 0xD_117_B6E_162_595_000, 0xE_117_B6E_162_595_000,
-		0xF_117_B6E_162_595_000, 0xD_089_0F6_272_463_000,
+		0xE_089_236_C72_423_000, // ` Ahöñ-ndönî`
+		0xF_089_236_C72_423_000, // ` AHÖÑ-NDÖNÎ`
+		0xD_08B_455_000_000_000, // ` ândɛ`
+		0xD_0CB_089_B31_E55_415, // ` bâa-mo-tɛnɛ`
+		0xE_0D7_A6E_362_655_0D7, // ` Bɛ̂-kɔ̈mbïtɛbɛ̂`  [if any syllable is UPPER, the whole word is]
+		0x9_A6E_362_655_000_000, //    `-kɔ̈mbïtɛ`
+		0xB_0D7_A6E_362_655_000, //  `BƐ̂-KƆ̈MBÏTƐ`
+		0xD_0D7_A6E_362_655_000, // ` bɛ̂-kɔ̈mbïtɛ`
+		0xE_0D7_A6E_362_655_000, // ` Bɛ̂-kɔ̈mbïtɛ`
+		0xF_0D7_A6E_362_655_000, // ` BƐ̂-KƆ̈MBÏTƐ`
+		0xD_089_236_472_423_000, // ` ahöñndönî`
 	}
 	var s strings.Builder
 	for _, sse := range sses {

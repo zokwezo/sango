@@ -41,33 +41,33 @@ const (
 	InfixCode_MASK      uint16        = 0b0_0_00_1_00000_0000_00
 	ConsonantCode_None  ConsonantCode = 0b0_0_00_0_00000_0000_00 // Not found in valid Sango
 	ConsonantCode_h     ConsonantCode = 0b0_0_00_0_00010_0000_00 // omitted from UTF8
-	ConsonantCode_H     ConsonantCode = 0b0_0_00_0_00011_0000_00 // h
-	ConsonantCode_b     ConsonantCode = 0b0_0_00_0_00100_0000_00 // b
-	ConsonantCode_B     ConsonantCode = 0b0_0_00_0_00101_0000_00 // mb
-	ConsonantCode_q     ConsonantCode = 0b0_0_00_0_00110_0000_00 // gb
-	ConsonantCode_Q     ConsonantCode = 0b0_0_00_0_00111_0000_00 // ngb
-	ConsonantCode_d     ConsonantCode = 0b0_0_00_0_01000_0000_00 // d
-	ConsonantCode_D     ConsonantCode = 0b0_0_00_0_01001_0000_00 // nd
-	ConsonantCode_f     ConsonantCode = 0b0_0_00_0_01010_0000_00 // f
-	ConsonantCode_g     ConsonantCode = 0b0_0_00_0_01011_0000_00 // g
-	ConsonantCode_G     ConsonantCode = 0b0_0_00_0_01100_0000_00 // ng
-	ConsonantCode_k     ConsonantCode = 0b0_0_00_0_01101_0000_00 // k
-	ConsonantCode_l     ConsonantCode = 0b0_0_00_0_01110_0000_00 // l
-	ConsonantCode_r     ConsonantCode = 0b0_0_00_0_01111_0000_00 // r
-	ConsonantCode_m     ConsonantCode = 0b0_0_00_0_10000_0000_00 // m
-	ConsonantCode_n     ConsonantCode = 0b0_0_00_0_10001_0000_00 // n
-	ConsonantCode_p     ConsonantCode = 0b0_0_00_0_10010_0000_00 // p
-	ConsonantCode_K     ConsonantCode = 0b0_0_00_0_10011_0000_00 // kp
-	ConsonantCode_P     ConsonantCode = 0b0_0_00_0_10100_0000_00 // mp
-	ConsonantCode_s     ConsonantCode = 0b0_0_00_0_10101_0000_00 // s
-	ConsonantCode_t     ConsonantCode = 0b0_0_00_0_10110_0000_00 // t
-	ConsonantCode_v     ConsonantCode = 0b0_0_00_0_10111_0000_00 // v
-	ConsonantCode_V     ConsonantCode = 0b0_0_00_0_11000_0000_00 // mv
-	ConsonantCode_w     ConsonantCode = 0b0_0_00_0_11001_0000_00 // w
-	ConsonantCode_y     ConsonantCode = 0b0_0_00_0_11010_0000_00 // y
-	ConsonantCode_Y     ConsonantCode = 0b0_0_00_0_11011_0000_00 // ny
-	ConsonantCode_z     ConsonantCode = 0b0_0_00_0_11100_0000_00 // z
-	ConsonantCode_Z     ConsonantCode = 0b0_0_00_0_11101_0000_00 // nz
+	ConsonantCode_b     ConsonantCode = 0b0_0_00_0_00011_0000_00 // b
+	ConsonantCode_d     ConsonantCode = 0b0_0_00_0_00100_0000_00 // d
+	ConsonantCode_f     ConsonantCode = 0b0_0_00_0_00101_0000_00 // f
+	ConsonantCode_g     ConsonantCode = 0b0_0_00_0_00110_0000_00 // g
+	ConsonantCode_q     ConsonantCode = 0b0_0_00_0_00111_0000_00 // gb
+	ConsonantCode_H     ConsonantCode = 0b0_0_00_0_01000_0000_00 // h
+	ConsonantCode_k     ConsonantCode = 0b0_0_00_0_01001_0000_00 // k
+	ConsonantCode_K     ConsonantCode = 0b0_0_00_0_01010_0000_00 // kp
+	ConsonantCode_l     ConsonantCode = 0b0_0_00_0_01011_0000_00 // l
+	ConsonantCode_m     ConsonantCode = 0b0_0_00_0_01100_0000_00 // m
+	ConsonantCode_B     ConsonantCode = 0b0_0_00_0_01101_0000_00 // mb
+	ConsonantCode_P     ConsonantCode = 0b0_0_00_0_01110_0000_00 // mp
+	ConsonantCode_V     ConsonantCode = 0b0_0_00_0_01111_0000_00 // mv
+	ConsonantCode_n     ConsonantCode = 0b0_0_00_0_10000_0000_00 // n
+	ConsonantCode_D     ConsonantCode = 0b0_0_00_0_10001_0000_00 // nd
+	ConsonantCode_G     ConsonantCode = 0b0_0_00_0_10010_0000_00 // ng
+	ConsonantCode_Q     ConsonantCode = 0b0_0_00_0_10011_0000_00 // ngb
+	ConsonantCode_Y     ConsonantCode = 0b0_0_00_0_10100_0000_00 // ny
+	ConsonantCode_Z     ConsonantCode = 0b0_0_00_0_10101_0000_00 // nz
+	ConsonantCode_p     ConsonantCode = 0b0_0_00_0_10110_0000_00 // p
+	ConsonantCode_r     ConsonantCode = 0b0_0_00_0_10111_0000_00 // r
+	ConsonantCode_s     ConsonantCode = 0b0_0_00_0_11000_0000_00 // s
+	ConsonantCode_t     ConsonantCode = 0b0_0_00_0_11001_0000_00 // t
+	ConsonantCode_v     ConsonantCode = 0b0_0_00_0_11010_0000_00 // v
+	ConsonantCode_w     ConsonantCode = 0b0_0_00_0_11011_0000_00 // w
+	ConsonantCode_y     ConsonantCode = 0b0_0_00_0_11100_0000_00 // y
+	ConsonantCode_z     ConsonantCode = 0b0_0_00_0_11101_0000_00 // z
 	ConsonantCode_MASK  uint16        = 0b0_0_00_0_11111_0000_00
 	VowelCode_None      VowelCode     = 0b0_0_00_0_00000_0000_00 // Not found in valid Sango
 	VowelCode_a         VowelCode     = 0b0_0_00_0_00000_0010_00 // a
@@ -187,33 +187,33 @@ func hasValidInfix(code uint16) bool {
 func hasValidConsonant(code uint16) bool {
 	switch getConsonantCode(code) {
 	case ConsonantCode_h:
-	case ConsonantCode_H:
 	case ConsonantCode_b:
-	case ConsonantCode_B:
-	case ConsonantCode_q:
-	case ConsonantCode_Q:
 	case ConsonantCode_d:
-	case ConsonantCode_D:
 	case ConsonantCode_f:
 	case ConsonantCode_g:
-	case ConsonantCode_G:
+	case ConsonantCode_q:
+	case ConsonantCode_H:
 	case ConsonantCode_k:
-	case ConsonantCode_l:
-	case ConsonantCode_r:
-	case ConsonantCode_m:
-	case ConsonantCode_n:
-	case ConsonantCode_p:
 	case ConsonantCode_K:
+	case ConsonantCode_l:
+	case ConsonantCode_m:
+	case ConsonantCode_B:
 	case ConsonantCode_P:
+	case ConsonantCode_V:
+	case ConsonantCode_n:
+	case ConsonantCode_D:
+	case ConsonantCode_G:
+	case ConsonantCode_Q:
+	case ConsonantCode_Y:
+	case ConsonantCode_Z:
+	case ConsonantCode_p:
+	case ConsonantCode_r:
 	case ConsonantCode_s:
 	case ConsonantCode_t:
 	case ConsonantCode_v:
-	case ConsonantCode_V:
 	case ConsonantCode_w:
 	case ConsonantCode_y:
-	case ConsonantCode_Y:
 	case ConsonantCode_z:
-	case ConsonantCode_Z:
 	default:
 		return false
 	}
@@ -286,56 +286,56 @@ func utf8FromSangoCodeValue(code uint16, options WriteUtf8Options) string {
 		s += "h"
 	case ConsonantCode_b:
 		s += "b"
-	case ConsonantCode_B:
-		s += "mb"
-	case ConsonantCode_q:
-		s += "gb"
-	case ConsonantCode_Q:
-		s += "ngb"
 	case ConsonantCode_d:
 		s += "d"
-	case ConsonantCode_D:
-		s += "nd"
 	case ConsonantCode_f:
 		s += "f"
 	case ConsonantCode_g:
 		s += "g"
-	case ConsonantCode_G:
-		s += "ng"
+	case ConsonantCode_q:
+		s += "gb"
 	case ConsonantCode_k:
 		s += "k"
-	case ConsonantCode_l:
-		s += "l"
-	case ConsonantCode_r:
-		s += "r"
-	case ConsonantCode_m:
-		s += "m"
-	case ConsonantCode_n:
-		s += "n"
-	case ConsonantCode_p:
-		s += "p"
 	case ConsonantCode_K:
 		s += "kp"
+	case ConsonantCode_l:
+		s += "l"
+	case ConsonantCode_m:
+		s += "m"
+	case ConsonantCode_B:
+		s += "mb"
 	case ConsonantCode_P:
 		s += "mp"
+	case ConsonantCode_V:
+		s += "mv"
+	case ConsonantCode_n:
+		s += "n"
+	case ConsonantCode_D:
+		s += "nd"
+	case ConsonantCode_G:
+		s += "ng"
+	case ConsonantCode_Q:
+		s += "ngb"
+	case ConsonantCode_Y:
+		s += "ny"
+	case ConsonantCode_Z:
+		s += "nz"
+	case ConsonantCode_p:
+		s += "p"
+	case ConsonantCode_r:
+		s += "r"
 	case ConsonantCode_s:
 		s += "s"
 	case ConsonantCode_t:
 		s += "t"
 	case ConsonantCode_v:
 		s += "v"
-	case ConsonantCode_V:
-		s += "mv"
 	case ConsonantCode_w:
 		s += "w"
 	case ConsonantCode_y:
 		s += "y"
-	case ConsonantCode_Y:
-		s += "ny"
 	case ConsonantCode_z:
 		s += "z"
-	case ConsonantCode_Z:
-		s += "nz"
 	default:
 		return ""
 	}
@@ -533,8 +533,6 @@ func canonicalFromSangoCodeValue(code uint16) string {
 	switch getConsonantCode(code) {
 	case ConsonantCode_h:
 		s += "h"
-	case ConsonantCode_H:
-		s += "H"
 	case ConsonantCode_b:
 		s += "b"
 	case ConsonantCode_d:
@@ -545,14 +543,14 @@ func canonicalFromSangoCodeValue(code uint16) string {
 		s += "g"
 	case ConsonantCode_q:
 		s += "q"
+	case ConsonantCode_H:
+		s += "H"
 	case ConsonantCode_k:
 		s += "k"
 	case ConsonantCode_K:
 		s += "K"
 	case ConsonantCode_l:
 		s += "l"
-	case ConsonantCode_r:
-		s += "r"
 	case ConsonantCode_m:
 		s += "m"
 	case ConsonantCode_B:
@@ -575,6 +573,8 @@ func canonicalFromSangoCodeValue(code uint16) string {
 		s += "Z"
 	case ConsonantCode_p:
 		s += "p"
+	case ConsonantCode_r:
+		s += "r"
 	case ConsonantCode_s:
 		s += "s"
 	case ConsonantCode_t:
@@ -660,60 +660,60 @@ func canonicalToSangoCodeValue(affix, shift, consonant, vowel, pitch string) (ui
 	switch consonant {
 	case "h":
 		code |= uint16(ConsonantCode_h)
-	case "H":
-		code |= uint16(ConsonantCode_H)
 	case "b":
 		code |= uint16(ConsonantCode_b)
-	case "B":
-		code |= uint16(ConsonantCode_B)
-	case "q":
-		code |= uint16(ConsonantCode_q)
-	case "Q":
-		code |= uint16(ConsonantCode_Q)
 	case "d":
 		code |= uint16(ConsonantCode_d)
-	case "D":
-		code |= uint16(ConsonantCode_D)
 	case "f":
 		code |= uint16(ConsonantCode_f)
 	case "g":
 		code |= uint16(ConsonantCode_g)
-	case "G":
-		code |= uint16(ConsonantCode_G)
+	case "q":
+		code |= uint16(ConsonantCode_q)
+	case "H":
+		code |= uint16(ConsonantCode_H)
 	case "k":
 		code |= uint16(ConsonantCode_k)
-	case "l":
-		code |= uint16(ConsonantCode_l)
-	case "r":
-		code |= uint16(ConsonantCode_r)
-	case "m":
-		code |= uint16(ConsonantCode_m)
-	case "n":
-		code |= uint16(ConsonantCode_n)
-	case "p":
-		code |= uint16(ConsonantCode_p)
 	case "K":
 		code |= uint16(ConsonantCode_K)
+	case "l":
+		code |= uint16(ConsonantCode_l)
+	case "m":
+		code |= uint16(ConsonantCode_m)
+	case "B":
+		code |= uint16(ConsonantCode_B)
 	case "P":
 		code |= uint16(ConsonantCode_P)
+	case "V":
+		code |= uint16(ConsonantCode_V)
+	case "n":
+		code |= uint16(ConsonantCode_n)
+	case "D":
+		code |= uint16(ConsonantCode_D)
+	case "G":
+		code |= uint16(ConsonantCode_G)
+	case "Q":
+		code |= uint16(ConsonantCode_Q)
+	case "Y":
+		code |= uint16(ConsonantCode_Y)
+	case "Z":
+		code |= uint16(ConsonantCode_Z)
+	case "p":
+		code |= uint16(ConsonantCode_p)
+	case "r":
+		code |= uint16(ConsonantCode_r)
 	case "s":
 		code |= uint16(ConsonantCode_s)
 	case "t":
 		code |= uint16(ConsonantCode_t)
 	case "v":
 		code |= uint16(ConsonantCode_v)
-	case "V":
-		code |= uint16(ConsonantCode_V)
 	case "w":
 		code |= uint16(ConsonantCode_w)
 	case "y":
 		code |= uint16(ConsonantCode_y)
-	case "Y":
-		code |= uint16(ConsonantCode_Y)
 	case "z":
 		code |= uint16(ConsonantCode_z)
-	case "Z":
-		code |= uint16(ConsonantCode_Z)
 	default:
 		return IsSango_MASK, fmt.Errorf("bad consonant %q", consonant)
 	}
@@ -812,60 +812,60 @@ func utf8ToSangoCodeValue(affix, consonant, vowel, nasal string, options FromUtf
 	switch strings.ToLower(consonant) {
 	case "":
 		code |= uint16(ConsonantCode_h)
-	case "h":
-		code |= uint16(ConsonantCode_H)
 	case "b":
 		code |= uint16(ConsonantCode_b)
-	case "mb":
-		code |= uint16(ConsonantCode_B)
-	case "gb":
-		code |= uint16(ConsonantCode_q)
-	case "ngb":
-		code |= uint16(ConsonantCode_Q)
 	case "d":
 		code |= uint16(ConsonantCode_d)
-	case "nd":
-		code |= uint16(ConsonantCode_D)
 	case "f":
 		code |= uint16(ConsonantCode_f)
 	case "g":
 		code |= uint16(ConsonantCode_g)
-	case "ng":
-		code |= uint16(ConsonantCode_G)
+	case "gb":
+		code |= uint16(ConsonantCode_q)
+	case "h":
+		code |= uint16(ConsonantCode_H)
 	case "k":
 		code |= uint16(ConsonantCode_k)
-	case "l":
-		code |= uint16(ConsonantCode_l)
-	case "r":
-		code |= uint16(ConsonantCode_r)
-	case "m":
-		code |= uint16(ConsonantCode_m)
-	case "n":
-		code |= uint16(ConsonantCode_n)
-	case "p":
-		code |= uint16(ConsonantCode_p)
 	case "kp":
 		code |= uint16(ConsonantCode_K)
+	case "l":
+		code |= uint16(ConsonantCode_l)
+	case "m":
+		code |= uint16(ConsonantCode_m)
+	case "mb":
+		code |= uint16(ConsonantCode_B)
 	case "mp":
 		code |= uint16(ConsonantCode_P)
+	case "mv":
+		code |= uint16(ConsonantCode_V)
+	case "n":
+		code |= uint16(ConsonantCode_n)
+	case "nd":
+		code |= uint16(ConsonantCode_D)
+	case "ng":
+		code |= uint16(ConsonantCode_G)
+	case "ngb":
+		code |= uint16(ConsonantCode_Q)
+	case "ny":
+		code |= uint16(ConsonantCode_Y)
+	case "nz":
+		code |= uint16(ConsonantCode_Z)
+	case "p":
+		code |= uint16(ConsonantCode_p)
+	case "r":
+		code |= uint16(ConsonantCode_r)
 	case "s":
 		code |= uint16(ConsonantCode_s)
 	case "t":
 		code |= uint16(ConsonantCode_t)
 	case "v":
 		code |= uint16(ConsonantCode_v)
-	case "mv":
-		code |= uint16(ConsonantCode_V)
 	case "w":
 		code |= uint16(ConsonantCode_w)
 	case "y":
 		code |= uint16(ConsonantCode_y)
-	case "ny":
-		code |= uint16(ConsonantCode_Y)
 	case "z":
 		code |= uint16(ConsonantCode_z)
-	case "nz":
-		code |= uint16(ConsonantCode_Z)
 	default:
 		return IsSango_MASK, fmt.Errorf("bad consonant %q", consonant)
 	}

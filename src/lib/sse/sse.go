@@ -37,6 +37,9 @@ var (
 	FromLemma      = FromUtf8Options{TreatClosedVowelAsUnknownHeight: false, TreatUnmarkedPitchAsUnknownPitch: false}
 )
 
+func FromShortCode(shortCode uint64) SSE { return SSE(padRight(shortCode)) }
+func (sse SSE) GetShortCode() uint64     { return unpadRight(uint64(sse)) }
+
 func (sse SSE) WriteUtf8To(s *strings.Builder, options WriteUtf8Options) {
 	writeUtf8To(s, uint64(sse), options)
 }

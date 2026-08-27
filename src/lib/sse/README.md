@@ -113,28 +113,27 @@ phonetically similar phonemes are adjacent:
 
 | b10-b8 \\ b7-b6 | 00  | 01  | 10  | 11  |
 | :-------------: | :-: | :-: | :-: | :-: |
-|        000      |  —  |  —  |  h  |  H  |
-|        001      |  b  |  B  |  q  |  Q  |
-|        010      |  d  |  D  |  f  |  g  |
-|        011      |  G  |  k  |  l  |  r  |
-|        100      |  m  |  n  |  p  |  K  |
-|        101      |  P  |  s  |  t  |  v  |
-|        110      |  V  |  w  |  y  |  Y  |
-|        111      |  z  |  Z  |  —  |  —  |
+|        000      |  —  |  —  |  h  |  b  |
+|        001      |  d  |  f  |  g  |  q  |
+|        010      |  H  |  k  |  K  |  l  |
+|        011      |  m  |  B  |  P  |  V  |
+|        100      |  n  |  D  |  G  |  Q  |
+|        101      |  Y  |  Z  |  p  |  r  |
+|        110      |  s  |  t  |  v  |  w  |
+|        111      |  y  |  z  |  —  |  —  |
 
 ###### UTF8
 
 | b10-b8 \\ b7-b6 | 00  | 01  | 10  | 11  |
 | :-------------: | :-: | :-: | :-: | :-: |
-|        000      |  —  |  —  |     |  h  |
-|        001      |  b  | mb  | gb  | ngb |
-|        010      |  d  | nd  |  f  |  g  |
-|        011      | ng  |  k  |  l  |  r  |
-|        100      |  m  |  n  |  p  | kp  |
-|        101      | mp  |  s  |  t  |  v  |
-|        110      | mv  |  w  |  y  | ny  |
-|        110      |  z  | nz  |  y  | ny  |
-|        111      |  z  | nz  |  —  |  —  |
+|        000      |  —  |  —  |     |  b  |
+|        001      |  d  |  f  |  g  | gb  |
+|        010      |  h  |  k  | kp  |  l  |
+|        011      |  m  | mb  | mp  | mv  |
+|        100      |  n  | nd  | ng  | ngb |
+|        101      | ny  | nz  |  p  |  r  |
+|        110      |  s  |  t  |  v  |  w  |
+|        111      |  y  |  z  |  —  |  —  |
 
 Syllables with consonant codes marked by a — are ignored entirely.
 Unaspirated h (`0b00010`) is omitted entirely when outputting UTF8.
@@ -155,8 +154,8 @@ Unaspirated h (`0b00010`) is omitted entirely when outputting UTF8.
 | b5-b4 \\ b3-b2 | 00  | 01  | 10  | 11  |
 | :------------: | :-: | :-: | :-: | :-: |
 |       00       |  —  |  —  |  a  |  añ |
-|       01       |  ∉ |  ɛ  |  e  |  eñ |
-|       10       |  i  |  iñ |  ∅ |  ɔ  |
+|       01       |  x  |  ɛ  |  e  |  eñ |
+|       10       |  i  |  iñ |  c  |  ɔ  |
 |       11       |  o  |  oñ |  u  |  uñ |
 
 Syllables with vowel codes marked by a — are ignored entirely.
@@ -195,7 +194,7 @@ and use in code.
 
 | Format    | Value                   |
 | --------- | ----------------------- |
-| SSE       |                         |
+| SSE       | 0x9_0D7_A6E_362_655_000 |
 | Canonical | "bx^-kc:Bi:tx_"         |
 | UTF8      | "bɛ̂-kɔ̈mbïtɛ"            |
 
@@ -204,6 +203,6 @@ and use in code.
 
 | Format    | Value                   |
 | --------- | ----------------------- |
-| SSEs      |                         |
+| SSEs      | 0xF_0D7_A6E_362_655_000 |
 | Canonical | " =bx^-=kc:=Bi:=tx_"    |
 | UTF8      | " BƐ̂-KƆ̈MBÏTƐ"           |
