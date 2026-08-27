@@ -9,7 +9,12 @@ import (
 	"log"
 	"regexp"
 	"strings"
+
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
+
+// TODO: Can any of this not be exported?
 
 func IsSango(code uint16) bool { return isSango(code) }
 func IsValid(code uint16) bool { return isValid(code) }
@@ -250,7 +255,7 @@ func hasValidPitch(code uint16) bool {
 }
 
 func isValid(code uint16) bool {
-	if code == 0 {
+	if code == 0 || code == 16 { // invalid Unicode
 		return false
 	}
 	if !isSango(code) {
@@ -785,21 +790,21 @@ func utf8ToSangoCodeValue(affix, consonant, vowel, nasal string, options FromUtf
 	}
 	syllable := consonant + vowel + nasal
 	log.Printf("syllable      = %q\n", syllable)
-	syllableLower := strings.ToLower(syllable)
+	syllableLower := cases.Lower(language.English).String(syllable)
 	log.Printf("syllableLower = %q\n", syllableLower)
-	syllableTitle := strings.ToTitle(syllable)
+	syllableTitle := cases.Title(language.English).String(syllable)
 	log.Printf("syllableTitle = %q\n", syllableTitle)
-	syllableUpper := strings.ToUpper(syllable)
+	syllableUpper := cases.Upper(language.English).String(syllable)
 	log.Printf("syllableUpper = %q\n", syllableUpper)
 	switch syllable {
-	case syllableUpper:
-		code |= uint16(ShiftCode_UPPER)
-	case syllableTitle:
-		log.Println("Title")
-		code |= uint16(ShiftCode_Title)
 	case syllableLower:
 		log.Println("lower")
 		code |= uint16(ShiftCode_lower)
+	case syllableTitle:
+		log.Println("Title")
+		code |= uint16(ShiftCode_Title)
+	case syllableUpper:
+		code |= uint16(ShiftCode_UPPER)
 	default:
 		log.Println("Bad shift")
 		return IsSango_MASK, fmt.Errorf("bad case of syllable %q", syllable)
