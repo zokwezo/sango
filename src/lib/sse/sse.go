@@ -37,13 +37,14 @@ var (
 	FromLemma      = FromUtf8Options{TreatClosedVowelAsUnknownHeight: false, TreatUnmarkedPitchAsUnknownPitch: false}
 )
 
-func (sse SSE) String() string { return sse.toString() }
+func (sse SSE) String() string    { return sse.toString() }
+func (sse SSE) Less(rhs SSE) bool { return sse.less(rhs) }
 
 type SSEs []SSE
 
 func (sses SSEs) Len() int           { return len(sses) }
 func (sses SSEs) Swap(i, j int)      { sses[i], sses[j] = sses[j], sses[i] }
-func (sses SSEs) Less(i, j int) bool { return sses.less(i, j) }
+func (sses SSEs) Less(i, j int) bool { return sses[i].Less(sses[j]) }
 
 func FromShortCode(shortCode uint64) SSE { return SSE(padRight(shortCode)) }
 func (sse SSE) GetShortCode() uint64     { return unpadRight(uint64(sse)) }

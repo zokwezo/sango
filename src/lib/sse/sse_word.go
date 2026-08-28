@@ -14,11 +14,30 @@ func (sse SSE) toString() string {
 	return fmt.Sprintf("%v(%X)", s.String(), sse.GetShortCode())
 }
 
-// Sort SSE in major order after equating allophones and ignoring height and pitch,
-// then in minor order by numeric order.
-func (sses SSEs) less(i, j int) bool {
-	// TODO: Implement according to the above comment.
-	return uint64(sses[i]) < uint64(sses[j])
+func (sse SSE) less(rhs SSE) bool {
+	v := [2]uint64{uint64(sse), uint64(rhs)}
+	if v[0]&v[1]>>63 == 0 {
+		// At least one is Unicode. Use numeric ordering.
+		return v[0] < v[1]
+	}
+	// Both are Sango words. Use lexicographic order by syllable.
+	var codes [5][2]uint16
+	for k := range 5 {
+		for x := range 2 {
+			codes[4-k][x] = uint16(v[x] & 0b11111_1111_11)
+			v[x] >>= 12
+		}
+	}
+	for k := range 5 {
+		c := syllableCompare(codes[k])
+		if c < 0 {
+			return true
+		}
+		if c > 0 {
+			return false
+		}
+	}
+	return false // they are equal
 }
 
 func unpadRight(word uint64) uint64 {
