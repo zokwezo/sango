@@ -9,13 +9,13 @@ import (
 	cuckoo "github.com/panmari/cuckoofilter"
 )
 
-var canonicalRE = regexp.MustCompile(`^([-]?[BDGHKPQVYZbdfghklmnpqrstvwyz][AEIOUaceioux][_:^]){0,5}$`)
-
-// TODO: Generate Lemma from Canonical and check for match, inserting hyphens in the former as needed.
+var canonicalRE = regexp.MustCompile(
+	`([ -]?[~=#]?[hHbBqQdDfgGklrmnpKPstvVwyYzZ][aAeEiIoOxcuUXC][_:^]?)*`)
 
 func TestCanonicalRowFormat(t *testing.T) {
-	for _, row := range LexiconRows() {
+	for k, row := range LexiconRows() {
 		if matched := canonicalRE.MatchString(row.Canonical); !matched {
+			fmt.Printf("row[%v] = %#v\n", k, row)
 			t.Error(row.Canonical)
 		}
 	}
@@ -24,6 +24,7 @@ func TestCanonicalRowFormat(t *testing.T) {
 func TestCanonicalColFormat(t *testing.T) {
 	for _, canonical := range LexiconCols().Canonical {
 		if matched := canonicalRE.Match(canonical); !matched {
+			fmt.Printf("canonical = %#v\n", canonical)
 			t.Error(string(canonical))
 		}
 	}
@@ -234,12 +235,12 @@ func TestRowsMatchingToneless(t *testing.T) {
 	dictRowRegexp.TonelessRE = regexp.MustCompile(`^de$`)
 	actual := Lookup(LexiconRows(), dictRowRegexp)
 	expect := DictRows{
-		{"de", "de", "de", "de_", "VERB", "Subcat=Intr", "BODY", 3, "vomit", "vomit"},
 		{"de", "de", "dɛ", "dx_", "VERB", "", "STATE", 2, "remain", "remain"},
-		{"de", "dê", "dê", "de^", "NOUN", "", "HOW", 3, "coldness", "coldness, shade"},
 		{"de", "dë", "dɛ̈", "dx:", "VERB", "Subcat=Tran", "ACT", 2, "cut-or-grow", "cut, slice; grow, cultivate"},
 		{"de", "dë", "dɛ̈", "dx:", "VERB", "Subcat=Tran", "INTERACT", 3, "emit", "emit"},
+		{"de", "de", "de", "de_", "VERB", "Subcat=Intr", "BODY", 3, "vomit", "vomit"},
 		{"de", "dë", "dë", "de:", "VERB", "Subcat=Intr", "HOW", 3, "be-cold", "be cold"},
+		{"de", "dê", "dê", "de^", "NOUN", "", "HOW", 3, "coldness", "coldness, shade"},
 	}
 	actualStr := fmt.Sprintf("%v", actual)
 	expectStr := fmt.Sprintf("%v", expect)

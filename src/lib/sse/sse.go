@@ -37,6 +37,14 @@ var (
 	FromLemma      = FromUtf8Options{TreatClosedVowelAsUnknownHeight: false, TreatUnmarkedPitchAsUnknownPitch: false}
 )
 
+func (sse SSE) String() string { return sse.toString() }
+
+type SSEs []SSE
+
+func (sses SSEs) Len() int           { return len(sses) }
+func (sses SSEs) Swap(i, j int)      { sses[i], sses[j] = sses[j], sses[i] }
+func (sses SSEs) Less(i, j int) bool { return sses.less(i, j) }
+
 func FromShortCode(shortCode uint64) SSE { return SSE(padRight(shortCode)) }
 func (sse SSE) GetShortCode() uint64     { return unpadRight(uint64(sse)) }
 
@@ -64,13 +72,13 @@ func (sse SSE) WriteAsCanonicalTo(s *strings.Builder) {
 	writeAsCanonicalTo(s, uint64(sse))
 }
 
-func Utf8ToSSEs(s string, options FromUtf8Options) ([]SSE, error) {
+func Utf8ToSSEs(s string, options FromUtf8Options) (SSEs, error) {
 	utf8ToCodes := func(u string) ([]sseCode, int) {
 		return utf8ToCodes(u, options)
 	}
 	return toSSEs(s, utf8ToCodes)
 }
 
-func CanonicalToSSEs(s string) ([]SSE, error) {
+func CanonicalToSSEs(s string) (SSEs, error) {
 	return toSSEs(s, canonicalToCodes)
 }

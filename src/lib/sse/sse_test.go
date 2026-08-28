@@ -279,14 +279,14 @@ func TestGoodCanonicalToSSEs(t *testing.T) {
 	c := `U+65E5U+672CU+8A9EU+306FU+96E3U+3057U+3044U+0021U+0020U+00A7 ~ha_HO:-Do:ni^` +
 		` =ha_HO:-Do:ni^ ha^Dx_ ba^ha_-mo_-tx_nx_ ~bx^-kc:Bi:tx_bx^-kc:Bi:tx_U+96E3` +
 		`bx^-=kc:=Bi:=tx_ bx^-kc:Bi:tx_ ~bx^-kc:Bi:tx_ ~bx^-=kc:=Bi:=tx_ ha_HO:Do:ni^`
-	expect := []SSE{
+	expect := SSEs{
 		0x65E5_672C_8A9E_306F, 0x0010_96E3_3057_3044, 0x0021_0020_00A7_0000,
 		0xE_089_236_C72_423_000, 0xF_089_236_C72_423_000, 0xD_08B_455_000_000_000,
 		0xD_0CB_089_B31_E55_415, 0xE_0D7_A6E_362_655_0D7, 0x9_A6E_362_655_000_000,
 		0x0_010_96E_300_000_000, 0xB_0D7_A6E_362_655_000, 0xD_0D7_A6E_362_655_000,
 		0xE_0D7_A6E_362_655_000, 0xF_0D7_A6E_362_655_000, 0xD_089_236_472_423_000,
 	}
-	dumpSSEs := func(sses []SSE) string {
+	dumpSSEs := func(sses SSEs) string {
 		s := "{"
 		for _, sse := range sses {
 			s += fmt.Sprintf(" %016X", sse)
@@ -311,11 +311,11 @@ func TestBadCanonicalToSSEs(t *testing.T) {
 	c := `U+65E5U+672CU+8A9EU+306FU+96E3U+3057U+3044U+0021U+0020U+00A7` +
 		` ~ha_HO:-Do:ni^ =ha_HO:-jo:ni^ ha^Dx_ ba^ha_-mo_-tx_nx_ ~bx^-kc:Bi:tx_bx^-kc:Bi:tx_` +
 		`U+96E3=bx^-=kc:=Bi:=tx_ bx^-kc:Bi:tx_ ~bx^-kc:Bi:tx_ =bx^-=kc:=Bi:=tx_ ha_HO:Do:ni^`
-	expect := []SSE{
+	expect := SSEs{
 		0x65E5_672C_8A9E_306F, 0x0010_96E3_3057_3044, 0x0021_0020_00A7_0000,
 		0xE_089_236_C72_423_000, 0xF_089_236_000_000_000,
 	} // results up to broken parse
-	dumpSSEs := func(sses []SSE) string {
+	dumpSSEs := func(sses SSEs) string {
 		s := "{"
 		for _, sse := range sses {
 			s += fmt.Sprintf(" %016X", sse)
@@ -340,13 +340,13 @@ func TestCanonicalToSSEsForUnknownPitch(t *testing.T) {
 	log.Println("ENTER TestCanonicalToSSEsForUnknownPitch")
 	c := `~haHO-Doni =haHO-Doni haDx baha-mo-txnx ~bx-kcBitxbx-kcBitxU+96E3` +
 		`=bx-=kc=Bi=tx bx-kcBitx ~bx-kcBitx =bx-=kc=Bi=tx haHODoni`
-	expect := []SSE{
+	expect := SSEs{
 		0xA_088_234_C70_420_000, 0xF_088_234_C70_420_000, 0xD_088_454_000_000_000,
 		0xD_0C8_088_B30_E54_414, 0xE_0D4_A6C_360_654_0D4, 0x9_A6C_360_654_000_000,
 		0x0_010_96E_300_000_000, 0xB_0D4_A6C_360_654_000, 0xD_0D4_A6C_360_654_000,
 		0xE_0D4_A6C_360_654_000, 0xF_0D4_A6C_360_654_000, 0xD_088_234_470_420_000,
 	}
-	dumpSSEs := func(sses []SSE) string {
+	dumpSSEs := func(sses SSEs) string {
 		s := "{"
 		for _, sse := range sses {
 			s += fmt.Sprintf(" %016X", sse)
@@ -456,7 +456,7 @@ func TestGoodUtf8ToSSEs(t *testing.T) {
 	log.Println("ENTER TestGoodUtf8ToSSEs")
 	c := `日本語は難しい! § Ahöñ-ndönî AHÖÑ-NDÖNÎ ândɛ bâa-mo-tɛnɛ` +
 		` BƐ̂-kɔ̈mbïtɛbɛ̂-kɔ̈mbïtɛ難BƐ̂-KƆ̈MBÏTƐ bɛ̂-kɔ̈mbïtɛ BƐ̂-kɔ̈mbïtɛ BƐ̂-KƆ̈MBÏTƐ ahöñndönî`
-	expect := []SSE{
+	expect := SSEs{
 		0x65E5_672C_8A9E_306F, 0x0010_96E3_3057_3044, 0x0021_0020_00A7_0000, // `日本語は難しい! §`
 		0xE_089_236_C72_423_000, // ` Ahöñ-ndönî`
 		0xF_089_236_C72_423_000, // ` AHÖÑ-NDÖNÎ`
@@ -471,7 +471,7 @@ func TestGoodUtf8ToSSEs(t *testing.T) {
 		0xF_0D7_A6E_362_655_000, // ` BƐ̂-KƆ̈MBÏTƐ`
 		0xD_089_236_472_423_000, // ` ahöñndönî`
 	}
-	dumpSSEs := func(sses []SSE) string {
+	dumpSSEs := func(sses SSEs) string {
 		s := "{"
 		for _, sse := range sses {
 			s += fmt.Sprintf(" %016X", sse)
@@ -494,8 +494,8 @@ func TestGoodUtf8ToSSEs(t *testing.T) {
 func TestBadUtf8ToSSEs(t *testing.T) {
 	log.Println("ENTER TestBadUtf8ToSSEs")
 	c := `日本語𓋹はしい!`
-	expect := []SSE{0x65E5_672C_8A9E_0000} // results up to broken parse
-	dumpSSEs := func(sses []SSE) string {
+	expect := SSEs{0x65E5_672C_8A9E_0000} // results up to broken parse
+	dumpSSEs := func(sses SSEs) string {
 		s := "{"
 		for _, sse := range sses {
 			s += fmt.Sprintf(" %016X", sse)
@@ -520,13 +520,13 @@ func TestUtf8ToSSEsFromToneless(t *testing.T) {
 	log.Println("ENTER TestUtf8ToSSEsFromToneless")
 	c := `Ahonndoni AHONNDONI ande baamotene` +
 		` BE-kombitebe-kombite難BƐ̂-KƆ̈MBÏTƐ bɛ̂-kɔ̈mbïtɛ BƐ̂-kɔ̈mbïtɛ BƐ̂-KƆ̈MBÏTƐ ahöñndönî`
-	expect := []SSE{
+	expect := SSEs{
 		0xA_088_234_470_420_000, 0xF_088_234_470_420_000, 0xD_088_458_000_000_000,
 		0xD_0C8_088_330_658_418, 0xF_0D8_A70_360_658_0D8, 0x9_A70_360_658_000_000,
 		0x0_010_96E_300_000_000, 0xB_0D7_A6E_362_654_000, 0xD_0D7_A6E_362_654_000,
 		0xF_0D7_A6E_362_654_000, 0xF_0D7_A6E_362_654_000, 0xD_088_236_472_423_000,
 	}
-	dumpSSEs := func(sses []SSE) string {
+	dumpSSEs := func(sses SSEs) string {
 		s := "{"
 		for _, sse := range sses {
 			s += fmt.Sprintf(" %016X", sse)
@@ -593,7 +593,7 @@ func TestCodesToSSEs(t *testing.T) {
 		s(0xF0D7), s(0xBA6E), s(0xB362), s(0xB655), // ` BƐ̂-KƆ̈MBÏTƐ`
 		s(0xD089), s(0x9236), s(0x9472), s(0x9423), // ` ahöñndönî`
 	}
-	expect := []SSE{
+	expect := SSEs{
 		0x65E5_672C_8A9E_306F, 0x0010_96E3_3057_3044, 0x0021_0020_00A7_0000, // `日本語は難しい! §`
 		0xE_089_236_C72_423_000, // ` Ahöñ-ndönî`
 		0xF_089_236_C72_423_000, // ` AHÖÑ-NDÖNÎ`
@@ -608,7 +608,7 @@ func TestCodesToSSEs(t *testing.T) {
 		0xF_0D7_A6E_362_655_000, // ` BƐ̂-KƆ̈MBÏTƐ`
 		0xD_089_236_472_423_000, // ` ahöñndönî`
 	}
-	dumpSSEs := func(sses []SSE) string {
+	dumpSSEs := func(sses SSEs) string {
 		s := "{"
 		for _, sse := range sses {
 			s += fmt.Sprintf(" %016X", sse)
@@ -627,7 +627,7 @@ func TestCodesToSSEs(t *testing.T) {
 
 func TestWriteAsUtf8MixedKind(t *testing.T) {
 	log.Println("ENTER TestWriteAsUtf8MixedKind")
-	sses := []SSE{
+	sses := SSEs{
 		0x65E5_672C_8A9E_306F, 0x0010_96E3_3057_3044, 0x0021_0020_00A7_0000, // `日本語は難しい! §`
 		0xE_089_236_C72_423_000, // ` Ahöñ-ndönî`
 		0xF_089_236_C72_423_000, // ` AHÖÑ-NDÖNÎ`
@@ -661,7 +661,7 @@ func TestWriteAsUtf8MixedKind(t *testing.T) {
 
 func TestWriteAsTonelessMixedKind(t *testing.T) {
 	log.Println("ENTER TestWriteAsTonelessMixedKind")
-	sses := []SSE{
+	sses := SSEs{
 		0x65E5_672C_8A9E_306F, 0x0010_96E3_3057_3044, 0x0021_0020_00A7_0000, // `日本語は難しい! §`
 		0xE_089_236_C72_423_000, // ` Ahöñ-ndönî`
 		0xF_089_236_C72_423_000, // ` AHÖÑ-NDÖNÎ`
@@ -694,7 +694,7 @@ func TestWriteAsTonelessMixedKind(t *testing.T) {
 
 func TestWriteAsToneless(t *testing.T) {
 	log.Println("ENTER TestWriteAsToneless")
-	sses := []SSE{
+	sses := SSEs{
 		0xE_089_236_C72_423_000, // ` Ahöñ-ndönî`
 		0xF_089_236_C72_423_000, // ` AHÖÑ-NDÖNÎ`
 		0xD_08B_455_000_000_000, // ` ândɛ`
@@ -725,7 +725,7 @@ func TestWriteAsToneless(t *testing.T) {
 
 func TestWriteAsHeightless(t *testing.T) {
 	log.Println("ENTER TestWriteAsHeightless")
-	sses := []SSE{
+	sses := SSEs{
 		0xE_089_236_C72_423_000, // ` Ahöñ-ndönî`
 		0xF_089_236_C72_423_000, // ` AHÖÑ-NDÖNÎ`
 		0xD_08B_455_000_000_000, // ` ândɛ`
@@ -756,7 +756,7 @@ func TestWriteAsHeightless(t *testing.T) {
 
 func TestWriteAsLemma(t *testing.T) {
 	log.Println("ENTER TestWriteAsLemma")
-	sses := []SSE{
+	sses := SSEs{
 		0xE_089_236_C72_423_000, // ` Ahöñ-ndönî`
 		0xF_089_236_C72_423_000, // ` AHÖÑ-NDÖNÎ`
 		0xD_08B_455_000_000_000, // ` ândɛ`
@@ -787,7 +787,7 @@ func TestWriteAsLemma(t *testing.T) {
 
 func TestWriteAsLemmaForUnknownPitch(t *testing.T) {
 	log.Println("ENTER TestWriteAsLemmaForUnknownPitch")
-	sses := []SSE{
+	sses := SSEs{
 		0xE_088_234_C70_420_000, // ` Ahöñ-ndönî`
 		0xF_088_234_C70_420_000, // ` AHÖÑ-NDÖNÎ`
 		0xD_088_454_000_000_000, // ` ândɛ`
@@ -818,7 +818,7 @@ func TestWriteAsLemmaForUnknownPitch(t *testing.T) {
 
 func TestWriteAsCanonicalForUnknownPitch(t *testing.T) {
 	log.Println("ENTER TestWriteAsCanonicalForUnknownPitch")
-	sses := []SSE{
+	sses := SSEs{
 		0xE_088_234_C70_420_000, // ` Ahöñ-ndönî`
 		0xF_088_234_C70_420_000, // ` AHÖÑ-NDÖNÎ`
 		0xD_088_454_000_000_000, // ` ândɛ`
@@ -850,7 +850,7 @@ func TestWriteAsCanonicalForUnknownPitch(t *testing.T) {
 
 func TestWriteEmptyAsToneless(t *testing.T) {
 	log.Println("ENTER TestWriteEmptyAsToneless")
-	sses := []SSE{}
+	sses := SSEs{}
 	var s strings.Builder
 	for _, sse := range sses {
 		sse.WriteAsTonelessTo(&s)
@@ -866,7 +866,7 @@ func TestWriteEmptyAsToneless(t *testing.T) {
 
 func TestWriteEmptyAsHeightless(t *testing.T) {
 	log.Println("ENTER TestWriteEmptyAsHeightless")
-	sses := []SSE{}
+	sses := SSEs{}
 	var s strings.Builder
 	for _, sse := range sses {
 		sse.WriteAsHeightlessTo(&s)
@@ -882,7 +882,7 @@ func TestWriteEmptyAsHeightless(t *testing.T) {
 
 func TestWriteEmptyAsLemma(t *testing.T) {
 	log.Println("ENTER TestWriteEmptyAsLemma")
-	sses := []SSE{}
+	sses := SSEs{}
 	var s strings.Builder
 	for _, sse := range sses {
 		sse.WriteAsLemmaTo(&s)
@@ -898,7 +898,7 @@ func TestWriteEmptyAsLemma(t *testing.T) {
 
 func TestWriteEmptyAsUtf8(t *testing.T) {
 	log.Println("ENTER TestWriteEmptyAsUtf8")
-	sses := []SSE{}
+	sses := SSEs{}
 	var s strings.Builder
 	for _, sse := range sses {
 		sse.WriteAsUtf8To(&s)
@@ -916,7 +916,7 @@ func TestWriteEmptyAsUtf8(t *testing.T) {
 
 func TestWriteAsUtf8(t *testing.T) {
 	log.Println("ENTER TestWriteAsUtf8")
-	sses := []SSE{
+	sses := SSEs{
 		0xE_089_236_C72_423_000, // ` Ahöñ-ndönî`
 		0xF_089_236_C72_423_000, // ` AHÖÑ-NDÖNÎ`
 		0xD_08B_455_000_000_000, // ` ândɛ`

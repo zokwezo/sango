@@ -8,6 +8,19 @@ import (
 	"strings"
 )
 
+func (sse SSE) toString() string {
+	var s strings.Builder
+	sse.WriteAsCanonicalTo(&s)
+	return fmt.Sprintf("%v(%X)", s.String(), sse.GetShortCode())
+}
+
+// Sort SSE in major order after equating allophones and ignoring height and pitch,
+// then in minor order by numeric order.
+func (sses SSEs) less(i, j int) bool {
+	// TODO: Implement according to the above comment.
+	return uint64(sses[i]) < uint64(sses[j])
+}
+
 func unpadRight(word uint64) uint64 {
 	w := word
 	if w&0x_8_000_000_000_000_000 != 0 { // Sango word
@@ -342,14 +355,14 @@ func utf8ToCodes(s string, options FromUtf8Options) ([]sseCode, int) {
 	return codes, len(s)
 }
 
-func codesToSSEs(codes []sseCode) []SSE {
+func codesToSSEs(codes []sseCode) SSEs {
 	const (
 		msb4Mask  uint64 = 0xF000_0000_0000_0000
 		sangoMask uint64 = 0x8000_0000_0000_0000
 		spaceMask uint64 = 0x4000_0000_0000_0000
 		shiftMask uint64 = 0x3000_0000_0000_0000
 	)
-	var sses []SSE
+	var sses SSEs
 	var sse uint64
 	numCodesSaved := 0
 	var msb4 uint64
@@ -417,7 +430,7 @@ func codesToSSEs(codes []sseCode) []SSE {
 	return sses
 }
 
-func toSSEs(s string, toCodes func(string) ([]sseCode, int)) ([]SSE, error) {
+func toSSEs(s string, toCodes func(string) ([]sseCode, int)) (SSEs, error) {
 	var err error
 	codes, b := toCodes(s)
 	n := len(s)
