@@ -7,24 +7,33 @@ import (
 	"testing"
 
 	cuckoo "github.com/panmari/cuckoofilter"
+	sse "github.com/zokwezo/sango/src/lib/sse"
 )
 
 var canonicalRE = regexp.MustCompile(
 	`([ -]?[~=#]?[hHbBqQdDfgGklrmnpKPstvVwyYzZ][aAeEiIoOxcuUXC][_:^]?)*`)
 
 func TestCanonicalRowFormat(t *testing.T) {
-	for k, row := range LexiconRows() {
+	rows := LexiconRows()
+	if len(rows) < 2000 {
+		panic("Bad num lexicon rows")
+	}
+	var prevCanonical string
+	for k, row := range rows {
 		if matched := canonicalRE.MatchString(row.Canonical); !matched {
-			fmt.Printf("row[%v] = %#v\n", k, row)
 			t.Error(row.Canonical)
 		}
+		if c := sse.CanonicalCompare(prevCanonical, row.Canonical); c > 0 {
+			t.Errorf("lexicon row[%v] is out of order, compare = %v\nprev = %q\ncurr = %q\n", k, c, prevCanonical, row.Canonical)
+			panic("TEST")
+		}
+		prevCanonical = row.Canonical
 	}
 }
 
 func TestCanonicalColFormat(t *testing.T) {
 	for _, canonical := range LexiconCols().Canonical {
 		if matched := canonicalRE.Match(canonical); !matched {
-			fmt.Printf("canonical = %#v\n", canonical)
 			t.Error(string(canonical))
 		}
 	}
@@ -236,9 +245,9 @@ func TestRowsMatchingToneless(t *testing.T) {
 	actual := Lookup(LexiconRows(), dictRowRegexp)
 	expect := DictRows{
 		{"de", "de", "dɛ", "dx_", "VERB", "", "STATE", 2, "remain", "remain"},
+		{"de", "de", "de", "de_", "VERB", "Subcat=Intr", "BODY", 3, "vomit", "vomit"},
 		{"de", "dë", "dɛ̈", "dx:", "VERB", "Subcat=Tran", "ACT", 2, "cut-or-grow", "cut, slice; grow, cultivate"},
 		{"de", "dë", "dɛ̈", "dx:", "VERB", "Subcat=Tran", "INTERACT", 3, "emit", "emit"},
-		{"de", "de", "de", "de_", "VERB", "Subcat=Intr", "BODY", 3, "vomit", "vomit"},
 		{"de", "dë", "dë", "de:", "VERB", "Subcat=Intr", "HOW", 3, "be-cold", "be cold"},
 		{"de", "dê", "dê", "de^", "NOUN", "", "HOW", 3, "coldness", "coldness, shade"},
 	}

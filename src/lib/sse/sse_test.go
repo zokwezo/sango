@@ -20,7 +20,7 @@ func TestMain(m *testing.M) {
 
 // TODO: Add test to compare SSEs.
 func TestSyllableCompare(t *testing.T) {
-	syllables := [5]uint16{0xF089, 0xE089, 0x9236, 0x9423, 0x9C72}
+	canonicals := [5]string{" =ha_", " ~ha_", "-Do:", "ni^", "HO:"}
 	expect := [5][5]int{
 		{0, 0, -1, -1, -1},
 		{0, 0, -1, -1, -1},
@@ -28,17 +28,11 @@ func TestSyllableCompare(t *testing.T) {
 		{1, 1, 1, 0, -1},
 		{1, 1, 1, 1, 0},
 	}
-	var codes [2]uint16
-	for l, lhs := range syllables {
-		codes[0] = lhs
-		for r, rhs := range syllables {
-			codes[1] = rhs
-			actual := syllableCompare(codes)
-			if actual != expect[l][r] {
-				lhsKey := canonicalFromSangoCodeValue(lhs)
-				rhsKey := canonicalFromSangoCodeValue(rhs)
-				t.Errorf("bad syllableCompare[%v][%v](%q, %q)\nexpected %v but found %v\n",
-					l, r, lhsKey, rhsKey, expect[l][r], actual)
+	for l, lhs := range canonicals {
+		for r, rhs := range canonicals {
+			if actual := CanonicalCompare(lhs, rhs); actual != expect[l][r] {
+				t.Errorf("badCanonicalCompare[%v][%v](%q, %q)\nexpected %v but found %v\n",
+					l, r, lhs, rhs, expect[l][r], actual)
 			}
 		}
 	}

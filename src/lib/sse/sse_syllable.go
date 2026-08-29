@@ -143,67 +143,87 @@ const (
 	utf8RE_UnicodeEnd
 )
 
-func syllableCompare(codes [2]uint16) int {
-	var keys [2]string
-	for k, code := range codes {
-		key := canonicalFromSangoCodeValue(code & 0b11111_1111_11)
-		key = strings.ReplaceAll(key, "_", "#")
-		key = strings.ReplaceAll(key, ":", "$")
-		key = strings.ReplaceAll(key, "^", "%")
-		key = strings.ReplaceAll(key, "h", "&")
-		key = strings.ReplaceAll(key, "H", "'")
-		key = strings.ReplaceAll(key, "a", "(")
-		key = strings.ReplaceAll(key, "A", ")")
-		key = strings.ReplaceAll(key, "b", "*")
-		key = strings.ReplaceAll(key, "d", "+")
-		key = strings.ReplaceAll(key, "X", ",")
-		key = strings.ReplaceAll(key, "x", "-")
-		key = strings.ReplaceAll(key, "e", ".")
-		key = strings.ReplaceAll(key, "E", "/")
-		key = strings.ReplaceAll(key, "f", "0")
-		key = strings.ReplaceAll(key, "g", "1")
-		key = strings.ReplaceAll(key, "q", "2")
-		key = strings.ReplaceAll(key, "i", "3")
-		key = strings.ReplaceAll(key, "I", "4")
-		key = strings.ReplaceAll(key, "k", "5")
-		key = strings.ReplaceAll(key, "K", "6")
-		key = strings.ReplaceAll(key, "l", "7")
-		key = strings.ReplaceAll(key, "r", "8")
-		key = strings.ReplaceAll(key, "m", "9")
-		key = strings.ReplaceAll(key, "B", ":")
-		key = strings.ReplaceAll(key, "P", ";")
-		key = strings.ReplaceAll(key, "V", "<")
-		key = strings.ReplaceAll(key, "n", "=")
-		key = strings.ReplaceAll(key, "D", ">")
-		key = strings.ReplaceAll(key, "G", "?")
-		key = strings.ReplaceAll(key, "Q", "@")
-		key = strings.ReplaceAll(key, "Y", "A")
-		key = strings.ReplaceAll(key, "Z", "B")
-		key = strings.ReplaceAll(key, "c", "D")
-		key = strings.ReplaceAll(key, "o", "E")
-		key = strings.ReplaceAll(key, "O", "F")
-		key = strings.ReplaceAll(key, "p", "G")
-		key = strings.ReplaceAll(key, "s", "H")
-		key = strings.ReplaceAll(key, "t", "I")
-		key = strings.ReplaceAll(key, "U", "J")
-		key = strings.ReplaceAll(key, "u", "K")
-		key = strings.ReplaceAll(key, "v", "L")
-		key = strings.ReplaceAll(key, "w", "M")
-		key = strings.ReplaceAll(key, "y", "N")
-		key = strings.ReplaceAll(key, "z", "O")
-		minorKey := key
-		key = strings.ReplaceAll(key, "'", "&")
-		key = strings.ReplaceAll(key, "8", "7")
-		key = strings.ReplaceAll(key, "-", ",")
-		key = strings.ReplaceAll(key, ".", ",")
-		key = strings.ReplaceAll(key, "D", "C")
-		key = strings.ReplaceAll(key, "O", "C")
-		keys[k] = key + minorKey
+func syllableCompare(lhs, rhs uint16) int {
+	l := canonicalFromSangoCodeValue(lhs & 0b1_11111_1111_11)
+	r := canonicalFromSangoCodeValue(rhs & 0b1_11111_1111_11)
+	return canonicalCompare(l, r)
+}
+
+func canonicalKey(canonical string) string {
+	if canonical == "" {
+		return ""
 	}
-	if keys[0] < keys[1] {
+	key := canonical
+	key = strings.ReplaceAll(key, "~", "")
+	key = strings.ReplaceAll(key, "=", "")
+	key = strings.ReplaceAll(key, "#", "")
+	key = strings.ReplaceAll(key, "U+", "~")
+	key = strings.ReplaceAll(key, " ", " ")
+	key = strings.ReplaceAll(key, "-", "!")
+	key = strings.ReplaceAll(key, "_", "#")
+	key = strings.ReplaceAll(key, ":", "$")
+	key = strings.ReplaceAll(key, "^", "%")
+	key = strings.ReplaceAll(key, "h", "&")
+	key = strings.ReplaceAll(key, "H", "'")
+	key = strings.ReplaceAll(key, "a", "(")
+	key = strings.ReplaceAll(key, "A", ")")
+	key = strings.ReplaceAll(key, "b", "*")
+	key = strings.ReplaceAll(key, "d", "+")
+	key = strings.ReplaceAll(key, "X", ",")
+	key = strings.ReplaceAll(key, "x", "-")
+	key = strings.ReplaceAll(key, "e", ".")
+	key = strings.ReplaceAll(key, "E", "/")
+	key = strings.ReplaceAll(key, "f", "0")
+	key = strings.ReplaceAll(key, "g", "1")
+	key = strings.ReplaceAll(key, "q", "2")
+	key = strings.ReplaceAll(key, "i", "3")
+	key = strings.ReplaceAll(key, "I", "4")
+	key = strings.ReplaceAll(key, "k", "5")
+	key = strings.ReplaceAll(key, "K", "6")
+	key = strings.ReplaceAll(key, "l", "7")
+	key = strings.ReplaceAll(key, "r", "8")
+	key = strings.ReplaceAll(key, "m", "9")
+	key = strings.ReplaceAll(key, "B", ":")
+	key = strings.ReplaceAll(key, "P", ";")
+	key = strings.ReplaceAll(key, "V", "<")
+	key = strings.ReplaceAll(key, "n", "=")
+	key = strings.ReplaceAll(key, "D", ">")
+	key = strings.ReplaceAll(key, "G", "?")
+	key = strings.ReplaceAll(key, "Q", "@")
+	key = strings.ReplaceAll(key, "Y", "A")
+	key = strings.ReplaceAll(key, "Z", "B")
+	// key = strings.ReplaceAll(key, "C", "C")
+	key = strings.ReplaceAll(key, "c", "D")
+	key = strings.ReplaceAll(key, "o", "E")
+	key = strings.ReplaceAll(key, "O", "F")
+	key = strings.ReplaceAll(key, "p", "G")
+	key = strings.ReplaceAll(key, "s", "H")
+	key = strings.ReplaceAll(key, "t", "I")
+	key = strings.ReplaceAll(key, "U", "J")
+	key = strings.ReplaceAll(key, "u", "K")
+	key = strings.ReplaceAll(key, "v", "L")
+	key = strings.ReplaceAll(key, "w", "M")
+	key = strings.ReplaceAll(key, "y", "N")
+	key = strings.ReplaceAll(key, "z", "O")
+	minorKey := key
+	key = strings.ReplaceAll(key, "&", "")
+	key = strings.ReplaceAll(key, "'", "")
+	key = strings.ReplaceAll(key, "!", " ")
+	key = strings.ReplaceAll(key, "8", "7")
+	key = strings.ReplaceAll(key, "-", ",")
+	key = strings.ReplaceAll(key, ".", ",")
+	key = strings.ReplaceAll(key, "D", "C")
+	key = strings.ReplaceAll(key, "E", "C")
+	return key + "\t" + minorKey
+}
+
+func canonicalCompare(lhs, rhs string) int {
+	lhsKey := canonicalKey(lhs)
+	rhsKey := canonicalKey(rhs)
+	if lhsKey < rhsKey {
 		return -1
 	}
-	if keys[1] < keys[0] {
+	if rhsKey < lhsKey {
 		return 1
 	}
 	return 0

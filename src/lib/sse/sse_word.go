@@ -24,12 +24,12 @@ func (sse SSE) less(rhs SSE) bool {
 	var codes [5][2]uint16
 	for k := range 5 {
 		for x := range 2 {
-			codes[4-k][x] = uint16(v[x] & 0b11111_1111_11)
+			codes[4-k][x] = uint16(v[x] & 0b1_11111_1111_11)
 			v[x] >>= 12
 		}
 	}
-	for k := range 5 {
-		c := syllableCompare(codes[k])
+	for _, code := range codes {
+		c := syllableCompare(code[0], code[1])
 		if c < 0 {
 			return true
 		}

@@ -37,8 +37,10 @@ var (
 	FromLemma      = FromUtf8Options{TreatClosedVowelAsUnknownHeight: false, TreatUnmarkedPitchAsUnknownPitch: false}
 )
 
-func (sse SSE) String() string    { return sse.toString() }
-func (sse SSE) Less(rhs SSE) bool { return sse.less(rhs) }
+func (sse SSE) String() string             { return sse.toString() }
+func (sse SSE) Less(rhs SSE) bool          { return sse.less(rhs) }
+func CanonicalKey(canonical string) string { return canonicalKey(canonical) }
+func CanonicalCompare(lhs, rhs string) int { return canonicalCompare(lhs, rhs) }
 
 type SSEs []SSE
 

@@ -80,6 +80,8 @@ func main() {
 		}
 		fmt.Printf("\t\t{%q, %q, %q, %q, %q, %q, %q, %v, %q, %q},\n", a, b, c, d, e, f, g, h, i, j)
 	}
+
+	// Output some statistics.
 	fmt.Println("")
 	fmt.Println("POS")
 	posTotal := 0
