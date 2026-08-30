@@ -1387,7 +1387,6 @@ var lexiconRowsAndCols = func() dictRowsAndCols {
 		{"", "", "", "Ga^ho_", "NOUN", "", "OBJ", 6, "tobacco-or-cigarette", "tobacco, cigarette"},
 		{"", "", "", "Ga^po^", "NOUN", "", "OBJ", 6, "hoe", "hoe"},
 		{"", "", "", "Ga^si^", "NOUN", "", "BODY", 4, "sneeze", "sneeze"},
-		{"", "", "", "GA:", "NOUN", "", "PLANT", 6, "sugarcane", "sugarcane"},
 		{"", "", "", "Gx_", "NOUN", "", "PLANT", 6, "sugarcane", "sugarcane"},
 		{"", "", "", "Gx_", "VERB", "Subcat=Intr", "STATE", 2, "be-thin", "shrink, be thin, scrawny"},
 		{"", "", "", "Gx_Dx:", "NOUN", "", "OBJ", 2, "chair", "chair"},

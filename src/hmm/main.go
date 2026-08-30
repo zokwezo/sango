@@ -1,194 +1,170 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"math"
 )
 
 type (
-	Syllable byte
-	Tag      byte
+	Syllable int8
+	Tag      int8
 )
 
-var S = map[string]Syllable{
-	"alice":     Syllable(65),
-	"bob":       Syllable(66),
-	"charlie":   Syllable(67),
-	"cupertino": Syllable(68),
-	"jobs":      Syllable(69),
-	"london":    Syllable(70),
-	"paris":     Syllable(71),
-	"saw":       Syllable(72),
-	"steve":     Syllable(73),
-	"to":        Syllable(74),
-	"visited":   Syllable(75),
-	"went":      Syllable(76),
+const NumSyllables int = 13
+
+func (syllable Syllable) String() string {
+	return [NumSyllables]string{
+		"UNKNOWN",
+		"alice",
+		"bob",
+		"charlie",
+		"cupertino",
+		"jobs",
+		"london",
+		"paris",
+		"saw",
+		"steve",
+		"to",
+		"visited",
+		"went",
+	}[syllable]
 }
 
-var T = map[string]Tag{
-	"B-LOC": Tag(49),
-	"B-PER": Tag(50),
-	"I-PER": Tag(51),
-	"O":     Tag(52),
+var syllableFromNameMap_ = func() map[string]Syllable {
+	m := make(map[string]Syllable, NumSyllables)
+	for i := range NumSyllables {
+		s := Syllable(i)
+		m[s.String()] = s
+	}
+	return m
+}()
+
+func S(syllableName string) Syllable {
+	return syllableFromNameMap_[syllableName]
 }
+
+// TAGS
+const (
+	UnknownPitch Tag = iota
+	LowPitch
+	MedPitch
+	HighPitch
+	NumTags
+)
 
 func (tag Tag) String() string {
-	for s, t := range T {
-		if t == tag {
-			return s
-		}
-	}
-	return "UNKNOWN_TAG"
+	return [NumTags]string{
+		"?",
+		"_",
+		":",
+		"^",
+	}[tag]
 }
 
-const (
-	UNKNOWN_SYLLABLE Syllable = Syllable(33)
-	UNKNOWN_TAG      Tag      = Tag(48)
-	LO_TAG           Tag      = Tag(49)
-	ME_TAG           Tag      = Tag(50)
-	HI_TAG           Tag      = Tag(51)
-)
-
 type HMM struct {
-	Transition map[Tag]map[Tag]float64
-	Emission   map[Tag]map[Syllable]float64
-	StartTags  map[Tag]float64
-	TagCounts  map[Tag]int
-	Vocab      map[Syllable]bool
-	Tags       []Tag
+	Transition [NumTags][NumTags]float64      `json:"transition"` // [prevTag][nextTag] = log P(nextTag  | prevTag)
+	Emission   [NumTags][NumSyllables]float64 `json:"emission"`   // [tag][syllable]    = log P(syllable | tag)
+	StartTags  [NumTags]float64               `json:"startTags"`  // [tag]              = log P(tag)
+	TagCounts  [NumTags]int                   `json:"tagCounts"`  // [tag] = # occurances of tag in training corpus
 }
 
 // Metrics holds the classification performance statistics
 type Metrics struct {
-	Precision float64
-	Recall    float64
-	F1Score   float64
-	TP        int // True Positives
-	FP        int // False Positives
-	FN        int // False Negatives
-}
-
-func NewHMM() *HMM {
-	return &HMM{
-		Transition: make(map[Tag]map[Tag]float64),
-		Emission:   make(map[Tag]map[Syllable]float64),
-		StartTags:  make(map[Tag]float64),
-		TagCounts:  make(map[Tag]int),
-		Vocab:      make(map[Syllable]bool),
-		Tags:       []Tag{},
-	}
+	Precision float64 // fraction of predicted that are correct
+	Recall    float64 // fraction of correct that are predicted
+	F1Score   float64 // harmonic mean of Precision and Recall
+	TP        int     // # true  positives
+	FP        int     // # false positives
+	FN        int     // # false negatives
 }
 
 // Train computes probabilities using Laplace (Add-1) smoothing and saves them as log values
+// NOTE: Training corpus must contain every syllable at least once.
 func (h *HMM) Train(sentences [][]Syllable, tags [][]Tag) {
 	totalSentences := float64(len(sentences))
-	rawStart := make(map[Tag]float64)
-	rawTrans := make(map[Tag]map[Tag]float64)
-	rawEmis := make(map[Tag]map[Syllable]float64)
-
-	tagMap := make(map[Tag]bool)
+	rawStart := [NumTags]float64{}
+	rawTrans := [NumTags][NumTags]float64{}
+	rawEmis := [NumTags][NumSyllables]float64{}
 	for i := range sentences {
-		prevTag := UNKNOWN_TAG
+		prevTag := UnknownPitch
 		for j := range sentences[i] {
 			syllable := sentences[i][j]
 			tag := tags[i][j]
-
 			h.TagCounts[tag]++
-			h.Vocab[syllable] = true
-			tagMap[tag] = true
 
 			if j == 0 {
 				rawStart[tag]++
 			} else {
-				if rawTrans[prevTag] == nil {
-					rawTrans[prevTag] = make(map[Tag]float64)
-				}
 				rawTrans[prevTag][tag]++
 			}
 
-			if rawEmis[tag] == nil {
-				rawEmis[tag] = make(map[Syllable]float64)
-			}
 			rawEmis[tag][syllable]++
 			prevTag = tag
 		}
 	}
-
-	for tag := range tagMap {
-		h.Tags = append(h.Tags, tag)
-	}
-
-	numTags := float64(len(h.Tags))
-	numSyllables := float64(len(h.Vocab))
-
-	for _, tag := range h.Tags {
+	numTags := float64(NumTags)
+	numSyllables := float64(NumSyllables)
+	for t := range NumTags {
+		tag := Tag(t)
 		count := rawStart[tag]
 		h.StartTags[tag] = math.Log((count + 1.0) / (totalSentences + numTags))
 	}
-
-	for _, prevTag := range h.Tags {
-		h.Transition[prevTag] = make(map[Tag]float64)
+	for p := range NumTags {
+		prevTag := Tag(p)
+		h.Transition[prevTag] = [NumTags]float64{}
 		totalTransitionsOut := 0.0
-		for _, nextTag := range h.Tags {
+		for n := range NumTags {
+			nextTag := Tag(n)
 			totalTransitionsOut += rawTrans[prevTag][nextTag]
 		}
-		for _, nextTag := range h.Tags {
+		for n := range NumTags {
+			nextTag := Tag(n)
 			count := rawTrans[prevTag][nextTag]
 			prob := (count + 1.0) / (totalTransitionsOut + numTags)
 			h.Transition[prevTag][nextTag] = math.Log(prob)
 		}
 	}
-
-	for _, tag := range h.Tags {
-		h.Emission[tag] = make(map[Syllable]float64)
+	for t := range NumTags {
+		tag := Tag(t)
+		h.Emission[tag] = [NumSyllables]float64{}
 		totalEmissionsOut := float64(h.TagCounts[tag])
-		for syllable := range h.Vocab {
+		for syllable := range NumSyllables {
 			count := rawEmis[tag][syllable]
 			prob := (count + 1.0) / (totalEmissionsOut + numSyllables)
 			h.Emission[tag][syllable] = math.Log(prob)
 		}
-		h.Emission[tag][UNKNOWN_SYLLABLE] = math.Log(1.0 / (totalEmissionsOut + numSyllables))
+		h.Emission[tag][0] = math.Log(1.0 / (totalEmissionsOut + numSyllables))
 	}
 }
 
 // Predict uses the Viterbi algorithm operating in log space
-// NOTE: what is the difference between a token and a syllable
-func (h *HMM) Predict(tokens []Syllable) []Tag {
+func (h HMM) Predict(tokens []Syllable) []Tag {
 	if len(tokens) == 0 {
 		return nil
 	}
-
 	numTokens := len(tokens)
-	viterbi := make([]map[Tag]float64, numTokens)
-	backpointer := make([]map[Tag]Tag, numTokens)
-
-	viterbi[0] = make(map[Tag]float64)
-	backpointer[0] = make(map[Tag]Tag)
+	viterbi := make([][NumTags]float64, numTokens)
+	backpointer := make([][NumTags]Tag, numTokens)
+	viterbi[0] = [NumTags]float64{}
+	backpointer[0] = [NumTags]Tag{}
 	firstSyllable := tokens[0]
-
-	for _, tag := range h.Tags {
+	for t := range NumTags {
+		tag := Tag(t)
 		emissionLog := h.Emission[tag][firstSyllable]
-		if !h.Vocab[firstSyllable] {
-			emissionLog = h.Emission[tag][UNKNOWN_SYLLABLE]
-		}
 		viterbi[0][tag] = h.StartTags[tag] + emissionLog
 	}
-
 	for t := 1; t < numTokens; t++ {
-		viterbi[t] = make(map[Tag]float64)
-		backpointer[t] = make(map[Tag]Tag)
+		viterbi[t] = [NumTags]float64{}
+		backpointer[t] = [NumTags]Tag{}
 		syllable := tokens[t]
-
-		for _, currTag := range h.Tags {
+		for c := range NumTags {
+			currTag := Tag(c)
 			maxLogProb := math.Inf(-1)
-			bestPrevTag := h.Tags[0]
-
+			bestPrevTag := UnknownPitch
 			currEmissionLog := h.Emission[currTag][syllable]
-			if !h.Vocab[syllable] {
-				currEmissionLog = h.Emission[currTag][UNKNOWN_SYLLABLE]
-			}
-
-			for _, prevTag := range h.Tags {
+			for p := range NumTags {
+				prevTag := Tag(p)
 				logProb := viterbi[t-1][prevTag] + h.Transition[prevTag][currTag] + currEmissionLog
 				if logProb > maxLogProb {
 					maxLogProb = logProb
@@ -199,66 +175,106 @@ func (h *HMM) Predict(tokens []Syllable) []Tag {
 			backpointer[t][currTag] = bestPrevTag
 		}
 	}
-
 	maxFinalLog := math.Inf(-1)
-	bestFinalTag := h.Tags[0]
+	bestFinalTag := UnknownPitch
 	lastIdx := numTokens - 1
-
-	for _, tag := range h.Tags {
+	for t := range NumTags {
+		tag := Tag(t)
 		if viterbi[lastIdx][tag] > maxFinalLog {
 			maxFinalLog = viterbi[lastIdx][tag]
 			bestFinalTag = tag
 		}
 	}
-
 	resultTags := make([]Tag, numTokens)
 	currTag := bestFinalTag
 	for t := lastIdx; t >= 0; t-- {
 		resultTags[t] = currTag
 		currTag = backpointer[t][currTag]
 	}
-
 	return resultTags
 }
 
 // Evaluate runs predictions on test data and prints Precision, Recall, and F1 per tag
-func (h *HMM) Evaluate(testSentences [][]Syllable, testTags [][]Tag) map[Tag]*Metrics {
-	metricsMap := make(map[Tag]*Metrics)
-	for _, tag := range h.Tags {
-		metricsMap[tag] = &Metrics{}
+func (h HMM) Evaluate(predictedTags, expectedTags [][]Tag) [NumTags]Metrics {
+	metrics := [NumTags]Metrics{}
+	if len(predictedTags) != len(expectedTags) {
+		panic("bad number of expected tags passed to Evaluate")
 	}
-
-	// 1. Accumulate True Positives, False Positives, and False Negatives
-	for i := range testSentences {
-		predicted := h.Predict(testSentences[i])
-		expected := testTags[i]
-
+	for i := range predictedTags {
+		predicted := predictedTags[i]
+		expected := expectedTags[i]
 		for j := range expected {
 			trueTag := expected[j]
 			predTag := predicted[j]
-
-			// Handle potential unseen tags in testing data safely
-			if metricsMap[trueTag] == nil {
-				metricsMap[trueTag] = &Metrics{}
-			}
-			if metricsMap[predTag] == nil {
-				metricsMap[predTag] = &Metrics{}
-			}
-
 			if trueTag == predTag {
-				metricsMap[trueTag].TP++
+				metrics[trueTag].TP++
 			} else {
-				metricsMap[predTag].FP++
-				metricsMap[trueTag].FN++
+				metrics[predTag].FP++
+				metrics[trueTag].FN++
 			}
 		}
 	}
+	return metrics
+}
 
-	// 2. Compute finalized rates
-	fmt.Printf("\n%-12s | %-10s | %-10s | %-10s\n", "TAG", "PRECISION", "RECALL", "F1-SCORE")
-	fmt.Println("-----------------------------------------------------")
+func main() {
+	// 1. Train model and persist to disk in JSON format
+	var serializedModel string
+	{
+		trainingSentences := [][]Syllable{
+			{S("steve"), S("visited"), S("cupertino")},
+			{S("alice"), S("saw"), S("paris")},
+			{S("bob"), S("went"), S("to"), S("london")},
+		}
+		trainingTags := [][]Tag{
+			{MedPitch, HighPitch, LowPitch},
+			{MedPitch, HighPitch, LowPitch},
+			{MedPitch, HighPitch, HighPitch, LowPitch},
+		}
+		model := HMM{}
+		model.Train(trainingSentences, trainingTags)
+		jsonBytes, err := json.Marshal(model)
+		if err != nil {
+			panic(err)
+		}
+		serializedModel = string(jsonBytes)
+	}
 
-	for tag, m := range metricsMap {
+	// 2. Read in JSON-serialized model from disk
+	fmt.Println("Marshaled JSON string:")
+	fmt.Println(serializedModel)
+	var model HMM
+	err := json.Unmarshal([]byte(serializedModel), &model)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("Unmarshaled model:")
+	fmt.Printf("%#v\n", model)
+
+	// 3. Predict tags on test data
+	testSentences := [][]Syllable{
+		{S("alice"), S("visited"), S("cupertino")}, // Mix of known names & places
+		{S("charlie"), S("saw"), S("london")},      // "charlie" is a completely new unknown syllable
+	}
+	var predictedTags [][]Tag
+	for i := range testSentences {
+		predictedTags = append(predictedTags, model.Predict(testSentences[i]))
+	}
+
+	// 4. Evaluate against expected tags and generate metrics
+	expectedTags := [][]Tag{
+		{LowPitch, HighPitch, LowPitch},
+		{MedPitch, HighPitch, LowPitch},
+	}
+	fmt.Println("Evaluating Model Metrics against Test Set...")
+	metrics := model.Evaluate(predictedTags, expectedTags)
+
+	// 5. Output metrics
+	fmt.Println("")
+	fmt.Println("PITCH | PRECISION |  RECALL   | F1-SCORE   ")
+	fmt.Println("------+-----------+-----------+------------")
+	for t, m := range metrics {
+		tag := Tag(t)
 		if m.TP+m.FP > 0 {
 			m.Precision = float64(m.TP) / float64(m.TP+m.FP)
 		}
@@ -268,41 +284,7 @@ func (h *HMM) Evaluate(testSentences [][]Syllable, testTags [][]Tag) map[Tag]*Me
 		if m.Precision+m.Recall > 0 {
 			m.F1Score = 2 * (m.Precision * m.Recall) / (m.Precision + m.Recall)
 		}
-
-		fmt.Printf("%-12s | %-10.2f%% | %-10.2f%% | %-10.2f%%\n",
+		fmt.Printf("  %s   | %6.2f %%  | %6.2f %%  | %6.2f %%\n",
 			tag, m.Precision*100, m.Recall*100, m.F1Score*100)
 	}
-
-	return metricsMap
-}
-
-func main() {
-	// 1. Train Data Setup
-	trainingSentences := [][]Syllable{
-		{S["steve"], S["jobs"], S["visited"], S["cupertino"]},
-		{S["alice"], S["saw"], S["paris"]},
-		{S["bob"], S["went"], S["to"], S["london"]},
-	}
-	trainingTags := [][]Tag{
-		{T["B-PER"], T["I-PER"], T["O"], T["B-LOC"]},
-		{T["B-PER"], T["O"], T["B-LOC"]},
-		{T["B-PER"], T["O"], T["O"], T["B-LOC"]},
-	}
-
-	model := NewHMM()
-	model.Train(trainingSentences, trainingTags)
-
-	// 2. Separate Validation/Test Dataset Setup
-	validationSentences := [][]Syllable{
-		{S["alice"], S["visited"], S["cupertino"]}, // Mix of known names & places
-		{S["charlie"], S["saw"], S["london"]},      // "charlie" is a completely new unknown syllable
-	}
-	validationTags := [][]Tag{
-		{T["B-PER"], T["O"], T["B-LOC"]},
-		{T["B-PER"], T["O"], T["B-LOC"]},
-	}
-
-	// 3. Execute Matrix Evaluation Pipeline
-	fmt.Println("Evaluating Model Metrics against Validation Set...")
-	model.Evaluate(validationSentences, validationTags)
 }

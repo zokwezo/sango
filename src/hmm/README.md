@@ -80,12 +80,12 @@ Transformed log math values are reverted back to standard percentage form using 
 
 ### Evaluation metrics
 
-* Precision (Positive Predictive Value):
-  - “Out of all the tokens the model labeled as B-LOC, how many were actually locations?”
+* Precision (Positive Predictive Value)
+  - fraction of predicted that are correct
 	- High precision means the model rarely flags standard words incorrectly.
-* Recall (Sensitivity):
-  - “Out of all the actual locations hidden in the dataset, how many did the model successfully find?”
+* Recall (Sensitivity)
+  - fraction of correct that are predicted
 	- High recall means your model rarely misses target entities.
-* F1-Score:
+* F1-Score
   - The harmonic mean balancing Precision and Recall into a single quality score.
 	- It is the gold standard metric for optimizing sequence classifiers.
