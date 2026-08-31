@@ -63,10 +63,11 @@ func (tag Tag) String() string {
 }
 
 type HMM struct {
-	Transition [NumTags][NumTags]float64      `json:"transition"` // [prevTag][nextTag] = log P(nextTag  | prevTag)
-	Emission   [NumTags][NumSyllables]float64 `json:"emission"`   // [tag][syllable]    = log P(syllable | tag)
-	StartTags  [NumTags]float64               `json:"startTags"`  // [tag]              = log P(tag)
-	TagCounts  [NumTags]int                   `json:"tagCounts"`  // [tag] = # occurances of tag in training corpus
+	Transition   [NumTags][NumTags]float64      // [prevTag][nextTag] = log P(nextTag  | prevTag)
+	Emission     [NumTags][NumSyllables]float64 // [tag][syllable]    = log P(syllable | tag)
+	StartTags    [NumTags]float64               // [tag]              = log P(tag)
+	TagCounts    [NumTags]int                   // [tag] = # occurances of tag in training corpus
+	NumSentences int                            // < 0 during Accumulate, > 0 after Generate
 }
 
 // Metrics holds the classification performance statistics
@@ -79,75 +80,94 @@ type Metrics struct {
 	FN        int     // # false negatives
 }
 
-// Train computes probabilities using Laplace (Add-1) smoothing and saves them as log values
-// NOTE: Training corpus must contain every syllable at least once.
-func (h *HMM) Train(sentences [][]Syllable, tags [][]Tag) {
-	totalSentences := float64(len(sentences))
-	rawStart := [NumTags]float64{}
-	rawTrans := [NumTags][NumTags]float64{}
-	rawEmis := [NumTags][NumSyllables]float64{}
-	for i := range sentences {
-		prevTag := UnknownPitch
-		for j := range sentences[i] {
-			syllable := sentences[i][j]
-			tag := tags[i][j]
-			h.TagCounts[tag]++
-
-			if j == 0 {
-				rawStart[tag]++
-			} else {
-				rawTrans[prevTag][tag]++
-			}
-
-			rawEmis[tag][syllable]++
-			prevTag = tag
-		}
+// Accumulates counts of tag transmissions and emissions
+// Separate models can Accumulate concurrently and be merged at the end.
+// NOTE: sentences must contain every known syllable at least once.
+func (h *HMM) Accumulate(sentence []Syllable, tags []Tag) {
+	if h.NumSentences > 0 {
+		panic("HMM.Accumulate called after HMM.Generate has already been called")
 	}
-	numTags := float64(NumTags)
-	numSyllables := float64(NumSyllables)
-	for t := range NumTags {
-		tag := Tag(t)
-		count := rawStart[tag]
-		h.StartTags[tag] = math.Log((count + 1.0) / (totalSentences + numTags))
-	}
-	for p := range NumTags {
-		prevTag := Tag(p)
-		h.Transition[prevTag] = [NumTags]float64{}
-		totalTransitionsOut := 0.0
-		for n := range NumTags {
-			nextTag := Tag(n)
-			totalTransitionsOut += rawTrans[prevTag][nextTag]
+	h.NumSentences--
+	prevTag := UnknownPitch
+	for j := range sentence {
+		syllable := sentence[j]
+		currTag := tags[j]
+		h.TagCounts[currTag]++
+		if j == 0 {
+			h.StartTags[currTag]++
+		} else {
+			h.Transition[prevTag][currTag]++
 		}
-		for n := range NumTags {
-			nextTag := Tag(n)
-			count := rawTrans[prevTag][nextTag]
-			prob := (count + 1.0) / (totalTransitionsOut + numTags)
-			h.Transition[prevTag][nextTag] = math.Log(prob)
-		}
-	}
-	for t := range NumTags {
-		tag := Tag(t)
-		h.Emission[tag] = [NumSyllables]float64{}
-		totalEmissionsOut := float64(h.TagCounts[tag])
-		for syllable := range NumSyllables {
-			count := rawEmis[tag][syllable]
-			prob := (count + 1.0) / (totalEmissionsOut + numSyllables)
-			h.Emission[tag][syllable] = math.Log(prob)
-		}
-		h.Emission[tag][0] = math.Log(1.0 / (totalEmissionsOut + numSyllables))
+		h.Emission[currTag][syllable]++
+		prevTag = currTag
 	}
 }
 
+func (h *HMM) Merge(rhs HMM) {
+	if h.NumSentences > 0 {
+		panic("HMM.Merge called after HMM.Generate has already been called")
+	}
+	if rhs.NumSentences > 0 {
+		panic("HMM.Merge called with argument on which HMM.Generate has already been called")
+	}
+	h.NumSentences += rhs.NumSentences
+	for i := range NumTags {
+		h.TagCounts[i] += rhs.TagCounts[i]
+		h.StartTags[i] += rhs.StartTags[i]
+		for j := range NumTags {
+			h.Transition[i][j] += rhs.Transition[i][j]
+		}
+		for j := range NumSyllables {
+			h.Emission[i][j] += rhs.Emission[i][j]
+		}
+	}
+}
+
+// Computes probabilities using Laplace (Add-1) smoothing and saves them as log values
+func (h *HMM) Generate() {
+	if h.NumSentences == 0 {
+		panic("HMM.Generate called without having first called HMM.Accumulate at least once")
+	}
+	if h.NumSentences > 0 {
+		panic("HMM.Generate called twice")
+	}
+	numTags := float64(NumTags)
+	scale := 1.0 / (float64(-h.NumSentences) + numTags)
+	for currTag := range NumTags {
+		h.StartTags[currTag] = math.Log((h.StartTags[currTag] + 1.0) * scale)
+	}
+	for prevTag := range NumTags {
+		totalTransitionsOut := numTags
+		for nextTag := range NumTags {
+			nextTag := Tag(nextTag)
+			totalTransitionsOut += h.Transition[prevTag][nextTag]
+		}
+		for nextTag := range NumTags {
+			h.Transition[prevTag][nextTag] = math.Log((h.Transition[prevTag][nextTag] + 1.0) / totalTransitionsOut)
+		}
+	}
+	for currTag := range NumTags {
+		totalEmissionsOut := float64(h.TagCounts[currTag] + NumSyllables)
+		for syllable := range NumSyllables {
+			h.Emission[currTag][syllable] = math.Log((h.Emission[currTag][syllable] + 1.0) / totalEmissionsOut)
+		}
+		h.Emission[currTag][0] = math.Log(1.0 / totalEmissionsOut)
+	}
+	h.NumSentences *= -1 // mark as generated
+}
+
 // Predict uses the Viterbi algorithm operating in log space
+// TODO: Possibly restructure to run concurrently (see https://share.google/aimode/peZNZrQf3RygkjeNI)
 func (h HMM) Predict(tokens []Syllable) []Tag {
+	if h.NumSentences <= 0 {
+		panic("HMM.Predict called without having first called HMM.Generate")
+	}
 	if len(tokens) == 0 {
 		return nil
 	}
 	numTokens := len(tokens)
 	viterbi := make([][NumTags]float64, numTokens)
 	backpointer := make([][NumTags]Tag, numTokens)
-	viterbi[0] = [NumTags]float64{}
-	backpointer[0] = [NumTags]Tag{}
 	firstSyllable := tokens[0]
 	for t := range NumTags {
 		tag := Tag(t)
@@ -155,8 +175,6 @@ func (h HMM) Predict(tokens []Syllable) []Tag {
 		viterbi[0][tag] = h.StartTags[tag] + emissionLog
 	}
 	for t := 1; t < numTokens; t++ {
-		viterbi[t] = [NumTags]float64{}
-		backpointer[t] = [NumTags]Tag{}
 		syllable := tokens[t]
 		for c := range NumTags {
 			currTag := Tag(c)
@@ -195,7 +213,7 @@ func (h HMM) Predict(tokens []Syllable) []Tag {
 }
 
 // Evaluate runs predictions on test data and prints Precision, Recall, and F1 per tag
-func (h HMM) Evaluate(predictedTags, expectedTags [][]Tag) [NumTags]Metrics {
+func Evaluate(predictedTags, expectedTags [][]Tag) [NumTags]Metrics {
 	metrics := [NumTags]Metrics{}
 	if len(predictedTags) != len(expectedTags) {
 		panic("bad number of expected tags passed to Evaluate")
@@ -219,6 +237,8 @@ func (h HMM) Evaluate(predictedTags, expectedTags [][]Tag) [NumTags]Metrics {
 
 func main() {
 	// 1. Train model and persist to disk in JSON format
+	// TODO: Accumulate (unlike Predict) can be streamed and processed sentence by sentence.
+	// TODO: Models can be merged for concurrent processing.
 	var serializedModel string
 	{
 		trainingSentences := [][]Syllable{
@@ -232,7 +252,11 @@ func main() {
 			{MedPitch, HighPitch, HighPitch, LowPitch},
 		}
 		model := HMM{}
-		model.Train(trainingSentences, trainingTags)
+		// TODO: Process sentences concurrently in separate models then merge models with HMM.Merge
+		for i := range trainingSentences {
+			model.Accumulate(trainingSentences[i], trainingTags[i])
+		}
+		model.Generate()
 		jsonBytes, err := json.Marshal(model)
 		if err != nil {
 			panic(err)
@@ -267,7 +291,7 @@ func main() {
 		{MedPitch, HighPitch, LowPitch},
 	}
 	fmt.Println("Evaluating Model Metrics against Test Set...")
-	metrics := model.Evaluate(predictedTags, expectedTags)
+	metrics := Evaluate(predictedTags, expectedTags)
 
 	// 5. Output metrics
 	fmt.Println("")
