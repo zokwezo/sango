@@ -157,7 +157,6 @@ func (h *HMM) Generate() {
 }
 
 // Predict uses the Viterbi algorithm operating in log space
-// TODO: Possibly restructure to run concurrently (see https://share.google/aimode/peZNZrQf3RygkjeNI)
 func (h HMM) Predict(tokens []Syllable) []Tag {
 	if h.NumSentences <= 0 {
 		panic("HMM.Predict called without having first called HMM.Generate")
@@ -168,21 +167,20 @@ func (h HMM) Predict(tokens []Syllable) []Tag {
 	numTokens := len(tokens)
 	viterbi := make([][NumTags]float64, numTokens)
 	backpointer := make([][NumTags]Tag, numTokens)
-	firstSyllable := tokens[0]
-	for t := range NumTags {
-		tag := Tag(t)
-		emissionLog := h.Emission[tag][firstSyllable]
+	firstToken := tokens[0]
+	for tag := range NumTags {
+		emissionLog := h.Emission[tag][firstToken]
 		viterbi[0][tag] = h.StartTags[tag] + emissionLog
 	}
-	for t := 1; t < numTokens; t++ {
-		syllable := tokens[t]
-		for c := range NumTags {
-			currTag := Tag(c)
+	for t, token := range tokens {
+		if t == 0 {
+			continue
+		}
+		for currTag := range NumTags {
 			maxLogProb := math.Inf(-1)
 			bestPrevTag := UnknownPitch
-			currEmissionLog := h.Emission[currTag][syllable]
-			for p := range NumTags {
-				prevTag := Tag(p)
+			currEmissionLog := h.Emission[currTag][token]
+			for prevTag := range NumTags {
 				logProb := viterbi[t-1][prevTag] + h.Transition[prevTag][currTag] + currEmissionLog
 				if logProb > maxLogProb {
 					maxLogProb = logProb
@@ -195,17 +193,16 @@ func (h HMM) Predict(tokens []Syllable) []Tag {
 	}
 	maxFinalLog := math.Inf(-1)
 	bestFinalTag := UnknownPitch
-	lastIdx := numTokens - 1
-	for t := range NumTags {
-		tag := Tag(t)
-		if viterbi[lastIdx][tag] > maxFinalLog {
-			maxFinalLog = viterbi[lastIdx][tag]
-			bestFinalTag = tag
+	lastIndex := numTokens - 1
+	for currTag := range NumTags {
+		if viterbi[lastIndex][currTag] > maxFinalLog {
+			maxFinalLog = viterbi[lastIndex][currTag]
+			bestFinalTag = currTag
 		}
 	}
 	resultTags := make([]Tag, numTokens)
 	currTag := bestFinalTag
-	for t := lastIdx; t >= 0; t-- {
+	for t := lastIndex; t >= 0; t-- {
 		resultTags[t] = currTag
 		currTag = backpointer[t][currTag]
 	}
