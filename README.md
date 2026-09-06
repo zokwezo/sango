@@ -1,5 +1,7 @@
 # Sango Language Tools
 
+## Overview
+
 This repository provides digital artifacts (code and data) intended to be useful in building
 language models and tools for [Sango](https://en.wikipedia.org/wiki/Sango_language)
 (language code sg/sag), the national language of the Central African Republic.
@@ -16,6 +18,17 @@ Please email me (Dan Weston <westondan@zokwezo.net>) if you:
 In publications, this work can be cited as:
 
 - Weston, D. D. (2024). _Sango Language Tools_. https://github.com/zokwezo/sango.
+
+## Other resources
+
+Google Translate now supports translation into and out of Sango, albeit without diacritics or E/ɛ and O|ɔ distinction.
+
+https://huggingface.co/MEYNG/nllb-sango-finetuned-600m is an open source counterpart,
+also without E/ɛ and O|ɔ distinction and with poor diacritic quality. Its most valuable component is the extensive
+training corpus of some 500,000+ Sango-French sentence pairs, taken from Meta/Facebook's NLLB corpora, which can be
+downloaded as
+[Eng -> Sag](https://storage.googleapis.com/allennlp-data-bucket/nllb/eng_Latn-sag_Latn.gz) and 
+[Fra -> Sag](https://storage.googleapis.com/allennlp-data-bucket/nllb/fra_Latn-sag_Latn.gz) sentence pairs.
 
 ### Copyright and License
 

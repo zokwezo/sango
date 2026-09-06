@@ -4,10 +4,10 @@ import (
 	"log"
 
 	"github.com/spf13/cobra"
+	"github.com/zokwezo/sango/src/lib/hmm"
 	"github.com/zokwezo/sango/src/lib/lexicon"
 	"github.com/zokwezo/sango/src/lib/restore"
 	"github.com/zokwezo/sango/src/lib/tokenize"
-	"github.com/zokwezo/sango/src/lib/transcode"
 	"github.com/zokwezo/sango/src/lib/transliterate"
 )
 
@@ -20,10 +20,10 @@ var (
 )
 
 func init() {
+	hmm.Init(sangoCmd)
 	lexicon.Init(sangoCmd)
 	restore.Init(sangoCmd)
 	tokenize.Init(sangoCmd)
-	transcode.Init(sangoCmd)
 	transliterate.Init(sangoCmd)
 }
 
