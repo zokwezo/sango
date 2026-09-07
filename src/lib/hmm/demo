@@ -5,5 +5,5 @@ echo 'bob : went ^ to ^ london _'    | ../../sango hmm accumulate -o /tmp/a2
 ../../sango hmm merge -i /tmp/a0 -i /tmp/a1 -i /tmp/a2 -o /tmp/a
 ../../sango hmm generate -i /tmp/a -o /tmp/g
 echo -e 'alice visited cupertino\ncharlie saw london' | ../../sango hmm predict -i /tmp/g > /tmp/actual
-cat /tmp/actual | sed -E 's/"Token":1,"TokenName":"alice","TagIndex":2,"TagName":":"/"Token":1,"TokenName":"alice","TagIndex":1,"TagName":"_"/' > /tmp/expect
+cat /tmp/actual | sed -E 's/"Token":"alice","Tag":":"/"Token":"alice","Tag":"_"/' > /tmp/expect
 ../../sango hmm evaluate -a /tmp/actual -e /tmp/expect

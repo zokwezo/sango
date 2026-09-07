@@ -14,7 +14,7 @@ func MainAccumulate(outFilename string) error {
 	if err := os.WriteFile(outFilename, []byte("TEST"), 0644); err != nil {
 		return err
 	}
-	var model HMM
+	h := HMM{}
 	scanner := bufio.NewScanner(os.Stdin)
 	for scanner.Scan() {
 		s := scanner.Text()
@@ -24,13 +24,11 @@ func MainAccumulate(outFilename string) error {
 			return fmt.Errorf("odd number (%v) of words in line %q", len(words), s)
 		}
 		numWords := len(words) / 2
-		trainingSentence := make([]Syllable, numWords)
-		trainingTags := make([]Tag, numWords)
+		sentence := make([]SangoToken, numWords)
 		for k := range numWords {
-			trainingSentence[k] = S(words[2*k])
-			trainingTags[k] = T(words[2*k+1])
+			sentence[k] = SangoToken{Token: words[2*k], Tag: words[2*k+1]}
 		}
-		err := model.Accumulate(trainingSentence, trainingTags)
+		err := h.Accumulate(sentence)
 		if err != nil {
 			return err
 		}
@@ -38,7 +36,7 @@ func MainAccumulate(outFilename string) error {
 	if err := scanner.Err(); err != nil {
 		return err
 	}
-	jsonBytes, err := json.Marshal(model)
+	jsonBytes, err := json.Marshal(h)
 	if err != nil {
 		return err
 	}
@@ -47,24 +45,27 @@ func MainAccumulate(outFilename string) error {
 
 // Accumulates counts of tag transmissions and emissions
 // Separate models can Accumulate concurrently and be merged at the end.
-// NOTE: sentences must contain every known syllable at least once.
-func (h *HMM) Accumulate(sentence []Syllable, tags []Tag) error {
+// NOTE: sentences must contain every known token at least once.
+func (h *HMM) Accumulate(sentence []SangoToken) error {
 	if h.NumSentences > 0 {
-		return fmt.Errorf("%s", "Accumulate called after Generate has already been called on an HMM model")
+		return fmt.Errorf("%s", "HMM.Accumulate called after Generate has already been called on an HMM model")
+	}
+	if len(sentence) == 0 {
+		return nil
 	}
 	h.NumSentences--
-	prevTag := UnknownPitch
+	prevTag := UnknownTagForToken(sentence[0].Token)
 	for j := range sentence {
-		syllable := sentence[j]
-		currTag := tags[j]
-		h.TagCounts[currTag]++
+		sangoToken := sentence[j]
+		token := sangoToken.Token
+		tag := sangoToken.Tag
 		if j == 0 {
-			h.StartTags[currTag]++
+			h.forTag(tag).StartTag++
 		} else {
-			h.Transition[prevTag][currTag]++
+			h.forTag(prevTag).Transition[tag]++
 		}
-		h.Emission[currTag][syllable]++
-		prevTag = currTag
+		h.forTag(tag).Emission[token]++
+		prevTag = tag
 	}
 	return nil
 }

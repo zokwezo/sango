@@ -51,7 +51,7 @@ var (
 	accumulateCmd = &cobra.Command{
 		Use:   "accumulate",
 		Short: "Trains an HMM model on Sango text having (hopefully accurate) diacritics.",
-		Long:  "Read Sango training text from stdin and accumulate HMM counts of its syllables and diacritics.",
+		Long:  "Read Sango training text from stdin and accumulate HMM counts of its words and their diacritics.",
 		Args:  cobra.MaximumNArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			outFilename, err := cmd.Flags().GetString("out")

@@ -11,7 +11,7 @@ func MainMerge(inFilenames []string, outFilename string) error {
 	if err := os.WriteFile(outFilename, []byte("TEST"), 0644); err != nil {
 		return err
 	}
-	var model HMM
+	h := HMM{}
 	for _, inFilename := range inFilenames {
 		data, err := os.ReadFile(inFilename)
 		if err != nil {
@@ -19,19 +19,21 @@ func MainMerge(inFilenames []string, outFilename string) error {
 		}
 
 		// Convert the byte slice into a string variable
-		var h HMM
-		err = json.Unmarshal(data, &h)
+		rhs := HMM{}
+		err = json.Unmarshal(data, &rhs)
 		if err != nil {
 			return err
 		}
-		err = model.Merge(h)
-		if err != nil {
+		if len(rhs.HmmPerTag) == 0 {
+			return fmt.Errorf("parse error reading model from %v", inFilename)
+		}
+		if err = h.Merge(rhs); err != nil {
 			return err
 		}
 	}
 
 	// Marshal and write model to stdout
-	jsonBytes, err := json.Marshal(model)
+	jsonBytes, err := json.Marshal(h)
 	if err != nil {
 		return err
 	}
@@ -46,14 +48,16 @@ func (h *HMM) Merge(rhs HMM) error {
 		return fmt.Errorf("%s", "HMM.Merge called with argument on which HMM.Generate has already been called")
 	}
 	h.NumSentences += rhs.NumSentences
-	for i := range NumTags {
-		h.TagCounts[i] += rhs.TagCounts[i]
-		h.StartTags[i] += rhs.StartTags[i]
-		for j := range NumTags {
-			h.Transition[i][j] += rhs.Transition[i][j]
+	rhs.ensureDefined()
+	for tag := range rhs.HmmPerTag {
+		src := rhs.forTag(tag)
+		tgt := h.forTag(tag)
+		tgt.StartTag += src.StartTag
+		for nextTag, count := range src.Transition {
+			tgt.Transition[nextTag] += count
 		}
-		for j := range NumSyllables {
-			h.Emission[i][j] += rhs.Emission[i][j]
+		for token, count := range src.Emission {
+			tgt.Emission[token] += count
 		}
 	}
 	return nil

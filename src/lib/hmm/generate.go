@@ -12,7 +12,7 @@ func MainGenerate(inFilename, outFilename string) error {
 	if err := os.WriteFile(outFilename, []byte("TEST"), 0644); err != nil {
 		return err
 	}
-	var model HMM
+	model := HMM{}
 	data, err := os.ReadFile(inFilename)
 	if err != nil {
 		return err
@@ -21,8 +21,10 @@ func MainGenerate(inFilename, outFilename string) error {
 	if err != nil {
 		return err
 	}
-	err = model.Generate()
-	if err != nil {
+	if len(model.HmmPerTag) == 0 {
+		return fmt.Errorf("parse error reading model from %v", inFilename)
+	}
+	if err = model.Generate(); err != nil {
 		return err
 	}
 
@@ -42,27 +44,31 @@ func (h *HMM) Generate() error {
 	if h.NumSentences > 0 {
 		return fmt.Errorf("%v", "HMM.Generate called twice")
 	}
-	numTags := float64(NumTags)
-	scale := 1.0 / (float64(-h.NumSentences) + numTags)
-	for currTag := range NumTags {
-		h.StartTags[currTag] = math.Log((h.StartTags[currTag] + 1.0) * scale)
+	h.ensureDefined()
+	// All the + 1.0 are Laplace smoothing to account for hapax legomena.
+	totalStartTags := 0.0
+	for tag := range h.HmmPerTag {
+		hh := h.forTag(tag)
+		totalStartTags += hh.StartTag + 1.0
 	}
-	for prevTag := range NumTags {
-		totalTransitionsOut := numTags
-		for nextTag := range NumTags {
-			nextTag := Tag(nextTag)
-			totalTransitionsOut += h.Transition[prevTag][nextTag]
+	for tag := range h.HmmPerTag {
+		hh := h.forTag(tag)
+		hh.StartTag = math.Log((hh.StartTag + 1.0) / totalStartTags)
+		totalTransitions := 0.0
+		for _, transition := range hh.Transition {
+			totalTransitions += transition + 1.0
 		}
-		for nextTag := range NumTags {
-			h.Transition[prevTag][nextTag] = math.Log((h.Transition[prevTag][nextTag] + 1.0) / totalTransitionsOut)
+		for nextTag, transition := range hh.Transition {
+			hh.Transition[nextTag] = math.Log((transition + 1.0) / totalTransitions)
 		}
-	}
-	for currTag := range NumTags {
-		totalEmissionsOut := float64(h.TagCounts[currTag] + NumSyllables)
-		for syllable := range NumSyllables {
-			h.Emission[currTag][syllable] = math.Log((h.Emission[currTag][syllable] + 1.0) / totalEmissionsOut)
+		totalEmissions := 0.0
+		for _, emission := range hh.Emission {
+			totalEmissions += emission + 1.0
 		}
-		h.Emission[currTag][0] = math.Log(1.0 / totalEmissionsOut)
+		for token, emission := range hh.Emission {
+			hh.Emission[token] = math.Log((emission + 1.0) / totalEmissions)
+		}
+		//hh.Emission[UnknownToken] = math.Log(1.0 / totalEmissions)
 	}
 	h.NumSentences *= -1 // mark as generated
 	return nil

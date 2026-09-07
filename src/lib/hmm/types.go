@@ -1,88 +1,47 @@
 package hmm
 
-type (
-	Syllable int8
-	Tag      int8
-)
+const UnknownToken string = "<UNKNOWN>"
+const UnknownTag string = "?"
 
-const NumSyllables int = 13
-
-func (syllable Syllable) String() string {
-	return [NumSyllables]string{
-		"UNKNOWN",
-		"alice",
-		"bob",
-		"charlie",
-		"cupertino",
-		"jobs",
-		"london",
-		"paris",
-		"saw",
-		"steve",
-		"to",
-		"visited",
-		"went",
-	}[syllable]
-}
-
-var syllableFromNameMap_ = func() map[string]Syllable {
-	m := make(map[string]Syllable, NumSyllables)
-	for i := range NumSyllables {
-		s := Syllable(i)
-		m[s.String()] = s
-	}
-	return m
-}()
-
-func S(syllableName string) Syllable {
-	return syllableFromNameMap_[syllableName]
-}
-
-// TAGS
-const (
-	UnknownPitch Tag = iota
-	LowPitch
-	MedPitch
-	HighPitch
-	NumTags
-)
-
-func (tag Tag) String() string {
-	return [NumTags]string{
-		"?",
-		"_",
-		":",
-		"^",
-	}[tag]
-}
-
-var tagFromNameMap_ = func() map[string]Tag {
-	m := make(map[string]Tag, NumTags)
-	for i := range NumTags {
-		s := Tag(i)
-		m[s.String()] = s
-	}
-	return m
-}()
-
-func T(tagName string) Tag {
-	return tagFromNameMap_[tagName]
+type HmmMap map[string]float64
+type HMMPerTag struct {
+	StartTag   float64 //           = log P(tag)
+	Transition HmmMap  // [nextTag] = log P(nextTag | tag)
+	Emission   HmmMap  // [token]   = log P(token   | tag)
 }
 
 type HMM struct {
-	Transition   [NumTags][NumTags]float64      // [prevTag][nextTag] = log P(nextTag  | prevTag)
-	Emission     [NumTags][NumSyllables]float64 // [tag][syllable]    = log P(syllable | tag)
-	StartTags    [NumTags]float64               // [tag]              = log P(tag)
-	TagCounts    [NumTags]int                   // [tag] = # occurances of tag in training corpus
-	NumSentences int                            // < 0 during Accumulate, > 0 after Generate
+	HmmPerTag    map[string]*HMMPerTag // [tag]
+	NumSentences int                   // < 0 during Accumulate, > 0 after Generate
 }
 
-// TODO: Replace with Sango strings containing diacritics.
-type SangoSyllable struct {
-	Token     Syllable
-	TokenName string
-	TagIndex  Tag
-	TagName   string
+func (h *HMM) ensureDefined() {
+	if h.HmmPerTag == nil {
+		h.HmmPerTag = map[string]*HMMPerTag{}
+	}
+	if h.HmmPerTag[UnknownTag] == nil {
+		h.HmmPerTag[UnknownTag] = &HMMPerTag{Transition: HmmMap{}, Emission: HmmMap{}}
+	}
+}
+func (h *HMM) ensureDefinedForTag(tag string) {
+	h.ensureDefined()
+	if h.HmmPerTag[tag] == nil {
+		h.HmmPerTag[tag] = &HMMPerTag{Transition: HmmMap{}, Emission: HmmMap{}}
+	}
+}
+func (h *HMM) forTag(tag string) *HMMPerTag {
+	h.ensureDefinedForTag(tag)
+	return h.HmmPerTag[tag]
+}
+
+type SangoToken struct {
+	Token string
+	Tag   string
+}
+
+func UnknownTagForToken(token string) string {
+	// TODO: Replace with "???...", one ? for each vowel.
+	return "?"
 }
 
 // Metrics holds the classification performance statistics
@@ -93,4 +52,12 @@ type Metrics struct {
 	TP        int     // # true  positives
 	FP        int     // # false positives
 	FN        int     // # false negatives
+}
+type MetricsMap map[string]*Metrics
+
+func (mm MetricsMap) forTag(tag string) *Metrics {
+	if mm[tag] == nil {
+		mm[tag] = &Metrics{}
+	}
+	return mm[tag]
 }
