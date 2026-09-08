@@ -1,0 +1,31 @@
+syntax = "proto3";
+package main;
+
+option go_package = "github.com/zokwezo/sango/src/lib/hmm/kn/hmm";
+
+// This helper class is needed because protocol buffers do not directly support nested maps.
+message Then {
+  // Count (or probability) conditional on the map that contains it
+	map<string, double> to = 1;
+}
+
+// Hidden Markov Model
+message HMM {
+  // States found in the training corpus
+	map<string, bool>   states                = 1;
+
+  // Words found in the training corpus
+	map<string, bool>   vocab                 = 2;
+
+  // transition_from_state[fromState].to[toState] = count(s_t | s_{t-1})
+	map<string, Then>   transition_from_state = 3;
+
+  // emission_from_state[state].to[word]          = count(w_t | s_t)
+ map<string, Then>    emission_from_state   = 4;
+
+  // Total occurrences of each state
+	map<string, double> state_count           = 5;
+	
+  // Total unique (state, word) types in the training corpus
+	double              unique_pairs          = 6;
+}

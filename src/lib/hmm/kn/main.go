@@ -1,3 +1,7 @@
+// Hidden Markov Model (HMM) with Kneser-Ney smoothing
+//
+// Used for diacritic restoration of Sango text.
+
 package main
 
 import (
@@ -9,31 +13,38 @@ import (
 const Discount = 0.75
 
 // TrainingInstance represents a sequence of tokens and their true state/label sequence.
+// In this context, a Token is a Sango word without diacritics and a State is the
+// same word with diacritics.
 type TrainingInstance struct {
 	Tokens []string
 	States []string
 }
 
+type Then struct {
+	To map[string]float64 // count conditional on the map that contains it
+}
+
 type HMM struct {
-	States      map[string]bool
-	Vocab       map[string]bool
-	Transitions map[string]map[string]float64 // count(s_t | s_{t-1})
-	Emissions   map[string]map[string]float64 // count(w_t | s_t)
-	StateCounts map[string]float64            // total occurrences of each state
-	UniquePairs float64                       // total unique (state, word) types in corpus
+	States              map[string]bool
+	Vocab               map[string]bool
+	TransitionFromState map[string]*Then   // [fromState][toState] = count(s_t | s_{t-1})
+	EmissionFromState   map[string]*Then   // [state][word]        = count(w_t | s_t)
+	StateCount          map[string]float64 // total occurrences of each state
+	UniquePairs         float64            // total unique (state, word) types in corpus
 }
 
 func NewHMM() *HMM {
 	return &HMM{
-		States:      make(map[string]bool),
-		Vocab:       make(map[string]bool),
-		Transitions: make(map[string]map[string]float64),
-		Emissions:   make(map[string]map[string]float64),
-		StateCounts: make(map[string]float64),
+		States:              make(map[string]bool),
+		Vocab:               make(map[string]bool),
+		TransitionFromState: make(map[string]*Then),
+		EmissionFromState:   make(map[string]*Then),
+		StateCount:          make(map[string]float64),
 	}
 }
 
-// Train populates the raw count matrices from our tiny low-resource dataset.
+// Populates the raw count matrices from our tiny low-resource dataset.
+// This is a two-pass algorithm
 func (h *HMM) Train(data []TrainingInstance) {
 	for _, inst := range data {
 		for i := 0; i < len(inst.Tokens); i++ {
@@ -42,51 +53,57 @@ func (h *HMM) Train(data []TrainingInstance) {
 
 			h.States[state] = true
 			h.Vocab[word] = true
-			h.StateCounts[state]++
+			h.StateCount[state]++
 
 			// Count Emissions
-			if _, exists := h.Emissions[state]; !exists {
-				h.Emissions[state] = make(map[string]float64)
+			if _, exists := h.EmissionFromState[state]; !exists {
+				h.EmissionFromState[state] = &Then{To: make(map[string]float64)}
 			}
-			h.Emissions[state][word]++
+			h.EmissionFromState[state].To[word]++
 
 			// Count Transitions (for simplicity, ignoring structural boundary tokens here)
 			if i > 0 {
 				prevState := inst.States[i-1]
-				if _, exists := h.Transitions[prevState]; !exists {
-					h.Transitions[prevState] = make(map[string]float64)
+				if _, exists := h.TransitionFromState[prevState]; !exists {
+					h.TransitionFromState[prevState] = &Then{To: make(map[string]float64)}
 				}
-				h.Transitions[prevState][state]++
+				h.TransitionFromState[prevState].To[state]++
 			}
 		}
 	}
 
 	// Count unique (state, word) type configurations for Kneser-Ney denominator
-	for _, words := range h.Emissions {
-		h.UniquePairs += float64(len(words))
+	for _, emissionFromState := range h.EmissionFromState {
+		h.UniquePairs += float64(len(emissionFromState.To))
 	}
 }
 
 // GetEmissionNoSmoothing calculates pure MLE probabilities.
 // Returns 0.0 for any token not explicitly bound to that state in training.
 func (h *HMM) GetEmissionNoSmoothing(state, word string) float64 {
-	totalStateCount := h.StateCounts[state]
+	totalStateCount := h.StateCount[state]
 	if totalStateCount == 0 {
 		return 0.0
 	}
-	return h.Emissions[state][word] / totalStateCount
+	if _, exists := h.EmissionFromState[state]; !exists {
+		h.EmissionFromState[state] = &Then{To: make(map[string]float64)}
+	}
+	return h.EmissionFromState[state].To[word] / totalStateCount
 }
 
 // GetEmissionKneserNey calculates the smoothed emission probability.
 // It uses absolute discounting and backs off to the token's structural versatility.
 func (h *HMM) GetEmissionKneserNey(state, word string) float64 {
-	totalStateCount := h.StateCounts[state]
+	totalStateCount := h.StateCount[state]
 	if totalStateCount == 0 {
 		return 1.0 / float64(len(h.Vocab)) // Uniform fallback if state is totally unseen
 	}
 
-	rawCount := h.Emissions[state][word]
-	uniqueWordsInState := float64(len(h.Emissions[state]))
+	if _, exists := h.EmissionFromState[state]; !exists {
+		h.EmissionFromState[state] = &Then{To: make(map[string]float64)}
+	}
+	rawCount := h.EmissionFromState[state].To[word]
+	uniqueWordsInState := float64(len(h.EmissionFromState[state].To))
 
 	// 1. Calculate Left Term: Discounted MLE
 	leftTerm := math.Max(rawCount-Discount, 0.0) / totalStateCount
@@ -97,8 +114,8 @@ func (h *HMM) GetEmissionKneserNey(state, word string) float64 {
 	// 3. Calculate Continuation Probability: Versatility of the word
 	// How many unique states have emitted this specific word?
 	statesEmittingWord := 0.0
-	for _, words := range h.Emissions {
-		if _, exists := words[word]; exists {
+	for _, emissionFromState := range h.EmissionFromState {
+		if _, exists := emissionFromState.To[word]; exists {
 			statesEmittingWord++
 		}
 	}
@@ -115,9 +132,12 @@ func (h *HMM) GetEmissionKneserNey(state, word string) float64 {
 // with a very simple Laplace add-alpha smoothing step to ensure no zero-probabilities exist.
 func (h *HMM) GetTransitionProbability(fromState, toState string) float64 {
 	const alpha = 0.1
-	rawCount := h.Transitions[fromState][toState]
+	if _, exists := h.TransitionFromState[fromState]; !exists {
+		h.TransitionFromState[fromState] = &Then{To: make(map[string]float64)}
+	}
+	rawCount := h.TransitionFromState[fromState].To[toState]
 	totalTransitionsFromState := 0.0
-	for _, count := range h.Transitions[fromState] {
+	for _, count := range h.TransitionFromState[fromState].To {
 		totalTransitionsFromState += count
 	}
 
