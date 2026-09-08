@@ -8,19 +8,21 @@ func Init(rootCmd *cobra.Command) {
 	rootCmd.AddCommand(hmmCmd)
 
 	hmmCmd.AddCommand(trainCmd)
+	trainCmd.Flags().StringP("in", "i", "",
+		"input filename of the training data")
 	trainCmd.Flags().StringP("out", "o", "",
-		"output filename of the HMM counts traind from the text in stdin.")
+		"output filename of the HMM counts")
 	trainCmd.MarkFlagRequired("out")
 
 	hmmCmd.AddCommand(predictCmd)
 	predictCmd.Flags().StringP("in", "i", "",
-		"input filename of the HMM model.")
+		"input filename of the HMM model")
 	// predictCmd.MarkFlagRequired("in")
 
 	hmmCmd.AddCommand(evaluateCmd)
 	evaluateCmd.Flags().StringP("actual", "a", "",
-		"predicted text which is evaluated against the expected text.")
-	evaluateCmd.Flags().StringP("expect", "e", "", "expected human-corrected text.")
+		"predicted text which is evaluated against the expected text")
+	evaluateCmd.Flags().StringP("expect", "e", "", "expected human-corrected text")
 	evaluateCmd.MarkFlagRequired("actual")
 	evaluateCmd.MarkFlagRequired("expect")
 }
@@ -38,11 +40,15 @@ var (
 		Long:  "Read Sango training text from stdin and train HMM counts of its words and their diacritics.",
 		Args:  cobra.MaximumNArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
+			trainingTextFilename, err := cmd.Flags().GetString("in")
+			if err != nil {
+				return err
+			}
 			modelOutputFilename, err := cmd.Flags().GetString("out")
 			if err != nil {
 				return err
 			}
-			return MainTrain(modelOutputFilename)
+			return MainTrain(trainingTextFilename, modelOutputFilename)
 		},
 	}
 

@@ -7,7 +7,14 @@ package hmm
 import (
 	"fmt"
 	"io/ioutil"
+	"log"
+	"os"
+	"regexp"
+	"strings"
 
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
+	"golang.org/x/text/unicode/norm"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -29,21 +36,68 @@ type TrainingInstance struct {
 	States []string
 }
 
-func MainTrain(modelOutputFilename string) error {
-	// Tiny low-resource corpus
-	// Notice how "Francisco" ALWAYS appears with "NOUN", making it highly rigid.
-	// "Apple" appears with both "NOUN" and "PROPN" (the company), making it versatile.
-	trainingData := []TrainingInstance{
-		{Tokens: []string{"San", "Francisco"}, States: []string{"PROPN", "PROPN"}},
-		{Tokens: []string{"Eat", "an", "apple"}, States: []string{"VERB", "DET", "NOUN"}},
-		{Tokens: []string{"Apple", "announces", "iPhone"}, States: []string{"PROPN", "VERB", "PROPN"}},
-	}
+var (
+	reFinalPunctuation      = regexp.MustCompile(`[.!?][ ]`)
+	reNonTextWithDiacritics = regexp.MustCompile(`[^a-z .?!\x{302}\x{308}\x{323}]`)
+	reNonText               = regexp.MustCompile(`[^a-z .?!]`)
+	reCompressSpaces        = regexp.MustCompile(`[ ]{2,}`)
+)
 
-	h := NewHMM()
-	err := h.Train(trainingData)
+func PrepareInputText(s string) []TrainingInstance {
+	log.Printf("S: <%s>\n", s)
+	s = norm.NFD.String(cases.Lower(language.English).String(s))
+	log.Printf("S: <%s>\n", s)
+	s = strings.ReplaceAll(s, "\n", " ")
+	log.Printf("S: <%s>\n", s)
+	s = strings.Trim(s, " ")
+	log.Printf("S: <%s>\n", s)
+	s = reNonTextWithDiacritics.ReplaceAllLiteralString(s, " ")
+	log.Printf("S: <%s>\n", s)
+	s = reCompressSpaces.ReplaceAllLiteralString(s, " ")
+	log.Printf("S: <%s>\n", s)
+	s = reFinalPunctuation.ReplaceAllLiteralString(s, "\n")
+	log.Printf("S: <%s>\n", s)
+	tis := []TrainingInstance{}
+	for i, sentence := range strings.Split(strings.Trim(s, " "), "\n") {
+	  log.Printf("S[%v]: <%s>\n", i, sentence)
+	  sentence = strings.Trim(sentence, " ")
+	  log.Printf("S[%v]: <%s>\n", i, sentence)
+		if sentence != "" {
+	  log.Printf("S[%v]: <%s>\n", i, sentence)
+		ti := TrainingInstance{}
+		ti.States = strings.Split(sentence, " ")
+		n := len(ti.States)
+		log.Printf("n[%v] = %v\n", i, n)
+		ti.Tokens = make([]string, n)
+		for k := range ti.States {
+	    log.Printf("S[%v][%v]: <%s>\n", i, k, ti.States[k])
+			ti.Tokens[k] = reNonText.ReplaceAllLiteralString(ti.States[k], "")
+	    log.Printf("T[%v][%v]: <%s>\n", i, k, ti.Tokens[k])
+			ti.States[k] = norm.NFC.String(ti.States[k])
+	    log.Printf("S[%v][%v]: <%s>\n", i, k, ti.States[k])
+		}
+		tis = append(tis, ti)
+		}
+	}
+	log.Printf("n = %v\n", len(tis))
+	log.Printf("%#v\n", tis)
+	return tis
+}
+
+func MainTrain(trainingTextFilename, modelOutputFilename string) error {
+	trainingText, err := os.ReadFile(trainingTextFilename)
 	if err != nil {
 		return err
 	}
+	trainingData := PrepareInputText(string(trainingText))
+	log.Printf("trainingData = %#v\n", trainingData)
+
+	h := NewHMM()
+	err = h.Train(trainingData)
+	if err != nil {
+		return err
+	}
+	log.Printf("h = %#v\n", *h)
 
 	// Write the model to disk.
 	out, err := proto.Marshal(h)
