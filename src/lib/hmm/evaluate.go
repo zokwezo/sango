@@ -7,6 +7,54 @@ import (
 	"slices"
 )
 
+type SangoToken struct {
+	Token string
+	Tag   string
+}
+
+// Metrics holds the classification performance statistics
+type Metrics struct {
+	Precision float64 // fraction of predicted that are correct
+	Recall    float64 // fraction of correct that are predicted
+	F1Score   float64 // harmonic mean of Precision and Recall
+	TP        int     // # true  positives
+	FP        int     // # false positives
+	FN        int     // # false negatives
+}
+type MetricsMap map[string]*Metrics
+
+func (mm MetricsMap) forTag(tag string) *Metrics {
+	if mm[tag] == nil {
+		mm[tag] = &Metrics{}
+	}
+	return mm[tag]
+}
+
+var TagOrderMap = func() map[rune]int {
+	orderMap := make(map[rune]int)
+	for i, r := range "_:^" {
+		orderMap[r] = i
+	}
+	return orderMap
+}()
+
+func TagCompare(lhs, rhs string) int {
+	lhsRunes := []rune(lhs)
+	rhsRunes := []rune(rhs)
+	minLength := len(lhsRunes)
+	if len(rhsRunes) < minLength {
+		minLength = len(rhsRunes)
+	}
+	for i := 0; i < minLength; i++ {
+		rankLhs := TagOrderMap[lhsRunes[i]]
+		rankRhs := TagOrderMap[rhsRunes[i]]
+		if rankLhs != rankRhs {
+			return rankLhs - rankRhs
+		}
+	}
+	return len(lhsRunes) - len(rhsRunes)
+}
+
 func MainEvaluate(actual, expect string) error {
 	inFilenames := [2]string{actual, expect}
 	var sentences [2][][]SangoToken // {actual, expect}

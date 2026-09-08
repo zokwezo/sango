@@ -1,0 +1,4 @@
+#!/bin/bash
+protoc -I=$PWD --go_out=$PWD $PWD/hmm.proto
+mv github.com/zokwezo/sango/src/lib/hmm/hmm.pb.go .
+rm -Rf github.com

@@ -7,31 +7,15 @@ import (
 func Init(rootCmd *cobra.Command) {
 	rootCmd.AddCommand(hmmCmd)
 
-	hmmCmd.AddCommand(accumulateCmd)
-	accumulateCmd.Flags().StringP("out", "o", "",
-		"output filename of the HMM counts accumulated from the text in stdin.")
-	accumulateCmd.MarkFlagRequired("out")
-
-	hmmCmd.AddCommand(mergeCmd)
-	mergeCmd.Flags().StringArrayP("in", "i", []string{},
-		"input filenames of the HMM counts to be merged into a single model count.")
-	mergeCmd.Flags().StringP("out", "o", "",
-		"output filename of the merged HMM counts.")
-	mergeCmd.MarkFlagRequired("in")
-	mergeCmd.MarkFlagRequired("out")
-
-	hmmCmd.AddCommand(generateCmd)
-	generateCmd.Flags().StringP("in", "i", "",
-		"input filename of the HMM counts.")
-	generateCmd.Flags().StringP("out", "o", "",
-		"output filename of the HMM model generated from the input model.")
-	generateCmd.MarkFlagRequired("in")
-	generateCmd.MarkFlagRequired("out")
+	hmmCmd.AddCommand(trainCmd)
+	trainCmd.Flags().StringP("out", "o", "",
+		"output filename of the HMM counts traind from the text in stdin.")
+	trainCmd.MarkFlagRequired("out")
 
 	hmmCmd.AddCommand(predictCmd)
 	predictCmd.Flags().StringP("in", "i", "",
 		"input filename of the HMM model.")
-	predictCmd.MarkFlagRequired("in")
+	// predictCmd.MarkFlagRequired("in")
 
 	hmmCmd.AddCommand(evaluateCmd)
 	evaluateCmd.Flags().StringP("actual", "a", "",
@@ -48,67 +32,31 @@ var (
 		Long:  "https://github.com/zokwezo/sango/blob/main/src/hmm/README.md",
 	}
 
-	accumulateCmd = &cobra.Command{
-		Use:   "accumulate",
+	trainCmd = &cobra.Command{
+		Use:   "train",
 		Short: "Trains an HMM model on Sango text having (hopefully accurate) diacritics.",
-		Long:  "Read Sango training text from stdin and accumulate HMM counts of its words and their diacritics.",
+		Long:  "Read Sango training text from stdin and train HMM counts of its words and their diacritics.",
 		Args:  cobra.MaximumNArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			outFilename, err := cmd.Flags().GetString("out")
+			modelOutputFilename, err := cmd.Flags().GetString("out")
 			if err != nil {
 				return err
 			}
-			return MainAccumulate(outFilename)
-		},
-	}
-
-	mergeCmd = &cobra.Command{
-		Use:   "merge",
-		Short: "Merges multiple accumulated HMM counts into one.",
-		Long:  "The utility of this is to improve a model by adding additional corpora without having to retrain on the entire corpus.",
-		Args:  cobra.MaximumNArgs(0),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			inFilenames, err := cmd.Flags().GetStringArray("in")
-			if err != nil {
-				return err
-			}
-			outFilename, err := cmd.Flags().GetString("out")
-			if err != nil {
-				return err
-			}
-			return MainMerge(inFilenames, outFilename)
-		},
-	}
-
-	generateCmd = &cobra.Command{
-		Use:   "generate",
-		Short: "Convert HMM counts into an HMM model.",
-		Long:  "After generating a model, additional corpora can no longer be added to it.",
-		Args:  cobra.MaximumNArgs(0),
-		RunE: func(cmd *cobra.Command, args []string) error {
-			inFilename, err := cmd.Flags().GetString("in")
-			if err != nil {
-				return err
-			}
-			outFilename, err := cmd.Flags().GetString("out")
-			if err != nil {
-				return err
-			}
-			return MainGenerate(inFilename, outFilename)
+			return MainTrain(modelOutputFilename)
 		},
 	}
 
 	predictCmd = &cobra.Command{
 		Use:   "predict",
-		Short: "Predicts Sango diacritics for input Sango text.",
-		Long:  "Read Sango input text from stdin, strips any diacritics, adds new diacritics predicted with the supplied HMM model, and outputs the result to stdout. Any non-Sango text is passed through unchanged.",
+		Short: "Predicts an HMM model on Sango text having (hopefully accurate) diacritics.",
+		Long:  "Read Sango predicting text from stdin and restore their vowels' diacritics.",
 		Args:  cobra.MaximumNArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			inFilename, err := cmd.Flags().GetString("in")
+			modelInputFilename, err := cmd.Flags().GetString("in")
 			if err != nil {
 				return err
 			}
-			return MainPredict(inFilename)
+			return MainPredict(modelInputFilename)
 		},
 	}
 

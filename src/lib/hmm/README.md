@@ -1,4 +1,4 @@
-# Hidden Markov Model (HMM)
+## Hidden Markov Model (HMM) with Kneser-Ney Smoothing
 
 This directory contains code to perform **token classification (sequence labeling)**.
 
@@ -22,7 +22,7 @@ The final decision on which tokens and labels are most predictive is a work in p
 
 A Hidden Markov Model (HMM) is used rather than an encoder model (such as the Google [CANINE](https://huggingface.co/docs/transformers/en/model_doc/canine) model, much less an encoder/decoder model (such as a sequence-to-sequence model) due to the extremely low size of the available Sango training corpus with reliable diacritics, since almost the entire extant corpus is either lacking in diacritics or has a high error rate.
 
-The advantages of a HMM over CANINE are:
+### Advantages of an HMM over CANINE:
 
 * Resistance to Severe Overfitting (Parameter Efficiency)
   - An HMM uses a relatively small number of parameters—specifically, its transition, emission, and initial state probability matrices. Because it has low model capacity, it can be mathematically optimized using small datasets via the Baum-Welch algorithm without memorizing the noise. [1](https://huggingface.co/blog/RDTvlokip/from-scratch-vs-pre-trained)
@@ -36,69 +36,32 @@ The advantages of a HMM over CANINE are:
 
 *The above section is taken from Google Gemini, see the original thread [here](https://share.google/aimode/pcOyHPe5W4VRnRghe).*
 
-## Implementation
+### Disadvantages and mitigation
 
-In an HMM, Transition and Emission probabilities are the core mathematical rules used to determine which label belongs to which token.
+Although the HMM architecture is robust for a small training corpus, it suffers from overreliance on tag transitions over emission probabilities and using relies on finicky tuning of damping hyperparameters and favors common tokens and disfavors rare tokens and especially hapax legomena.
 
-> *TODO: When a larger training corpus becomes available, switch to using tokens instead (after separating prefixes and suffixes into their own tokens).*
+### Mitigation
 
-Viterbi Algorithm Decoding is used for a globally optimal sequence of labels rather than making greedy token-by-token guesses.
+Using Kneser-Ney smoothing on the HMM emission matrix solves the problem of the transition matrix overriding the emissions without the need for exponential dampening and the required careful tuning of hyperparameters:
 
-Laplace smoothing is used for tokens it encounters during prediction but didn't see during training, though this will occur only for foreign or misspelled tokens.
+1. **Protects the Model from Idiom Over-weighting:** If the small training corpus contains a highly specific phrase (e.g., a specific noun always paired with a specific technical tag), Kneser-Ney prevents that noun from bleeding out and dominating other tags when encountered in a new sentence structure.
+2. **Smart Allocation to Unseen Tokens:** For out-of-vocabulary or rare tokens, the model will fallback to a continuation probability. It will ask: "Is this tag/label generally a versatile one that accepts many kinds of words?" If a hidden state is highly versatile (like a generic NOUN or VERB state), it gets a higher share of the smoothed probability mass than a highly restrictive state (like a specific punctuation state).
 
-### Hidden model parameters
+### Algorithm
 
-The transition, emission, and starting probabilities are estimated from training sentences.
+Kneser-Ney uses **Absolute Discounting** as its base but replaces raw counts with continuation probabilities for lower-order histories.
 
-#### 1. (State) Transition Probabilities: P(Label₂ | Label₁)
+For a bigram/emission context, the probability of a word w given a state/context c is calculated as:
 
-Transition probability is the likelihood of moving from one specific label to another label. It answers the question: Given the current label, what is the probability of the next label?
+$$P_{KN}(w\mid c)=\frac{\max (\text{count}(c,w)-d,0)}{\text{count}(c)}+\lambda (c)\cdot P_{continuation}(w)$$
 
-* What it measures: The grammar, structure, and syntax patterns of the language.
-* How it is calculated:
-$$\text{Transition Probability} = \frac{\text{Number of times Label₁ is followed by Label₂}}{\text{Total occurrences of Label₁}}$$
+1. **The Left Term (Absolute Discounting):** It takes the raw count of the pair, subtracts a flat discount d (usually between 0.5 and 0.75), and divides by the total context count.
+2. **The Right Term (λ Back-off Weight):** This is the normalized weight of the "stolen" probability mass we accumulated by subtracting d.
+3. **The Continuation Probability ($P_{continuation}$):** Instead of distributing the stolen mass uniformly (like Absolute Discounting does), Kneser-Ney distributes it based on how many unique contexts the word w has appeared in:
 
-#### 2. Emission (or Posterior) Probabilities: P(Token | Label)
+$$P_{continuation}(w)=\frac{\text{Number\ of\ unique\ contexts\ }c\text{\ where\ }(c,w)\text{\ occurs}}{\text{Total\ number\ of\ unique\ bigram\ types\ in\ the\ corpus}}$$
 
-Emission probability is the likelihood that a specific hidden label will emit (or produce) a specific visible token. It answers the question: Given a specific label, how likely is it to apply to this exact token?
-
-* What it measures: The vocabulary and semantic meaning associated with a label.
-* How it is calculated:
-$$\text{Emission Probability} = \frac{\text{Number of times a specific Token is labeled with a specific Label}}{\text{Total occurrences of that Label}}$$ 
-
-#### 3. Starting (or Marginal) Probabilities: P(Label₀)
-
-Starting probability is the likelihood that a specific hidden label will start a sentence. This grounds the backwards recursion and answers the question: Given a specific label, how likely is it to start the sentence?
-
-* What it measures: The vocabulary and semantic meaning associated with a label.
-* How it is calculated:
-$$\text{Starting Probability} = \frac{\text{Number of times a specific Label starts a sentence}}{\text{Number of training sentences}}$$ 
-
-#### How They Work Together (The Viterbi Decoding)
-
-The above visible emission and starting parameters (also known as the posterior and marginal probabilities, respectively) are unfortunately the inverse of the (hidden to us) conditional and prior probabililties that we actually need to predict the next label, and the latter are reconstructed via Bayes' Theorem by finding the maximum likelihood path backwards through a transition chain of labels from the end of a sentence to its start. This is the essence of the Viterbi implementation of the Hidden Markov Model.
-
-By calculating all possible path combinations using these two probability scores, the algorithm determines the most accurate sequence labels for the text.
-
-### Compensating for model sampling error
-
-We do not have access to the true population statistics of Sango sentences, and instead have to make do with the noisily estimated sample statistics obtained from training on a small corpus.
-
-To improve the model stability due to sampling error, Laplace smoothing and log-probability are used:
-
-#### Laplace Smoothing
-
-If an unknown token shows up during evaluation, standard calculation would multiply by 0% probability, wiping out the entire sequence score.
-
-Instead, the training code adds 1 to every event counter and increases the normalization denominator by the total vocabulary or label pool size. Unseen tokens fallback safely onto a tiny, non-zero probability instead of failing outright.
-
-#### Log-Probability Arithmetic
-
-Multiplying numbers under 1.0 repeatedly across long sentences creates extremely small fractions (e.g. $0.1^{20} = 10^{-20}$), causing system floating-point numbers to rounds down to absolute $0.0$ (Underflow).
-
-All probabilities are transformed using math.Log(). The math rules change from multiplication to simple addition: $\log (A\times B)=\log (A)+\log (B)$. This ensures mathematical stability even across sentences containing thousands of tokens.
-
-### Quality Metrics
+## Quality Metrics
 
 The model can be applied to test sentences not included in the training corpus to generate the following quality metrics:
 * Precision (Positive Predictive Value)
@@ -112,3 +75,4 @@ The model can be applied to test sentences not included in the training corpus t
   - It is the gold standard metric for optimizing sequence classifiers.
 
 *NOTE: If a test sentence were in the training corpus, the quality metrics would be artificially inflated since the model would have essentially memorized the sentence.*
+

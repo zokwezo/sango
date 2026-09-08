@@ -1,12 +1,15 @@
 // Hidden Markov Model (HMM) with Kneser-Ney smoothing
-//
+
 // Used for diacritic restoration of Sango text.
 
-package main
+package hmm
 
 import (
 	"fmt"
+	"io/ioutil"
 	"math"
+
+	"google.golang.org/protobuf/proto"
 )
 
 // Global constants for Kneser-Ney
@@ -18,19 +21,6 @@ const Discount = 0.75
 type TrainingInstance struct {
 	Tokens []string
 	States []string
-}
-
-type Then struct {
-	To map[string]float64 // count conditional on the map that contains it
-}
-
-type HMM struct {
-	States              map[string]bool
-	Vocab               map[string]bool
-	TransitionFromState map[string]*Then   // [fromState][toState] = count(s_t | s_{t-1})
-	EmissionFromState   map[string]*Then   // [state][word]        = count(w_t | s_t)
-	StateCount          map[string]float64 // total occurrences of each state
-	UniquePairs         float64            // total unique (state, word) types in corpus
 }
 
 func NewHMM() *HMM {
@@ -45,7 +35,7 @@ func NewHMM() *HMM {
 
 // Populates the raw count matrices from our tiny low-resource dataset.
 // This is a two-pass algorithm
-func (h *HMM) Train(data []TrainingInstance) {
+func (h *HMM) Train(data []TrainingInstance) error {
 	for _, inst := range data {
 		for i := 0; i < len(inst.Tokens); i++ {
 			state := inst.States[i]
@@ -76,6 +66,8 @@ func (h *HMM) Train(data []TrainingInstance) {
 	for _, emissionFromState := range h.EmissionFromState {
 		h.UniquePairs += float64(len(emissionFromState.To))
 	}
+
+	return nil
 }
 
 // GetEmissionNoSmoothing calculates pure MLE probabilities.
@@ -259,7 +251,7 @@ func (h *HMM) Viterbi(tokens []string, useSmoothing bool) []string {
 
 //////////////////////////////////////////////////////////////////////////////
 
-func main() {
+func MainTrain(modelOutputFilename string) error {
 	// Tiny low-resource corpus
 	// Notice how "Francisco" ALWAYS appears with "NOUN", making it highly rigid.
 	// "Apple" appears with both "NOUN" and "PROPN" (the company), making it versatile.
@@ -270,7 +262,32 @@ func main() {
 	}
 
 	hmm := NewHMM()
-	hmm.Train(trainingData)
+	err := hmm.Train(trainingData)
+	if err != nil {
+		return err
+	}
+
+	// Write the model to disk.
+	out, err := proto.Marshal(hmm)
+	if err != nil {
+		return err
+	}
+	if err := ioutil.WriteFile(modelOutputFilename, out, 0644); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func MainPredict(modelInputFilename string) error {
+	in, err := ioutil.ReadFile(modelInputFilename)
+	if err != nil {
+		return err
+	}
+	hmm := NewHMM()
+	if err := proto.Unmarshal(in, hmm); err != nil {
+		return err
+	}
 
 	fmt.Println("--- EMISSION COMPARISONS ---")
 
@@ -300,4 +317,6 @@ func main() {
 	// Predict WITH Kneser-Ney smoothing on Emissions
 	knSmoothPath := hmm.Viterbi(testTokens, true)
 	fmt.Println("Prediction (Kneser-Ney):  ", knSmoothPath)
+
+	return nil
 }

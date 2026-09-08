@@ -1,7 +1,7 @@
 syntax = "proto3";
-package main;
+package hmm;
 
-option go_package = "github.com/zokwezo/sango/src/lib/hmm/kn/hmm";
+option go_package = "github.com/zokwezo/sango/src/lib/hmm";
 
 // This helper class is needed because protocol buffers do not directly support nested maps.
 message Then {
