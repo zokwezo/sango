@@ -66,9 +66,10 @@ func (h *HMM) Generate() error {
 			totalEmissions += emission + 1.0
 		}
 		for token, emission := range hh.Emission {
-			hh.Emission[token] = math.Log((emission + 1.0) / totalEmissions)
+			hh.Emission[token] = math.Log((emission + UnknownTokenDampening) / totalEmissions)
 		}
-		//hh.Emission[UnknownToken] = math.Log(1.0 / totalEmissions)
+		totalEmissions++
+		hh.Emission[UnknownToken] = math.Log(UnknownTokenDampening / totalEmissions)
 	}
 	h.NumSentences *= -1 // mark as generated
 	return nil

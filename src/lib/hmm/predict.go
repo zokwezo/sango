@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
-	"math"
 	"os"
 	"strings"
 )
@@ -77,6 +76,7 @@ func (model HMM) Predict(sangoTokens []SangoToken) error {
 	if numTokens == 0 {
 		return fmt.Errorf("%s", "no tokens provided")
 	}
+
 	viterbi := make([]map[string]float64, numTokens)
 	backpointer := make([]map[string]string, numTokens)
 
@@ -86,11 +86,15 @@ func (model HMM) Predict(sangoTokens []SangoToken) error {
 
 	for tag, hmmPerTag := range model.HmmPerTag {
 		if hmmPerTag != nil {
-			emissionLog, exists := hmmPerTag.Emission[firstToken]
-			if !exists {
-				emissionLog = -10.0
+			logStartTag := hmmPerTag.StartTag
+			if logStartTag == 0.0 {
+				logStartTag = -50.0
 			}
-			viterbi[0][tag] = hmmPerTag.StartTag + emissionLog
+			logEmission := hmmPerTag.Emission[firstToken]
+			if logEmission == 0.0 {
+				logEmission = max(-50.0, hmmPerTag.Emission[UnknownToken])
+			}
+			viterbi[0][tag] = StartTagDampening*logStartTag + EmissionDampening*logEmission
 		}
 	}
 
@@ -100,20 +104,20 @@ func (model HMM) Predict(sangoTokens []SangoToken) error {
 		token := strings.ToLower(sangoTokens[t].Token)
 
 		for tag, hmmPerTag := range model.HmmPerTag {
-			maxLogProb := math.Inf(-1)
+			maxLogProb := -50.0
 			bestPrevTag := UnknownTag
 
-			currEmissionLog, exists := hmmPerTag.Emission[token]
-			if !exists {
-				currEmissionLog = math.Inf(-1)
+			logCurrEmission := hmmPerTag.Emission[token]
+			if logCurrEmission == 0.0 {
+				logCurrEmission = max(-50.0, hmmPerTag.Emission[UnknownToken])
 			}
 
 			for prevTag, hmmPerTag := range model.HmmPerTag {
-				currTransitionLog, exists := hmmPerTag.Transition[tag]
-				if !exists {
-					currTransitionLog = math.Inf(-1)
+				logCurrTransition := hmmPerTag.Transition[tag]
+				if logCurrTransition == 0.0 {
+					logCurrTransition = -50.0
 				}
-				logProb := viterbi[t-1][prevTag] + currTransitionLog + currEmissionLog
+				logProb := viterbi[t-1][prevTag] + TransitionDampening*logCurrTransition + EmissionDampening*logCurrEmission
 				if logProb > maxLogProb {
 					maxLogProb = logProb
 					bestPrevTag = prevTag
@@ -124,18 +128,18 @@ func (model HMM) Predict(sangoTokens []SangoToken) error {
 		}
 	}
 
-	maxFinalLog := math.Inf(-1)
-	bestFinalTag := UnknownTag
+	maxLogProbFinal := -50.0
+	bestTagFinal := UnknownTag
 	lastIdx := numTokens - 1
 
 	for tag := range model.HmmPerTag {
-		if viterbi[lastIdx][tag] > maxFinalLog {
-			maxFinalLog = viterbi[lastIdx][tag]
-			bestFinalTag = tag
+		if viterbi[lastIdx][tag] > maxLogProbFinal {
+			maxLogProbFinal = viterbi[lastIdx][tag]
+			bestTagFinal = tag
 		}
 	}
 
-	tag := bestFinalTag
+	tag := bestTagFinal
 	for t := lastIdx; t >= 0; t-- {
 		sangoTokens[t].Tag = tag
 		tag = backpointer[t][tag]

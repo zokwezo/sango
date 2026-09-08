@@ -54,7 +54,7 @@ func (h *HMM) Accumulate(sentence []SangoToken) error {
 		return nil
 	}
 	h.NumSentences--
-	prevTag := UnknownTagForToken(sentence[0].Token)
+	prevTag := UnknownTag
 	for j := range sentence {
 		sangoToken := sentence[j]
 		token := sangoToken.Token

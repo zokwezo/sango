@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"slices"
 )
 
 func MainEvaluate(actual, expect string) error {
@@ -25,10 +26,17 @@ func MainEvaluate(actual, expect string) error {
 		return err
 	}
 
+	sortedTags := make([]string, 0, len(metricsMap))
+	for k := range metricsMap {
+		sortedTags = append(sortedTags, k)
+	}
+	slices.SortFunc(sortedTags, TagCompare)
+
 	fmt.Println("")
 	fmt.Println("PITCH | PRECISION |  RECALL   | F1-SCORE   ")
 	fmt.Println("------+-----------+-----------+------------")
-	for tag, m := range metricsMap {
+	for _, tag := range sortedTags {
+		m := metricsMap[tag]
 		if m.TP+m.FP > 0 {
 			m.Precision = float64(m.TP) / float64(m.TP+m.FP)
 		}
@@ -37,6 +45,9 @@ func MainEvaluate(actual, expect string) error {
 		}
 		if m.Precision+m.Recall > 0 {
 			m.F1Score = 2 * (m.Precision * m.Recall) / (m.Precision + m.Recall)
+		}
+		if tag == "" {
+			tag = "?"
 		}
 		fmt.Printf("  %s   | %6.2f %%  | %6.2f %%  | %6.2f %%\n",
 			tag, m.Precision*100, m.Recall*100, m.F1Score*100)

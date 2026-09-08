@@ -28,7 +28,8 @@ func init() {
 }
 
 func main() {
-	log.SetFlags(log.Lshortfile)
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
+	// log.SetOutput(io.Discard)
 	if err := sangoCmd.Execute(); err != nil {
 		log.Fatal(err)
 	}
