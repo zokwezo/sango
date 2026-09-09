@@ -3,29 +3,36 @@ package hmm;
 
 option go_package = "github.com/zokwezo/sango/src/lib/hmm";
 
-// This helper class is needed because protocol buffers do not directly support nested maps.
-message Then {
-  // Count (or probability) conditional on the map that contains it
-	map<string, double> to = 1;
+// Fields `from` and `to` are indexes into `states` or `tokens`a repeated field that depends on the containing field.
+message FromToCount {
+  int32  from  = 1;  // index into Model.states
+	int32  to    = 2;  // index into Model.states (except Model.tokens for emission field)
+	int64  count = 3;  // count
 }
 
 // Hidden Markov Model
-message HMM {
-  // States found in the training corpus
-	map<string, bool>   states                = 1;
+message Model {
+  // Deduplicated states found in the training corpus
+  repeated string      states       = 1;
 
-  // Words found in the training corpus
-	map<string, bool>   vocab                 = 2;
+  // Deduplicated tokens found in the training corpus
+  repeated string      tokens       = 2;
 
-  // transition_from_state[fromState].to[toState] = count(s_t | s_{t-1})
-	map<string, Then>   transition_from_state = 3;
+  // transition[iFrom].to[iTo]
+	//   = count(states[iFrom](t) | states[iTo](t-1))
+  // Map key is the index into `states` above.
+  repeated FromToCount transitions  = 3;
 
-  // emission_from_state[state].to[word]          = count(w_t | s_t)
- map<string, Then>    emission_from_state   = 4;
+  // emission[iFrom].to[iTo]
+	//   = count(tokens[iTo](t) | states[iFrom](t))
+  // Map key is the index into `states` above.
+  repeated FromToCount emissions    = 4;
 
   // Total occurrences of each state
-	map<string, double> state_count           = 5;
-	
+  // Map key is the index into `states` above.
+	// The to field is not set.
+  repeated FromToCount state_counts = 5;
+  
   // Total unique (state, word) types in the training corpus
-	double              unique_pairs          = 6;
+  int64                unique_pairs = 6;
 }

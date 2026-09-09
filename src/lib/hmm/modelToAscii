@@ -1,0 +1,2 @@
+#!/bin/bash
+protoc --decode=hmm.Model hmm.proto | xargs -0 printf

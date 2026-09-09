@@ -21,29 +21,30 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// This helper class is needed because protocol buffers do not directly support nested maps.
-type Then struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// Count (or probability) conditional on the map that contains it
-	To            map[string]float64 `protobuf:"bytes,1,rep,name=to,proto3" json:"to,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"fixed64,2,opt,name=value"`
+// Fields `from` and `to` are indexes into `states` or `tokens`a repeated field that depends on the containing field.
+type FromToCount struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	From          int32                  `protobuf:"varint,1,opt,name=from,proto3" json:"from,omitempty"`   // index into Model.states
+	To            int32                  `protobuf:"varint,2,opt,name=to,proto3" json:"to,omitempty"`       // index into Model.states (except Model.tokens for emission field)
+	Count         int64                  `protobuf:"varint,3,opt,name=count,proto3" json:"count,omitempty"` // count
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *Then) Reset() {
-	*x = Then{}
+func (x *FromToCount) Reset() {
+	*x = FromToCount{}
 	mi := &file_hmm_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *Then) String() string {
+func (x *FromToCount) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*Then) ProtoMessage() {}
+func (*FromToCount) ProtoMessage() {}
 
-func (x *Then) ProtoReflect() protoreflect.Message {
+func (x *FromToCount) ProtoReflect() protoreflect.Message {
 	mi := &file_hmm_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -55,51 +56,75 @@ func (x *Then) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use Then.ProtoReflect.Descriptor instead.
-func (*Then) Descriptor() ([]byte, []int) {
+// Deprecated: Use FromToCount.ProtoReflect.Descriptor instead.
+func (*FromToCount) Descriptor() ([]byte, []int) {
 	return file_hmm_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *Then) GetTo() map[string]float64 {
+func (x *FromToCount) GetFrom() int32 {
+	if x != nil {
+		return x.From
+	}
+	return 0
+}
+
+func (x *FromToCount) GetTo() int32 {
 	if x != nil {
 		return x.To
 	}
-	return nil
+	return 0
+}
+
+func (x *FromToCount) GetCount() int64 {
+	if x != nil {
+		return x.Count
+	}
+	return 0
 }
 
 // Hidden Markov Model
-type HMM struct {
+type Model struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
-	// States found in the training corpus
-	States map[string]bool `protobuf:"bytes,1,rep,name=states,proto3" json:"states,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"varint,2,opt,name=value"`
-	// Words found in the training corpus
-	Vocab map[string]bool `protobuf:"bytes,2,rep,name=vocab,proto3" json:"vocab,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"varint,2,opt,name=value"`
-	// transition_from_state[fromState].to[toState] = count(s_t | s_{t-1})
-	TransitionFromState map[string]*Then `protobuf:"bytes,3,rep,name=transition_from_state,json=transitionFromState,proto3" json:"transition_from_state,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	// emission_from_state[state].to[word]          = count(w_t | s_t)
-	EmissionFromState map[string]*Then `protobuf:"bytes,4,rep,name=emission_from_state,json=emissionFromState,proto3" json:"emission_from_state,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	// Deduplicated states found in the training corpus
+	States []string `protobuf:"bytes,1,rep,name=states,proto3" json:"states,omitempty"`
+	// Deduplicated tokens found in the training corpus
+	Tokens []string `protobuf:"bytes,2,rep,name=tokens,proto3" json:"tokens,omitempty"`
+	// transition[iFrom].to[iTo]
+	//
+	//	= count(states[iFrom](t) | states[iTo](t-1))
+	//
+	// Map key is the index into `states` above.
+	Transitions []*FromToCount `protobuf:"bytes,3,rep,name=transitions,proto3" json:"transitions,omitempty"`
+	// emission[iFrom].to[iTo]
+	//
+	//	= count(tokens[iTo](t) | states[iFrom](t))
+	//
+	// Map key is the index into `states` above.
+	Emissions []*FromToCount `protobuf:"bytes,4,rep,name=emissions,proto3" json:"emissions,omitempty"`
 	// Total occurrences of each state
-	StateCount map[string]float64 `protobuf:"bytes,5,rep,name=state_count,json=stateCount,proto3" json:"state_count,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"fixed64,2,opt,name=value"`
+	// Map key is the index into `states` above.
+	// The to field is not set.
+	StateCounts []*FromToCount `protobuf:"bytes,5,rep,name=state_counts,json=stateCounts,proto3" json:"state_counts,omitempty"`
 	// Total unique (state, word) types in the training corpus
-	UniquePairs   float64 `protobuf:"fixed64,6,opt,name=unique_pairs,json=uniquePairs,proto3" json:"unique_pairs,omitempty"`
+	UniquePairs   int64 `protobuf:"varint,6,opt,name=unique_pairs,json=uniquePairs,proto3" json:"unique_pairs,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *HMM) Reset() {
-	*x = HMM{}
+func (x *Model) Reset() {
+	*x = Model{}
 	mi := &file_hmm_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *HMM) String() string {
+func (x *Model) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*HMM) ProtoMessage() {}
+func (*Model) ProtoMessage() {}
 
-func (x *HMM) ProtoReflect() protoreflect.Message {
+func (x *Model) ProtoReflect() protoreflect.Message {
 	mi := &file_hmm_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -111,47 +136,47 @@ func (x *HMM) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use HMM.ProtoReflect.Descriptor instead.
-func (*HMM) Descriptor() ([]byte, []int) {
+// Deprecated: Use Model.ProtoReflect.Descriptor instead.
+func (*Model) Descriptor() ([]byte, []int) {
 	return file_hmm_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *HMM) GetStates() map[string]bool {
+func (x *Model) GetStates() []string {
 	if x != nil {
 		return x.States
 	}
 	return nil
 }
 
-func (x *HMM) GetVocab() map[string]bool {
+func (x *Model) GetTokens() []string {
 	if x != nil {
-		return x.Vocab
+		return x.Tokens
 	}
 	return nil
 }
 
-func (x *HMM) GetTransitionFromState() map[string]*Then {
+func (x *Model) GetTransitions() []*FromToCount {
 	if x != nil {
-		return x.TransitionFromState
+		return x.Transitions
 	}
 	return nil
 }
 
-func (x *HMM) GetEmissionFromState() map[string]*Then {
+func (x *Model) GetEmissions() []*FromToCount {
 	if x != nil {
-		return x.EmissionFromState
+		return x.Emissions
 	}
 	return nil
 }
 
-func (x *HMM) GetStateCount() map[string]float64 {
+func (x *Model) GetStateCounts() []*FromToCount {
 	if x != nil {
-		return x.StateCount
+		return x.StateCounts
 	}
 	return nil
 }
 
-func (x *HMM) GetUniquePairs() float64 {
+func (x *Model) GetUniquePairs() int64 {
 	if x != nil {
 		return x.UniquePairs
 	}
@@ -162,36 +187,18 @@ var File_hmm_proto protoreflect.FileDescriptor
 
 const file_hmm_proto_rawDesc = "" +
 	"\n" +
-	"\thmm.proto\x12\x03hmm\"`\n" +
-	"\x04Then\x12!\n" +
-	"\x02to\x18\x01 \x03(\v2\x11.hmm.Then.ToEntryR\x02to\x1a5\n" +
-	"\aToEntry\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\x01R\x05value:\x028\x01\"\xbc\x05\n" +
-	"\x03HMM\x12,\n" +
-	"\x06states\x18\x01 \x03(\v2\x14.hmm.HMM.StatesEntryR\x06states\x12)\n" +
-	"\x05vocab\x18\x02 \x03(\v2\x13.hmm.HMM.VocabEntryR\x05vocab\x12U\n" +
-	"\x15transition_from_state\x18\x03 \x03(\v2!.hmm.HMM.TransitionFromStateEntryR\x13transitionFromState\x12O\n" +
-	"\x13emission_from_state\x18\x04 \x03(\v2\x1f.hmm.HMM.EmissionFromStateEntryR\x11emissionFromState\x129\n" +
-	"\vstate_count\x18\x05 \x03(\v2\x18.hmm.HMM.StateCountEntryR\n" +
-	"stateCount\x12!\n" +
-	"\funique_pairs\x18\x06 \x01(\x01R\vuniquePairs\x1a9\n" +
-	"\vStatesEntry\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\bR\x05value:\x028\x01\x1a8\n" +
-	"\n" +
-	"VocabEntry\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\bR\x05value:\x028\x01\x1aQ\n" +
-	"\x18TransitionFromStateEntry\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\tR\x03key\x12\x1f\n" +
-	"\x05value\x18\x02 \x01(\v2\t.hmm.ThenR\x05value:\x028\x01\x1aO\n" +
-	"\x16EmissionFromStateEntry\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\tR\x03key\x12\x1f\n" +
-	"\x05value\x18\x02 \x01(\v2\t.hmm.ThenR\x05value:\x028\x01\x1a=\n" +
-	"\x0fStateCountEntry\x12\x10\n" +
-	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\x01R\x05value:\x028\x01B&Z$github.com/zokwezo/sango/src/lib/hmmb\x06proto3"
+	"\thmm.proto\x12\x03hmm\"G\n" +
+	"\vFromToCount\x12\x12\n" +
+	"\x04from\x18\x01 \x01(\x05R\x04from\x12\x0e\n" +
+	"\x02to\x18\x02 \x01(\x05R\x02to\x12\x14\n" +
+	"\x05count\x18\x03 \x01(\x03R\x05count\"\xf3\x01\n" +
+	"\x05Model\x12\x16\n" +
+	"\x06states\x18\x01 \x03(\tR\x06states\x12\x16\n" +
+	"\x06tokens\x18\x02 \x03(\tR\x06tokens\x122\n" +
+	"\vtransitions\x18\x03 \x03(\v2\x10.hmm.FromToCountR\vtransitions\x12.\n" +
+	"\temissions\x18\x04 \x03(\v2\x10.hmm.FromToCountR\temissions\x123\n" +
+	"\fstate_counts\x18\x05 \x03(\v2\x10.hmm.FromToCountR\vstateCounts\x12!\n" +
+	"\funique_pairs\x18\x06 \x01(\x03R\vuniquePairsB&Z$github.com/zokwezo/sango/src/lib/hmmb\x06proto3"
 
 var (
 	file_hmm_proto_rawDescOnce sync.Once
@@ -205,31 +212,20 @@ func file_hmm_proto_rawDescGZIP() []byte {
 	return file_hmm_proto_rawDescData
 }
 
-var file_hmm_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_hmm_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
 var file_hmm_proto_goTypes = []any{
-	(*Then)(nil), // 0: hmm.Then
-	(*HMM)(nil),  // 1: hmm.HMM
-	nil,          // 2: hmm.Then.ToEntry
-	nil,          // 3: hmm.HMM.StatesEntry
-	nil,          // 4: hmm.HMM.VocabEntry
-	nil,          // 5: hmm.HMM.TransitionFromStateEntry
-	nil,          // 6: hmm.HMM.EmissionFromStateEntry
-	nil,          // 7: hmm.HMM.StateCountEntry
+	(*FromToCount)(nil), // 0: hmm.FromToCount
+	(*Model)(nil),       // 1: hmm.Model
 }
 var file_hmm_proto_depIdxs = []int32{
-	2, // 0: hmm.Then.to:type_name -> hmm.Then.ToEntry
-	3, // 1: hmm.HMM.states:type_name -> hmm.HMM.StatesEntry
-	4, // 2: hmm.HMM.vocab:type_name -> hmm.HMM.VocabEntry
-	5, // 3: hmm.HMM.transition_from_state:type_name -> hmm.HMM.TransitionFromStateEntry
-	6, // 4: hmm.HMM.emission_from_state:type_name -> hmm.HMM.EmissionFromStateEntry
-	7, // 5: hmm.HMM.state_count:type_name -> hmm.HMM.StateCountEntry
-	0, // 6: hmm.HMM.TransitionFromStateEntry.value:type_name -> hmm.Then
-	0, // 7: hmm.HMM.EmissionFromStateEntry.value:type_name -> hmm.Then
-	8, // [8:8] is the sub-list for method output_type
-	8, // [8:8] is the sub-list for method input_type
-	8, // [8:8] is the sub-list for extension type_name
-	8, // [8:8] is the sub-list for extension extendee
-	0, // [0:8] is the sub-list for field type_name
+	0, // 0: hmm.Model.transitions:type_name -> hmm.FromToCount
+	0, // 1: hmm.Model.emissions:type_name -> hmm.FromToCount
+	0, // 2: hmm.Model.state_counts:type_name -> hmm.FromToCount
+	3, // [3:3] is the sub-list for method output_type
+	3, // [3:3] is the sub-list for method input_type
+	3, // [3:3] is the sub-list for extension type_name
+	3, // [3:3] is the sub-list for extension extendee
+	0, // [0:3] is the sub-list for field type_name
 }
 
 func init() { file_hmm_proto_init() }
@@ -243,7 +239,7 @@ func file_hmm_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_hmm_proto_rawDesc), len(file_hmm_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   8,
+			NumMessages:   2,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

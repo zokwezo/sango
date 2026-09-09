@@ -1,15 +1,14 @@
-// Hidden Markov Model (HMM) with Kneser-Ney smoothing
-
-// Used for diacritic restoration of Sango text.
+// Uses Hidden Markov Model (HMM) with Kneser-Ney smoothing for diacritic restoration of Sango text.
 
 package hmm
 
 import (
+	"cmp"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 	"regexp"
+	"slices"
 	"strings"
 
 	"golang.org/x/text/cases"
@@ -18,14 +17,155 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-func NewHMM() *HMM {
-	return &HMM{
-		States:              make(map[string]bool),
-		Vocab:               make(map[string]bool),
-		TransitionFromState: make(map[string]*Then),
-		EmissionFromState:   make(map[string]*Then),
-		StateCount:          make(map[string]float64),
+type HMM struct {
+	States      map[string]bool
+	Tokens      map[string]bool
+	Transitions map[string]map[string]int64 // count(s_t | s_{t-1})
+	Emissions   map[string]map[string]int64 // count(w_t | s_t)
+	StateCounts map[string]int64            // total occurrences of each state
+	UniquePairs int64                       // total unique (state, word) types in corpus
+}
+
+func FromToCountCompare(lhs, rhs *FromToCount) int {
+	if c := cmp.Compare(lhs.From, rhs.From); c != 0 {
+		return c
 	}
+	if c := cmp.Compare(lhs.To, rhs.To); c != 0 {
+		return c
+	}
+	if c := cmp.Compare(lhs.Count, rhs.Count); c != 0 {
+		return c
+	}
+	return 0
+}
+
+func (h *HMM) ToModel() Model {
+	m := Model{
+		States:      []string{},
+		Tokens:      []string{},
+		Transitions: []*FromToCount{},
+		Emissions:   []*FromToCount{},
+		StateCounts: []*FromToCount{},
+	}
+	for s := range h.States {
+		m.States = append(m.States, s)
+	}
+	slices.Sort(m.States)
+	mStates := make(map[string]int32, len(m.States))
+	for k, s := range m.States {
+		mStates[s] = int32(k)
+	}
+	for s := range h.Tokens {
+		m.Tokens = append(m.Tokens, s)
+	}
+	slices.Sort(m.Tokens)
+	mTokens := make(map[string]int32, len(m.Tokens))
+	for k, s := range m.Tokens {
+		mTokens[s] = int32(k)
+	}
+	for sFrom, p := range h.Transitions {
+		if kFrom, found := mStates[sFrom]; found {
+			for sTo, v := range p {
+				if kTo, found := mStates[sTo]; found {
+					m.Transitions = append(m.Transitions, &FromToCount{From: kFrom, To: kTo, Count: int64(v)})
+				} else {
+					panic("Transitions key missing from States")
+				}
+			}
+		} else {
+			panic("Transitions key missing from States")
+		}
+	}
+	slices.SortFunc(m.Transitions, FromToCountCompare)
+	for sFrom, p := range h.Emissions {
+		if kFrom, found := mStates[sFrom]; found {
+			for sTo, v := range p {
+				if kTo, found := mTokens[sTo]; found {
+					m.Emissions = append(m.Emissions, &FromToCount{From: kFrom, To: kTo, Count: int64(v)})
+				} else {
+					panic("Emissions key missing from Tokens")
+				}
+			}
+		} else {
+			panic("Emissions key missing from States")
+		}
+	}
+	slices.SortFunc(m.Emissions, FromToCountCompare)
+	for s, c := range h.StateCounts {
+		if k, found := mStates[s]; found {
+			m.StateCounts = append(m.StateCounts, &FromToCount{From: k, Count: int64(c)})
+		} else {
+			panic("StateCounts key missing from States")
+		}
+	}
+	slices.SortFunc(m.StateCounts, FromToCountCompare)
+	m.UniquePairs = int64(h.UniquePairs)
+	return m
+}
+
+func (h *HMM) FromModel(m *Model) {
+	if h == nil || m == nil {
+		return
+	}
+	if m.States == nil {
+		m.States = []string{}
+	}
+	if m.Tokens == nil {
+		m.Tokens = []string{}
+	}
+	if m.Transitions == nil {
+		m.Transitions = []*FromToCount{}
+	}
+	if m.Emissions == nil {
+		m.Emissions = []*FromToCount{}
+	}
+	if m.StateCounts == nil {
+		m.StateCounts = []*FromToCount{}
+	}
+	*h = HMM{
+		States:      make(map[string]bool),
+		Tokens:      make(map[string]bool),
+		Transitions: make(map[string]map[string]int64),
+		Emissions:   make(map[string]map[string]int64),
+		StateCounts: make(map[string]int64),
+	}
+
+	numStates := int32(len(m.States))
+	numTokens := int32(len(m.Tokens))
+	for _, state := range m.States {
+		h.States[state] = true
+	}
+	for _, word := range m.Tokens {
+		h.Tokens[word] = true
+	}
+	for _, ftc := range m.Transitions {
+		if ftc != nil {
+			if kFrom, kTo := ftc.From, ftc.To; kFrom >= 0 && kTo >= 0 && kFrom < numStates && kTo < numStates {
+				if h.Transitions[m.States[kFrom]] == nil {
+					h.Transitions[m.States[kFrom]] = make(map[string]int64)
+				}
+				h.Transitions[m.States[kFrom]][m.States[kTo]] = ftc.Count
+			}
+		}
+	}
+	for _, ftc := range m.Emissions {
+		if ftc != nil {
+			if kFrom, kTo := ftc.From, ftc.To; kFrom >= 0 && kTo >= 0 && kFrom < numStates && kTo < numTokens {
+				if h.Emissions[m.States[kFrom]] == nil {
+					h.Emissions[m.States[kFrom]] = make(map[string]int64)
+				}
+				h.Emissions[m.States[kFrom]][m.Tokens[kTo]] = ftc.Count
+			}
+		}
+	}
+	for _, ftc := range m.StateCounts {
+		if ftc != nil {
+			if kFrom := ftc.From; kFrom >= 0 && kFrom < numStates {
+				h.StateCounts[m.States[kFrom]] = ftc.Count
+			}
+		}
+	}
+	h.UniquePairs = m.UniquePairs
 }
 
 // TrainingInstance represents a sequence of tokens and their true state/label sequence.
@@ -37,50 +177,34 @@ type TrainingInstance struct {
 }
 
 var (
-	reFinalPunctuation      = regexp.MustCompile(`[.!?][ ]`)
+	reFinalPunctuation      = regexp.MustCompile(`[.!?]`)
 	reNonTextWithDiacritics = regexp.MustCompile(`[^a-z .?!\x{302}\x{308}\x{323}]`)
 	reNonText               = regexp.MustCompile(`[^a-z .?!]`)
 	reCompressSpaces        = regexp.MustCompile(`[ ]{2,}`)
 )
 
 func PrepareInputText(s string) []TrainingInstance {
-	log.Printf("S: <%s>\n", s)
 	s = norm.NFD.String(cases.Lower(language.English).String(s))
-	log.Printf("S: <%s>\n", s)
 	s = strings.ReplaceAll(s, "\n", " ")
-	log.Printf("S: <%s>\n", s)
 	s = strings.Trim(s, " ")
-	log.Printf("S: <%s>\n", s)
 	s = reNonTextWithDiacritics.ReplaceAllLiteralString(s, " ")
-	log.Printf("S: <%s>\n", s)
 	s = reCompressSpaces.ReplaceAllLiteralString(s, " ")
-	log.Printf("S: <%s>\n", s)
 	s = reFinalPunctuation.ReplaceAllLiteralString(s, "\n")
-	log.Printf("S: <%s>\n", s)
 	tis := []TrainingInstance{}
-	for i, sentence := range strings.Split(strings.Trim(s, " "), "\n") {
-	  log.Printf("S[%v]: <%s>\n", i, sentence)
-	  sentence = strings.Trim(sentence, " ")
-	  log.Printf("S[%v]: <%s>\n", i, sentence)
+	for _, sentence := range strings.Split(strings.Trim(s, " "), "\n") {
+		sentence = strings.Trim(sentence, " ")
 		if sentence != "" {
-	  log.Printf("S[%v]: <%s>\n", i, sentence)
-		ti := TrainingInstance{}
-		ti.States = strings.Split(sentence, " ")
-		n := len(ti.States)
-		log.Printf("n[%v] = %v\n", i, n)
-		ti.Tokens = make([]string, n)
-		for k := range ti.States {
-	    log.Printf("S[%v][%v]: <%s>\n", i, k, ti.States[k])
-			ti.Tokens[k] = reNonText.ReplaceAllLiteralString(ti.States[k], "")
-	    log.Printf("T[%v][%v]: <%s>\n", i, k, ti.Tokens[k])
-			ti.States[k] = norm.NFC.String(ti.States[k])
-	    log.Printf("S[%v][%v]: <%s>\n", i, k, ti.States[k])
-		}
-		tis = append(tis, ti)
+			ti := TrainingInstance{}
+			ti.States = strings.Split(sentence, " ")
+			n := len(ti.States)
+			ti.Tokens = make([]string, n)
+			for k := range ti.States {
+				ti.Tokens[k] = reNonText.ReplaceAllLiteralString(ti.States[k], "")
+				ti.States[k] = norm.NFC.String(ti.States[k])
+			}
+			tis = append(tis, ti)
 		}
 	}
-	log.Printf("n = %v\n", len(tis))
-	log.Printf("%#v\n", tis)
 	return tis
 }
 
@@ -90,17 +214,19 @@ func MainTrain(trainingTextFilename, modelOutputFilename string) error {
 		return err
 	}
 	trainingData := PrepareInputText(string(trainingText))
-	log.Printf("trainingData = %#v\n", trainingData)
 
-	h := NewHMM()
-	err = h.Train(trainingData)
-	if err != nil {
-		return err
+	h := HMM{
+		States:      make(map[string]bool),
+		Tokens:      make(map[string]bool),
+		Transitions: make(map[string]map[string]int64),
+		Emissions:   make(map[string]map[string]int64),
+		StateCounts: make(map[string]int64),
 	}
-	log.Printf("h = %#v\n", *h)
+	h.Train(trainingData)
+	m := h.ToModel()
 
 	// Write the model to disk.
-	out, err := proto.Marshal(h)
+	out, err := proto.Marshal(&m)
 	if err != nil {
 		return err
 	}
@@ -111,44 +237,30 @@ func MainTrain(trainingTextFilename, modelOutputFilename string) error {
 	return nil
 }
 
-func MainPredict(modelInputFilename string) error {
-	in, err := ioutil.ReadFile(modelInputFilename)
+func MainPredict(inputTextFilename, modelInputFilename string) error {
+	modelInputWireFormat, err := ioutil.ReadFile(modelInputFilename)
 	if err != nil {
 		return err
 	}
-	h := NewHMM()
-	if err := proto.Unmarshal(in, h); err != nil {
+	m := Model{}
+	if err := proto.Unmarshal(modelInputWireFormat, &m); err != nil {
 		return err
 	}
+	h := HMM{}
+	h.FromModel(&m)
 
-	fmt.Println("--- EMISSION COMPARISONS ---")
+	inputText, err := os.ReadFile(inputTextFilename)
+	if err != nil {
+		return err
+	}
+	inputData := PrepareInputText(string(inputText))
+	fmt.Println("Tokens to predict:", inputData)
 
-	// Example 1: Evaluating a highly rigid token in a completely novel context
-	// Does "Francisco" make sense as a generic VERB?
-	fmt.Printf("\nToken: 'Francisco' | Evaluated State: 'VERB'\n")
-	fmt.Printf("  No Smoothing:        %0.5f (Completely rejects it)\n", h.GetEmissionNoSmoothing("VERB", "Francisco"))
-	fmt.Printf("  Kneser-Ney Sm.:      %0.5f (Keeps mass very low because it lacks versatility)\n", h.GetEmissionKneserNey("VERB", "Francisco"))
-
-	// Example 2: Evaluating a versatile token in an unseen context
-	// We've never explicitly trained "Apple" as a generic "DET" (determiner),
-	// but it is a versatile word in the corpus.
-	fmt.Printf("\nToken: 'Apple' | Evaluated State: 'DET'\n")
-	fmt.Printf("  No Smoothing:        %0.5f (Strictly breaks the sequence sequence match)\n", h.GetEmissionNoSmoothing("DET", "Apple"))
-	fmt.Printf("  Kneser-Ney Sm.:      %0.5f (Grants a higher fallback probability because 'Apple' is versatile)\n", h.GetEmissionKneserNey("DET", "Apple"))
-
-	// Evaluation test sequence:
-	// "Apple" is used here as a common NOUN in the object position, rather than the PROPN company name.
-	testTokens := []string{"Eat", "an", "Apple"}
-
-	fmt.Println("Tokens to predict:", testTokens)
-
-	// Predict with NO smoothing on Emissions
-	noSmoothPath := h.Viterbi(testTokens, false)
-	fmt.Println("Prediction (No Smoothing): ", noSmoothPath)
-
-	// Predict WITH Kneser-Ney smoothing on Emissions
-	knSmoothPath := h.Viterbi(testTokens, true)
-	fmt.Println("Prediction (Kneser-Ney):  ", knSmoothPath)
+	for k := range inputData {
+		// Predict WITH Kneser-Ney smoothing on Emissions
+		knSmoothPath := h.Viterbi(inputData[k].Tokens)
+		fmt.Println(knSmoothPath)
+	}
 
 	return nil
 }

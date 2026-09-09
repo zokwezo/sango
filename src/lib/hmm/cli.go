@@ -8,16 +8,18 @@ func Init(rootCmd *cobra.Command) {
 	rootCmd.AddCommand(hmmCmd)
 
 	hmmCmd.AddCommand(trainCmd)
-	trainCmd.Flags().StringP("in", "i", "",
-		"input filename of the training data")
-	trainCmd.Flags().StringP("out", "o", "",
-		"output filename of the HMM counts")
-	trainCmd.MarkFlagRequired("out")
+	trainCmd.Flags().StringP("txt", "t", "",
+		"input filename of the training text (defaults to stdin)")
+	trainCmd.Flags().StringP("model", "m", "",
+		"output filename of the HMM")
+	trainCmd.MarkFlagRequired("model")
 
 	hmmCmd.AddCommand(predictCmd)
-	predictCmd.Flags().StringP("in", "i", "",
-		"input filename of the HMM model")
-	// predictCmd.MarkFlagRequired("in")
+	predictCmd.Flags().StringP("txt", "t", "",
+		"input filename of the input text (defaults to stdin)")
+	predictCmd.Flags().StringP("model", "m", "",
+		"input filename of the HMM")
+	predictCmd.MarkFlagRequired("model")
 
 	hmmCmd.AddCommand(evaluateCmd)
 	evaluateCmd.Flags().StringP("actual", "a", "",
@@ -40,11 +42,11 @@ var (
 		Long:  "Read Sango training text from stdin and train HMM counts of its words and their diacritics.",
 		Args:  cobra.MaximumNArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			trainingTextFilename, err := cmd.Flags().GetString("in")
+			trainingTextFilename, err := cmd.Flags().GetString("txt")
 			if err != nil {
 				return err
 			}
-			modelOutputFilename, err := cmd.Flags().GetString("out")
+			modelOutputFilename, err := cmd.Flags().GetString("model")
 			if err != nil {
 				return err
 			}
@@ -58,11 +60,15 @@ var (
 		Long:  "Read Sango predicting text from stdin and restore their vowels' diacritics.",
 		Args:  cobra.MaximumNArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			modelInputFilename, err := cmd.Flags().GetString("in")
+			inputTextFilename, err := cmd.Flags().GetString("txt")
 			if err != nil {
 				return err
 			}
-			return MainPredict(modelInputFilename)
+			modelInputFilename, err := cmd.Flags().GetString("model")
+			if err != nil {
+				return err
+			}
+			return MainPredict(inputTextFilename, modelInputFilename)
 		},
 	}
 

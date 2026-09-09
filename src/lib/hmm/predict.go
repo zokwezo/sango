@@ -1,6 +1,4 @@
-// Hidden Markov Model (HMM) with Kneser-Ney smoothing
-
-// Used for diacritic restoration of Sango text.
+// Uses Hidden Markov Model (HMM) with Kneser-Ney smoothing for diacritic restoration of Sango text.
 
 package hmm
 
@@ -11,76 +9,54 @@ import (
 // Global constants for Kneser-Ney
 const Discount = 0.75
 
-// GetEmissionNoSmoothing calculates pure MLE probabilities.
-// Returns 0.0 for any token not explicitly bound to that state in training.
-func (h *HMM) GetEmissionNoSmoothing(state, word string) float64 {
-	totalStateCount := h.StateCount[state]
-	if totalStateCount == 0 {
-		return 0.0
-	}
-	if _, exists := h.EmissionFromState[state]; !exists {
-		h.EmissionFromState[state] = &Then{To: make(map[string]float64)}
-	}
-	return h.EmissionFromState[state].To[word] / totalStateCount
-}
-
 // GetEmissionKneserNey calculates the smoothed emission probability.
 // It uses absolute discounting and backs off to the token's structural versatility.
-func (h *HMM) GetEmissionKneserNey(state, word string) float64 {
-	totalStateCount := h.StateCount[state]
-	if totalStateCount == 0 {
-		return 1.0 / float64(len(h.Vocab)) // Uniform fallback if state is totally unseen
+func (h *HMM) GetEmissionKneserNey(state, token string) float64 {
+	totalStateCount := float64(h.StateCounts[state])
+	if totalStateCount == 0.0 {
+		return 1.0 / float64(len(h.Tokens)) // Uniform fallback if state is totally unseen
 	}
 
-	if _, exists := h.EmissionFromState[state]; !exists {
-		h.EmissionFromState[state] = &Then{To: make(map[string]float64)}
-	}
-	rawCount := h.EmissionFromState[state].To[word]
-	uniqueWordsInState := float64(len(h.EmissionFromState[state].To))
+	rawCount := h.Emissions[state][token]
+	uniqueTokensInState := len(h.Emissions[state])
 
 	// 1. Calculate Left Term: Discounted MLE
-	leftTerm := math.Max(rawCount-Discount, 0.0) / totalStateCount
+	leftTerm := math.Max(float64(rawCount)-Discount, 0.0) / totalStateCount
 
 	// 2. Calculate Lambda: Back-off weight normalization
-	lambda := (Discount / totalStateCount) * uniqueWordsInState
+	lambda := (Discount / totalStateCount) * float64(uniqueTokensInState)
 
-	// 3. Calculate Continuation Probability: Versatility of the word
-	// How many unique states have emitted this specific word?
-	statesEmittingWord := 0.0
-	for _, emissionFromState := range h.EmissionFromState {
-		if _, exists := emissionFromState.To[word]; exists {
-			statesEmittingWord++
+	// 3. Calculate Continuation Probability: Versatility of the token
+	// How many unique states have emitted this specific token?
+	statesEmittingToken := 0
+	for _, tokens := range h.Emissions {
+		if _, exists := tokens[token]; exists {
+			statesEmittingToken++
 		}
 	}
 
-	pContinuation := statesEmittingWord / h.UniquePairs
+	pContinuation := float64(statesEmittingToken) / float64(h.UniquePairs)
 
 	// Final Kneser-Ney formula blending
 	return leftTerm + (lambda * pContinuation)
 }
 
-//////////////////////////////////////////////////////////////////////////////
-
 // GetTransitionProbability calculates the transition probability P(toState | fromState)
 // with a very simple Laplace add-alpha smoothing step to ensure no zero-probabilities exist.
 func (h *HMM) GetTransitionProbability(fromState, toState string) float64 {
 	const alpha = 0.1
-	if _, exists := h.TransitionFromState[fromState]; !exists {
-		h.TransitionFromState[fromState] = &Then{To: make(map[string]float64)}
-	}
-	rawCount := h.TransitionFromState[fromState].To[toState]
-	totalTransitionsFromState := 0.0
-	for _, count := range h.TransitionFromState[fromState].To {
+	rawCount := h.Transitions[fromState][toState]
+	totalTransitionsFromState := int64(0)
+	for _, count := range h.Transitions[fromState] {
 		totalTransitionsFromState += count
 	}
 
 	// Apply basic smoothing to transitions so they don't break Viterbi paths with 0.0
-	return (rawCount + alpha) / (totalTransitionsFromState + (alpha * float64(len(h.States))))
+	return (float64(rawCount) + alpha) / (float64(totalTransitionsFromState) + (alpha * float64(len(h.States))))
 }
 
 // Viterbi predicts the most likely hidden state sequence for a slice of tokens.
-// Set 'useSmoothing' to true to see Kneser-Ney in action, or false for MLE.
-func (h *HMM) Viterbi(tokens []string, useSmoothing bool) []string {
+func (h *HMM) Viterbi(tokens []string) []string {
 	n := len(tokens)
 	if n == 0 {
 		return nil
@@ -108,15 +84,11 @@ func (h *HMM) Viterbi(tokens []string, useSmoothing bool) []string {
 	startProb := 1.0 / float64(numStates)
 	for _, state := range stateList {
 		var emissionProb float64
-		if useSmoothing {
-			emissionProb = h.GetEmissionKneserNey(state, tokens[0])
-		} else {
-			emissionProb = h.GetEmissionNoSmoothing(state, tokens[0])
-		}
+		emissionProb = h.GetEmissionKneserNey(state, tokens[0])
 
 		// Handle complete Out-of-Vocabulary tokens cleanly
-		if emissionProb == 0 && !h.Vocab[tokens[0]] {
-			emissionProb = 1.0 / float64(len(h.Vocab))
+		if emissionProb == 0 && !h.Tokens[tokens[0]] {
+			emissionProb = 1.0 / float64(len(h.Tokens))
 		}
 
 		// We work in negative log space: lower cost = higher probability
@@ -133,15 +105,11 @@ func (h *HMM) Viterbi(tokens []string, useSmoothing bool) []string {
 		for _, currState := range stateList {
 
 			var emissionProb float64
-			if useSmoothing {
-				emissionProb = h.GetEmissionKneserNey(currState, token)
-			} else {
-				emissionProb = h.GetEmissionNoSmoothing(currState, token)
-			}
+			emissionProb = h.GetEmissionKneserNey(currState, token)
 
 			// Handle Out-of-Vocabulary tokens at current step
-			if emissionProb == 0 && !h.Vocab[token] {
-				emissionProb = 1.0 / float64(len(h.Vocab))
+			if emissionProb == 0 && !h.Tokens[token] {
+				emissionProb = 1.0 / float64(len(h.Tokens))
 			}
 
 			minCost := math.Inf(1)
