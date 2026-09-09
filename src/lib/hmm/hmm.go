@@ -4,9 +4,6 @@ package hmm
 
 import (
 	"cmp"
-	"fmt"
-	"io/ioutil"
-	"os"
 	"regexp"
 	"slices"
 	"strings"
@@ -14,7 +11,6 @@ import (
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 	"golang.org/x/text/unicode/norm"
-	"google.golang.org/protobuf/proto"
 )
 
 type HMM struct {
@@ -206,61 +202,4 @@ func PrepareInputText(s string) []TrainingInstance {
 		}
 	}
 	return tis
-}
-
-func MainTrain(trainingTextFilename, modelOutputFilename string) error {
-	trainingText, err := os.ReadFile(trainingTextFilename)
-	if err != nil {
-		return err
-	}
-	trainingData := PrepareInputText(string(trainingText))
-
-	h := HMM{
-		States:      make(map[string]bool),
-		Tokens:      make(map[string]bool),
-		Transitions: make(map[string]map[string]int64),
-		Emissions:   make(map[string]map[string]int64),
-		StateCounts: make(map[string]int64),
-	}
-	h.Train(trainingData)
-	m := h.ToModel()
-
-	// Write the model to disk.
-	out, err := proto.Marshal(&m)
-	if err != nil {
-		return err
-	}
-	if err := ioutil.WriteFile(modelOutputFilename, out, 0644); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func MainPredict(inputTextFilename, modelInputFilename string) error {
-	modelInputWireFormat, err := ioutil.ReadFile(modelInputFilename)
-	if err != nil {
-		return err
-	}
-	m := Model{}
-	if err := proto.Unmarshal(modelInputWireFormat, &m); err != nil {
-		return err
-	}
-	h := HMM{}
-	h.FromModel(&m)
-
-	inputText, err := os.ReadFile(inputTextFilename)
-	if err != nil {
-		return err
-	}
-	inputData := PrepareInputText(string(inputText))
-	fmt.Println("Tokens to predict:", inputData)
-
-	for k := range inputData {
-		// Predict WITH Kneser-Ney smoothing on Emissions
-		knSmoothPath := h.Viterbi(inputData[k].Tokens)
-		fmt.Println(knSmoothPath)
-	}
-
-	return nil
 }

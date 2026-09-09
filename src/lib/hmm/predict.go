@@ -3,11 +3,45 @@
 package hmm
 
 import (
+	"fmt"
+	"io/ioutil"
 	"math"
+	"os"
+	"strings"
+
+	"google.golang.org/protobuf/proto"
 )
 
 // Global constants for Kneser-Ney
 const Discount = 0.75
+
+func MainPredict(inputTextFilename, modelInputFilename string) error {
+	modelInputWireFormat, err := ioutil.ReadFile(modelInputFilename)
+	if err != nil {
+		return err
+	}
+	m := Model{}
+	if err := proto.Unmarshal(modelInputWireFormat, &m); err != nil {
+		return err
+	}
+	h := HMM{}
+	h.FromModel(&m)
+
+	inputText, err := os.ReadFile(inputTextFilename)
+	if err != nil {
+		return err
+	}
+	inputData := PrepareInputText(string(inputText))
+	fmt.Println("Tokens to predict:", inputData)
+
+	for k := range inputData {
+		// Predict WITH Kneser-Ney smoothing on Emissions
+		knSmoothPath := h.Viterbi(inputData[k].Tokens)
+		fmt.Println(strings.Join(knSmoothPath, " "))
+	}
+
+	return nil
+}
 
 // GetEmissionKneserNey calculates the smoothed emission probability.
 // It uses absolute discounting and backs off to the token's structural versatility.

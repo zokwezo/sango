@@ -1,16 +1,11 @@
 package hmm
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
 	"slices"
+	"strings"
 )
-
-type SangoToken struct {
-	Token string
-	Tag   string
-}
 
 // Metrics holds the classification performance statistics
 type Metrics struct {
@@ -23,68 +18,62 @@ type Metrics struct {
 }
 type MetricsMap map[string]*Metrics
 
-func (mm MetricsMap) forTag(tag string) *Metrics {
-	if mm[tag] == nil {
-		mm[tag] = &Metrics{}
+func (mm MetricsMap) forState(state string) *Metrics {
+	if mm[state] == nil {
+		mm[state] = &Metrics{}
 	}
-	return mm[tag]
-}
-
-var TagOrderMap = func() map[rune]int {
-	orderMap := make(map[rune]int)
-	for i, r := range "_:^" {
-		orderMap[r] = i
-	}
-	return orderMap
-}()
-
-func TagCompare(lhs, rhs string) int {
-	lhsRunes := []rune(lhs)
-	rhsRunes := []rune(rhs)
-	minLength := len(lhsRunes)
-	if len(rhsRunes) < minLength {
-		minLength = len(rhsRunes)
-	}
-	for i := 0; i < minLength; i++ {
-		rankLhs := TagOrderMap[lhsRunes[i]]
-		rankRhs := TagOrderMap[rhsRunes[i]]
-		if rankLhs != rankRhs {
-			return rankLhs - rankRhs
-		}
-	}
-	return len(lhsRunes) - len(rhsRunes)
+	return mm[state]
 }
 
 func MainEvaluate(actual, expect string) error {
 	inFilenames := [2]string{actual, expect}
-	var sentences [2][][]SangoToken // {actual, expect}
+	var sentences [2][][]string // {actual, expect}
 	for k, inFilename := range inFilenames {
-		data, err := os.ReadFile(inFilename)
+		inputText, err := os.ReadFile(inFilename)
 		if err != nil {
 			return err
 		}
-		err = json.Unmarshal(data, &sentences[k])
-		if err != nil {
-			return err
+		for _, sentence := range strings.Split(strings.Trim(string(inputText), " "), "\n") {
+			sentence = strings.Trim(sentence, " ")
+			if sentence != "" {
+				sentences[k] = append(sentences[k], strings.Split(sentence, " "))
+			}
 		}
 	}
+
+	// Verify that actual and expect have the same topology.
+	nsa := len(sentences[0])
+	nse := len(sentences[1])
+	if nsa != nse {
+		return fmt.Errorf("actual has %v sentences but expect has %v sentences", nsa, nse)
+	}
+	nWords := 0
+	for k := range nsa {
+		nwa := len(sentences[0][k])
+		nwe := len(sentences[1][k])
+		if nwa != nwe {
+			return fmt.Errorf("actual[%v] has %v words but expect[%v] has %v words", k, nwa, k, nwe)
+		}
+		nWords += nwa
+	}
+	fmt.Printf("Corpus has %v sentences and %v words\n", nsa, nWords)
 
 	metricsMap, err := Evaluate(sentences)
 	if err != nil {
 		return err
 	}
 
-	sortedTags := make([]string, 0, len(metricsMap))
+	sortedStates := make([]string, 0, len(metricsMap))
 	for k := range metricsMap {
-		sortedTags = append(sortedTags, k)
+		sortedStates = append(sortedStates, k)
 	}
-	slices.SortFunc(sortedTags, TagCompare)
+	slices.Sort(sortedStates)
 
 	fmt.Println("")
-	fmt.Println("PITCH | PRECISION |  RECALL   | F1-SCORE   ")
+	fmt.Println("STATE | PRECISION |  RECALL   | F1-SCORE   ")
 	fmt.Println("------+-----------+-----------+------------")
-	for _, tag := range sortedTags {
-		m := metricsMap[tag]
+	for _, state := range sortedStates {
+		m := metricsMap[state]
 		if m.TP+m.FP > 0 {
 			m.Precision = float64(m.TP) / float64(m.TP+m.FP)
 		}
@@ -94,17 +83,18 @@ func MainEvaluate(actual, expect string) error {
 		if m.Precision+m.Recall > 0 {
 			m.F1Score = 2 * (m.Precision * m.Recall) / (m.Precision + m.Recall)
 		}
-		if tag == "" {
-			tag = "?"
+		if state == "" {
+			state = "?"
 		}
 		fmt.Printf("  %s   | %6.2f %%  | %6.2f %%  | %6.2f %%\n",
-			tag, m.Precision*100, m.Recall*100, m.F1Score*100)
+			state, m.Precision*100, m.Recall*100, m.F1Score*100)
 	}
+
 	return nil
 }
 
-// Evaluate runs predictions on test data and prints Precision, Recall, and F1 per tag
-func Evaluate(sentences [2][][]SangoToken) (MetricsMap, error) {
+// Evaluate runs predictions on test data and prints Precision, Recall, and F1 per state
+func Evaluate(sentences [2][][]string) (MetricsMap, error) {
 	metricsMap := MetricsMap{}
 	n := len(sentences[0])
 	if len(sentences[1]) != n {
@@ -116,13 +106,13 @@ func Evaluate(sentences [2][][]SangoToken) (MetricsMap, error) {
 			return metricsMap, fmt.Errorf("bad number of tokens in sentence %v passed to Evaluate", i)
 		}
 		for j := range m {
-			actual := sentences[0][i][j].Tag
-			expect := sentences[1][i][j].Tag
+			actual := sentences[0][i][j]
+			expect := sentences[1][i][j]
 			if actual == expect {
-				metricsMap.forTag(expect).TP++
+				metricsMap.forState(expect).TP++
 			} else {
-				metricsMap.forTag(actual).FP++
-				metricsMap.forTag(expect).FN++
+				metricsMap.forState(actual).FP++
+				metricsMap.forState(expect).FN++
 			}
 		}
 	}

@@ -2,6 +2,42 @@
 
 package hmm
 
+import (
+	"io/ioutil"
+	"os"
+
+	"google.golang.org/protobuf/proto"
+)
+
+func MainTrain(trainingTextFilename, modelOutputFilename string) error {
+	trainingText, err := os.ReadFile(trainingTextFilename)
+	if err != nil {
+		return err
+	}
+	trainingData := PrepareInputText(string(trainingText))
+
+	h := HMM{
+		States:      make(map[string]bool),
+		Tokens:      make(map[string]bool),
+		Transitions: make(map[string]map[string]int64),
+		Emissions:   make(map[string]map[string]int64),
+		StateCounts: make(map[string]int64),
+	}
+	h.Train(trainingData)
+	m := h.ToModel()
+
+	// Write the model to disk.
+	out, err := proto.Marshal(&m)
+	if err != nil {
+		return err
+	}
+	if err := ioutil.WriteFile(modelOutputFilename, out, 0644); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // Populates the raw count matrices from our tiny low-resource dataset.
 // This is a two-pass algorithm
 func (h *HMM) Train(data []TrainingInstance) {
