@@ -6,7 +6,6 @@ package sse
 
 import (
 	"fmt"
-	"log"
 	"regexp"
 	"strings"
 
@@ -851,7 +850,6 @@ func canonicalToSangoCodeValue(affix, shift, consonant, vowel, pitch string) (ui
 }
 
 func utf8ToSangoCodeValue(affix, consonant, vowel, nasal string, options FromUtf8Options) (uint16, error) {
-	log.Printf("affix = %q consonant = %q vowel = %q nasal = %q options = %#v\n", affix, consonant, vowel, nasal, options)
 	var code uint16 = 0x8000
 	switch affix {
 	case "":
@@ -875,24 +873,17 @@ func utf8ToSangoCodeValue(affix, consonant, vowel, nasal string, options FromUtf
 		return IsSango_MASK, fmt.Errorf("bad nasal %q", nasal)
 	}
 	syllable := consonant + vowel + nasal
-	log.Printf("syllable      = %q\n", syllable)
 	syllableLower := cases.Lower(language.English).String(syllable)
-	log.Printf("syllableLower = %q\n", syllableLower)
 	syllableTitle := cases.Title(language.English).String(syllable)
-	log.Printf("syllableTitle = %q\n", syllableTitle)
 	syllableUpper := cases.Upper(language.English).String(syllable)
-	log.Printf("syllableUpper = %q\n", syllableUpper)
 	switch syllable {
 	case syllableLower:
-		log.Println("lower")
 		code |= uint16(ShiftCode_lower)
 	case syllableTitle:
-		log.Println("Title")
 		code |= uint16(ShiftCode_Title)
 	case syllableUpper:
 		code |= uint16(ShiftCode_UPPER)
 	default:
-		log.Println("Bad shift")
 		return IsSango_MASK, fmt.Errorf("bad case of syllable %q", syllable)
 	}
 	switch strings.ToLower(consonant) {
@@ -1050,10 +1041,10 @@ func utf8ToSangoCodeValue(affix, consonant, vowel, nasal string, options FromUtf
 	case "î":
 		code |= uint16(vowelCode_i)
 		code |= uint16(PitchCode_High)
-	case "i":
+	case "ị":
 		code |= uint16(vowelCode_i)
 		code |= uint16(PitchCode_Unknown)
-	case "ị":
+	case "i":
 		code |= uint16(vowelCode_i)
 		code |= uint16(pitchCode_Low)
 	case "ö":

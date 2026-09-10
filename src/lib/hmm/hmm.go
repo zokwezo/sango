@@ -8,11 +8,11 @@ import (
 	"slices"
 	"strings"
 
-	"golang.org/x/text/cases"
-	"golang.org/x/text/language"
+	"github.com/zokwezo/sango/src/lib/sse"
 	"golang.org/x/text/unicode/norm"
 )
 
+// TODO: Switch from string to sse.SSE for robustness and ease of coding.
 type HMM struct {
 	States      map[string]bool
 	Tokens      map[string]bool
@@ -168,8 +168,9 @@ func (h *HMM) FromModel(m *Model) {
 // In this context, a Token is a Sango word without diacritics and a State is the
 // same word with diacritics.
 type TrainingInstance struct {
-	Tokens []string
-	States []string
+	Index []int // points back to input SSE to backreplace after prediction
+	Token []string
+	State []string
 }
 
 var (
@@ -179,26 +180,69 @@ var (
 	reCompressSpaces        = regexp.MustCompile(`[ ]{2,}`)
 )
 
+// These three sentence final code points create a new training instance.
+const (
+	dot  rune = 0x2E
+	huh  rune = 0x3F
+	bang rune = 0x21
+)
+
 func PrepareInputText(s string) []TrainingInstance {
-	s = norm.NFD.String(cases.Lower(language.English).String(s))
-	s = strings.ReplaceAll(s, "\n", " ")
-	s = strings.Trim(s, " ")
-	s = reNonTextWithDiacritics.ReplaceAllLiteralString(s, " ")
-	s = reCompressSpaces.ReplaceAllLiteralString(s, " ")
-	s = reFinalPunctuation.ReplaceAllLiteralString(s, "\n")
-	tis := []TrainingInstance{}
-	for _, sentence := range strings.Split(strings.Trim(s, " "), "\n") {
-		sentence = strings.Trim(sentence, " ")
-		if sentence != "" {
-			ti := TrainingInstance{}
-			ti.States = strings.Split(sentence, " ")
-			n := len(ti.States)
-			ti.Tokens = make([]string, n)
-			for k := range ti.States {
-				ti.Tokens[k] = reNonText.ReplaceAllLiteralString(ti.States[k], "")
-				ti.States[k] = norm.NFC.String(ti.States[k])
+	tis := []TrainingInstance{
+		TrainingInstance{
+			Index: []int{},
+			Token: []string{},
+			State: []string{},
+		},
+	}
+
+	// TODO: Return sses from this function and in Predict use tis[k].State[j] to
+	// update the diacritics of sses[tis[k].Index[j]].
+	sses, err := sse.Utf8ToSSEs(norm.NFC.String(s), sse.FromLemma)
+	if err != nil {
+		panic(err)
+	}
+	ti := &tis[0]
+	for index, code := range sses {
+		switch code.IsSango() {
+		case false:
+			// Skip over any Unicode symbol, except that if it is sentence final,
+			// then create a new sentence.
+			flush := false
+			c := uint64(code)
+			for _ = range 4 {
+				r := rune(c & 0xFFFF)
+				switch r {
+				case dot:
+					fallthrough
+				case huh:
+					fallthrough
+				case bang:
+					flush = true
+					break
+				}
+				c >>= 16
 			}
-			tis = append(tis, ti)
+			if flush {
+				k := len(tis)
+				tis = append(tis, TrainingInstance{
+					Index: []int{},
+					Token: []string{},
+					State: []string{},
+				})
+				ti = &tis[k]
+			}
+		case true:
+			// Remember the place of this code so that after diacritic restoration
+			// we know which token to update using the predicted state.
+			state := strings.ToLower(strings.Trim(sse.BuilderToString(code.WriteAsLemmaTo), " "))
+			token := strings.ToLower(strings.Trim(sse.BuilderToString(code.WriteAsTonelessTo), " "))
+			if a, b, c := len(ti.Index), len(ti.Token), len(ti.State); a != b || a != c {
+				panic("unbalanced TrainingInstance slices")
+			}
+			ti.Index = append(ti.Index, index)
+			ti.Token = append(ti.Token, token)
+			ti.State = append(ti.State, state)
 		}
 	}
 	return tis

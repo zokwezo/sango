@@ -32,12 +32,20 @@ func MainPredict(inputTextFilename, modelInputFilename string) error {
 		return err
 	}
 	inputData := PrepareInputText(string(inputText))
-	fmt.Println("Tokens to predict:", inputData)
 
 	for k := range inputData {
 		// Predict WITH Kneser-Ney smoothing on Emissions
-		knSmoothPath := h.Viterbi(inputData[k].Tokens)
-		fmt.Println(strings.Join(knSmoothPath, " "))
+		expect := strings.Join(inputData[k].State, " ")
+		for i := range inputData[k].State {
+			inputData[k].State[i] = ""
+		}
+		knSmoothPath := h.Viterbi(inputData[k].Token)
+		actual := strings.Join(knSmoothPath, " ")
+		if actual != expect {
+			fmt.Printf("\nactual[%v] = %q\nexpect[%v] = %q\n", k, actual, k, expect)
+		} else {
+			fmt.Printf(".")
+		}
 	}
 
 	return nil

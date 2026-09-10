@@ -37,6 +37,8 @@ var (
 	FromLemma      = FromUtf8Options{TreatClosedVowelAsUnknownHeight: false, TreatUnmarkedPitchAsUnknownPitch: false}
 )
 
+func (sse SSE) IsSango() bool { return sse>>63 != 0 }
+
 func (sse SSE) String() string             { return sse.toString() }
 func (sse SSE) Less(rhs SSE) bool          { return sse.less(rhs) }
 func CanonicalKey(canonical string) string { return canonicalKey(canonical) }
@@ -84,4 +86,10 @@ func Utf8ToSSEs(s string, options FromUtf8Options) (SSEs, error) {
 
 func CanonicalToSSEs(s string) (SSEs, error) {
 	return toSSEs(s, canonicalToCodes)
+}
+
+func BuilderToString(fn func(*strings.Builder)) string {
+	var b strings.Builder
+	fn(&b)
+	return b.String()
 }

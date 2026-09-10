@@ -265,70 +265,71 @@ func utf8ToCodes(s string, options FromUtf8Options) ([]sseCode, int) {
 				panic("Bad index length")
 			}
 			w0Next := &(*iiNext)[utf8RE_WholeBegin]
-			if *w1Curr != *w0Next {
-				// Bail out, there is a gap between codes.
-				return codes, *w1Curr
-			}
-			u0Next := &(*iiNext)[utf8RE_UnicodeBegin]
-			u1Next := &(*iiNext)[utf8RE_UnicodeEnd]
-			a0Next := &(*iiNext)[utf8RE_AffixBegin]
-			a1Next := &(*iiNext)[utf8RE_AffixEnd]
-			c0Next := &(*iiNext)[utf8RE_ConsonantBegin]
-			c1Next := &(*iiNext)[utf8RE_ConsonantEnd]
-			v0Next := &(*iiNext)[utf8RE_OpenVowelBegin]
-			v1Next := &(*iiNext)[utf8RE_OpenVowelEnd]
-			if *v0Next == -1 || *v1Next == -1 {
-				v0Next = &(*iiNext)[utf8RE_CloseVowelBegin]
-				v1Next = &(*iiNext)[utf8RE_CloseVowelEnd]
-			}
-			// If the consonant ends in "n" and the next syllable has no affix
-			// and a consonant that is one of "", "d", "g", "gb", "y", "z", then move the
-			// falsely attributed nasal N to the start of the next syllable's consonant.
-			if *u0Curr == -1 && *u1Curr == -1 && *u0Next == -1 && *u1Next == -1 && *n0Curr != -1 && *n1Curr > *n0Curr {
-				nasalCurr := s[*n0Curr:*n1Curr]
-				switch nasalCurr {
-				case "N":
-					fallthrough
-				case "n":
-					affixNext := s[*a0Next:*a1Next]
-					consonantNext := s[*c0Next:*c1Next]
-					if affixNext == "" {
-						if *n1Curr != *c0Next {
-							panic("n1Curr != c0Next")
-						}
-						switch consonantNext {
-						case "":
-							fallthrough
-						case "D":
-							fallthrough
-						case "G":
-							fallthrough
-						case "GB":
-							fallthrough
-						case "Gb":
-							fallthrough
-						case "Y":
-							fallthrough
-						case "Z":
-							fallthrough
-						case "d":
-							fallthrough
-						case "g":
-							fallthrough
-						case "gB":
-							fallthrough
-						case "gb":
-							fallthrough
-						case "y":
-							fallthrough
-						case "z":
-							// Move nasal to start of next syllable
-							*w1Curr -= 1
-							*x1Curr -= 1
-							*e1Curr -= 1
-							*n1Curr -= 1
-							*w0Next -= 1
-							*c0Next -= 1
+			// Proceed only if the next syllable immediately abuts the current one.
+			if *w1Curr == *w0Next {
+				u0Next := &(*iiNext)[utf8RE_UnicodeBegin]
+				u1Next := &(*iiNext)[utf8RE_UnicodeEnd]
+				a0Next := &(*iiNext)[utf8RE_AffixBegin]
+				a1Next := &(*iiNext)[utf8RE_AffixEnd]
+				c0Next := &(*iiNext)[utf8RE_ConsonantBegin]
+				c1Next := &(*iiNext)[utf8RE_ConsonantEnd]
+				v0Next := &(*iiNext)[utf8RE_OpenVowelBegin]
+				v1Next := &(*iiNext)[utf8RE_OpenVowelEnd]
+				if *v0Next == -1 || *v1Next == -1 {
+					v0Next = &(*iiNext)[utf8RE_CloseVowelBegin]
+					v1Next = &(*iiNext)[utf8RE_CloseVowelEnd]
+				}
+				// If the consonant ends in "n" and the next syllable has no affix
+				// and a consonant that is one of "", "d", "g", "gb", "y", "z", then move the
+				// falsely attributed nasal N to the start of the next syllable's consonant.
+				if *u0Curr == -1 && *u1Curr == -1 &&
+					*u0Next == -1 && *u1Next == -1 &&
+					*n0Curr != -1 && *n1Curr > *n0Curr {
+					nasalCurr := s[*n0Curr:*n1Curr]
+					switch nasalCurr {
+					case "N":
+						fallthrough
+					case "n":
+						affixNext := s[*a0Next:*a1Next]
+						consonantNext := s[*c0Next:*c1Next]
+						if affixNext == "" {
+							if *n1Curr != *c0Next {
+								panic("n1Curr != c0Next")
+							}
+							switch consonantNext {
+							case "":
+								fallthrough
+							case "D":
+								fallthrough
+							case "G":
+								fallthrough
+							case "GB":
+								fallthrough
+							case "Gb":
+								fallthrough
+							case "Y":
+								fallthrough
+							case "Z":
+								fallthrough
+							case "d":
+								fallthrough
+							case "g":
+								fallthrough
+							case "gB":
+								fallthrough
+							case "gb":
+								fallthrough
+							case "y":
+								fallthrough
+							case "z":
+								// Move nasal to start of next syllable
+								*w1Curr -= 1
+								*x1Curr -= 1
+								*e1Curr -= 1
+								*n1Curr -= 1
+								*w0Next -= 1
+								*c0Next -= 1
+							}
 						}
 					}
 				}
