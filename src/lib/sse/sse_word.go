@@ -407,11 +407,23 @@ func codesToSSEs(codes []sseCode) SSEs {
 		// This loop packs 4 Unicode or 5 Sango syllables per SSE.
 		// If the SSE is already full, flush it and start a new one.
 		// Also we can't mix Unicode and sango nor two Sango words in one SSE.
+		// Finally, a space or hyphen triggers a new word.
 		if code.isSango && numCodesSaved == 5 ||
 			!code.isSango && numCodesSaved == 4 ||
-			numCodesSaved != 0 && (code.isSango != prevIsSango ||
-				code.isSango && getPrefixCode(code.value) == PrefixCode_Space) {
+			code.isSango != prevIsSango && numCodesSaved != 0 ||
+			code.isSango && numCodesSaved != 0 && getPrefixCode(code.value) == PrefixCode_Space {
 			flush()
+		} else if code.isSango && numCodesSaved != 0 && getInfixCode(code.value) == InfixCode_Hyphen {
+			if msb4&shiftMask == shiftMask {
+				code.value |= 0x3000 // set case to UPPER
+			}
+			code.value &= 0xF7FF // clear hyphen
+			flush()              // write out word
+			prevIsSango = false  // load new sse with a unicode hyphen
+			sse = uint64(0x2D)
+			numCodesSaved = 1
+			flush()            // write out hyphen in its own word
+			prevIsSango = true // continue with the current Sango code
 		}
 
 		prevIsSango = code.isSango

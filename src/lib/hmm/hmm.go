@@ -6,7 +6,6 @@ import (
 	"cmp"
 	"regexp"
 	"slices"
-	"strings"
 
 	"github.com/zokwezo/sango/src/lib/sse"
 	"golang.org/x/text/unicode/norm"
@@ -196,14 +195,14 @@ func PrepareInputText(s string) []TrainingInstance {
 		},
 	}
 
-	// TODO: Return sses from this function and in Predict use tis[k].State[j] to
-	// update the diacritics of sses[tis[k].Index[j]].
-	sses, err := sse.Utf8ToSSEs(norm.NFC.String(s), sse.FromLemma)
+	// TODO: Return codes from this function and in Predict use tis[k].State[j] to
+	// update the diacritics of codes[tis[k].Index[j]].
+	codes, err := sse.Utf8ToSSEs(norm.NFC.String(s), sse.FromLemma)
 	if err != nil {
 		panic(err)
 	}
 	ti := &tis[0]
-	for index, code := range sses {
+	for index, code := range codes {
 		switch code.IsSango() {
 		case false:
 			// Skip over any Unicode symbol, except that if it is sentence final,
@@ -233,10 +232,12 @@ func PrepareInputText(s string) []TrainingInstance {
 				ti = &tis[k]
 			}
 		case true:
+			code &= 0x0FFF_FFFF_FFFF_FFFF // clear 4 MSB
+			code |= 0x9000_0000_0000_0000 // force Sango, no-space, lowercase
 			// Remember the place of this code so that after diacritic restoration
 			// we know which token to update using the predicted state.
-			state := strings.ToLower(strings.Trim(sse.BuilderToString(code.WriteAsLemmaTo), " "))
-			token := strings.ToLower(strings.Trim(sse.BuilderToString(code.WriteAsTonelessTo), " "))
+			state := sse.BuilderToString(code.WriteAsLemmaTo)
+			token := sse.BuilderToString(code.WriteAsTonelessTo)
 			if a, b, c := len(ti.Index), len(ti.Token), len(ti.State); a != b || a != c {
 				panic("unbalanced TrainingInstance slices")
 			}
