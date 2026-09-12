@@ -4,7 +4,6 @@ package hmm
 
 import (
 	"cmp"
-	"regexp"
 	"slices"
 
 	"github.com/zokwezo/sango/src/lib/sse"
@@ -165,28 +164,23 @@ func (h *HMM) FromModel(m *Model) {
 
 // TrainingInstance represents a sequence of tokens and their true state/label sequence.
 // In this context, a Token is a Sango word without diacritics and a State is the
-// same word with diacritics.
+// same word with diacritics. The index is one past the source code to distinguish it
+// from the default value of zero that implies a missing value.
 type TrainingInstance struct {
-	Index []int // points back to input SSE to backreplace after prediction
+	Index []int // index + 1, where index points back to input SSE to backreplace after prediction
 	Token []string
 	State []string
 }
 
-var (
-	reFinalPunctuation      = regexp.MustCompile(`[.!?]`)
-	reNonTextWithDiacritics = regexp.MustCompile(`[^a-z .?!\x{302}\x{308}\x{323}]`)
-	reNonText               = regexp.MustCompile(`[^a-z .?!]`)
-	reCompressSpaces        = regexp.MustCompile(`[ ]{2,}`)
-)
-
 // These three sentence final code points create a new training instance.
 const (
-	dot  rune = 0x2E
-	huh  rune = 0x3F
-	bang rune = 0x21
+	newline rune = 0x0A
+	dot     rune = 0x2E
+	huh     rune = 0x3F
+	bang    rune = 0x21
 )
 
-func PrepareInputText(s string) []TrainingInstance {
+func PrepareInputText(s string) (sse.SSEs, []TrainingInstance) {
 	tis := []TrainingInstance{
 		TrainingInstance{
 			Index: []int{},
@@ -195,22 +189,23 @@ func PrepareInputText(s string) []TrainingInstance {
 		},
 	}
 
-	// TODO: Return codes from this function and in Predict use tis[k].State[j] to
-	// update the diacritics of codes[tis[k].Index[j]].
 	codes, err := sse.Utf8ToSSEs(norm.NFC.String(s), sse.FromLemma)
 	if err != nil {
 		panic(err)
 	}
 	ti := &tis[0]
+	numConsecutiveNewlines := 0
+	flush := false
 	for index, code := range codes {
 		switch code.IsSango() {
 		case false:
 			// Skip over any Unicode symbol, except that if it is sentence final,
 			// then create a new sentence.
-			flush := false
-			c := uint64(code)
-			for _ = range 4 {
+			for c := uint64(code); c != 0; c >>= 16 {
 				r := rune(c & 0xFFFF)
+				if r == '\x00' {
+					continue
+				}
 				switch r {
 				case dot:
 					fallthrough
@@ -219,9 +214,20 @@ func PrepareInputText(s string) []TrainingInstance {
 				case bang:
 					flush = true
 					break
+				case newline:
+					numConsecutiveNewlines++
+					if numConsecutiveNewlines > 1 {
+						numConsecutiveNewlines = 0
+						flush = true
+						break
+					}
+				default:
+					if numConsecutiveNewlines != 0 {
+						numConsecutiveNewlines = 0
+					}
 				}
-				c >>= 16
 			}
+		case true:
 			if flush {
 				k := len(tis)
 				tis = append(tis, TrainingInstance{
@@ -230,8 +236,8 @@ func PrepareInputText(s string) []TrainingInstance {
 					State: []string{},
 				})
 				ti = &tis[k]
+				flush = false
 			}
-		case true:
 			code &= 0x0FFF_FFFF_FFFF_FFFF // clear 4 MSB
 			code |= 0x9000_0000_0000_0000 // force Sango, no-space, lowercase
 			// Remember the place of this code so that after diacritic restoration
@@ -241,10 +247,10 @@ func PrepareInputText(s string) []TrainingInstance {
 			if a, b, c := len(ti.Index), len(ti.Token), len(ti.State); a != b || a != c {
 				panic("unbalanced TrainingInstance slices")
 			}
-			ti.Index = append(ti.Index, index)
+			ti.Index = append(ti.Index, index+1) // one past the source code index
 			ti.Token = append(ti.Token, token)
 			ti.State = append(ti.State, state)
 		}
 	}
-	return tis
+	return codes, tis
 }

@@ -822,8 +822,8 @@ func TestWriteAsHeightless(t *testing.T) {
 		sse.WriteAsHeightlessTo(&s)
 	}
 	s.WriteString("|")
-	expect := `| Ahön-ndönî| AHÖÑ-NDÖNÎ| ânde| bâa-mo-tene| BƐ̂-kömbïtebê|-kömbïte` +
-		`|BƐ̂-KƆ̈MBÏTƐ| bê-kömbïte| BƐ̂-kömbïte| BƐ̂-KƆ̈MBÏTƐ| ahönndönî|`
+	expect := `| Ahön-ndönî| AHÖÑ-NDÖNÎ| ânde| bâa-mo-tene| Bê-kömbïtebê|-kömbïte` +
+		`|BƐ̂-KƆ̈MBÏTƐ| bê-kömbïte| Bê-kömbïte| BƐ̂-KƆ̈MBÏTƐ| ahönndönî|`
 	actual := s.String()
 	if actual != expect {
 		t.Errorf("in TestWriteAsHeightlessTo(\n%#v\n),\nexpect: %#v\nactual: %#v\n\n",
@@ -853,8 +853,8 @@ func TestWriteAsLemma(t *testing.T) {
 		sse.WriteAsLemmaTo(&s)
 	}
 	s.WriteString("|")
-	expect := `| Ahön-ndönî| AHÖÑ-NDÖNÎ| ândɛ| bâa-mo-tɛnɛ| BƐ̂-kɔ̈mbïtɛbɛ̂` +
-		`|-kɔ̈mbïtɛ|BƐ̂-KƆ̈MBÏTƐ| bɛ̂-kɔ̈mbïtɛ| BƐ̂-kɔ̈mbïtɛ| BƐ̂-KƆ̈MBÏTƐ| ahönndönî|`
+	expect := `| Ahön-ndönî| AHÖÑ-NDÖNÎ| ândɛ| bâa-mo-tɛnɛ| Bɛ̂-kɔ̈mbïtɛbɛ̂|-kɔ̈mbïtɛ` +
+		`|BƐ̂-KƆ̈MBÏTƐ| bɛ̂-kɔ̈mbïtɛ| Bɛ̂-kɔ̈mbïtɛ| BƐ̂-KƆ̈MBÏTƐ| ahönndönî|`
 	actual := s.String()
 	if actual != expect {
 		t.Errorf("in TestWriteAsLemmaTo(\n%#v\n),\nexpect: %#v\nactual: %#v\n\n",
@@ -884,8 +884,8 @@ func TestWriteAsLemmaForUnknownPitch(t *testing.T) {
 		sse.WriteAsLemmaTo(&s)
 	}
 	s.WriteString("|")
-	expect := `| Ạhọn-ndọnị| ẠHỌÑ-NDỌNỊ| ạndɛ̣| bạạ-mọ-tɛ̣nɛ̣| BƐ̣-kɔ̣mbịtɛ̣bɛ̣|` +
-		`-kɔ̣mbịtɛ̣|BƐ̣-KƆ̣MBỊTƐ̣| bɛ̣-kɔ̣mbịtɛ̣| BƐ̣-kɔ̣mbịtɛ̣| BƐ̣-KƆ̣MBỊTƐ̣| ạhọnndọnị|`
+	expect := `| Ạhọn-ndọnị| ẠHỌÑ-NDỌNỊ| ạndɛ̣| bạạ-mọ-tɛ̣nɛ̣| Bɛ̣-kɔ̣mbịtɛ̣bɛ̣|-kɔ̣mbịtɛ̣` +
+		`|BƐ̣-KƆ̣MBỊTƐ̣| bɛ̣-kɔ̣mbịtɛ̣| Bɛ̣-kɔ̣mbịtɛ̣| BƐ̣-KƆ̣MBỊTƐ̣| ạhọnndọnị|`
 	actual := s.String()
 	if actual != expect {
 		t.Errorf("in TestWriteAsLemmaTo(\n%#v\n),\nexpect: %#v\nactual: %#v\n\n",
@@ -1013,8 +1013,8 @@ func TestWriteAsUtf8(t *testing.T) {
 		sse.WriteAsUtf8To(&s)
 	}
 	s.WriteString("|")
-	expect := `| Ahöñ-ndönî| AHÖÑ-NDÖNÎ| ândɛ| bâa-mo-tɛnɛ| BƐ̂-kɔ̈mbïtɛbɛ̂` +
-		`|-kɔ̈mbïtɛ|BƐ̂-KƆ̈MBÏTƐ| bɛ̂-kɔ̈mbïtɛ| BƐ̂-kɔ̈mbïtɛ| BƐ̂-KƆ̈MBÏTƐ| ahöñndönî|`
+	expect := `| Ahöñ-ndönî| AHÖÑ-NDÖNÎ| ândɛ| bâa-mo-tɛnɛ| Bɛ̂-kɔ̈mbïtɛbɛ̂|-kɔ̈mbïtɛ` +
+		`|BƐ̂-KƆ̈MBÏTƐ| bɛ̂-kɔ̈mbïtɛ| Bɛ̂-kɔ̈mbïtɛ| BƐ̂-KƆ̈MBÏTƐ| ahöñndönî|`
 	actual := s.String()
 	if actual != expect {
 		t.Errorf("in TestWriteAsLemmaTo(\n%#v\n),\nexpect: %#v\nactual: %#v\n\n",

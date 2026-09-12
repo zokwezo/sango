@@ -1,6 +1,7 @@
 package main
 
 import (
+	"io"
 	"log"
 
 	"github.com/spf13/cobra"
@@ -29,7 +30,7 @@ func init() {
 
 func main() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
-	// log.SetOutput(io.Discard)
+	log.SetOutput(io.Discard)
 	if err := sangoCmd.Execute(); err != nil {
 		log.Fatal(err)
 	}

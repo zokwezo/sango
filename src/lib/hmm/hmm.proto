@@ -13,9 +13,11 @@ message FromToCount {
 // Hidden Markov Model
 message Model {
   // Deduplicated states found in the training corpus
+  // TODO: Switch from string to sse.GetShortCode
   repeated string      states       = 1;
 
   // Deduplicated tokens found in the training corpus
+  // TODO: Switch from string to sse.GetShortCode after masking bits
   repeated string      tokens       = 2;
 
   // transition[iFrom].to[iTo]

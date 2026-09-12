@@ -14,7 +14,7 @@ func MainTrain(trainingTextFilename, modelOutputFilename string) error {
 	if err != nil {
 		return err
 	}
-	trainingData := PrepareInputText(string(trainingText))
+	_, trainingData := PrepareInputText(string(trainingText))
 
 	h := HMM{
 		States:      make(map[string]bool),

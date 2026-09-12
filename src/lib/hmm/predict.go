@@ -9,6 +9,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/zokwezo/sango/src/lib/sse"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -31,20 +32,54 @@ func MainPredict(inputTextFilename, modelInputFilename string) error {
 	if err != nil {
 		return err
 	}
-	inputData := PrepareInputText(string(inputText))
 
-	for k := range inputData {
-		// Predict WITH Kneser-Ney smoothing on Emissions
-		expect := strings.Join(inputData[k].State, " ")
-		for i := range inputData[k].State {
-			inputData[k].State[i] = ""
+	codes, tis := PrepareInputText(string(inputText))
+
+	n := len(codes)
+	index := 0
+	outputIndex := 0
+	for k := range tis {
+		// Predict using Kneser-Ney smoothing on Emissions
+		for i := range tis[k].State {
+			tis[k].State[i] = ""
 		}
-		knSmoothPath := h.Viterbi(inputData[k].Token)
-		actual := strings.Join(knSmoothPath, " ")
-		if actual != expect {
-			fmt.Printf("\nactual[%v] = %q\nexpect[%v] = %q\n", k, actual, k, expect)
-		} else {
-			fmt.Printf(".")
+
+		tis[k].State = h.Viterbi(tis[k].Token)
+		if len(tis[k].State) != len(tis[k].Token) {
+			panic("len(tis[k].State) != len(tis[k].Token)")
+		}
+
+		// Replace the source token with the predicted state if the toneless version matches.
+		for i, modelToken := range tis[k].Token {
+			outputTextBuilder := strings.Builder{}
+			modelState := tis[k].State[i]
+			index = tis[k].Index[i] - 1 // Index is one past the real index
+			if index < 0 || index >= n {
+				panic("index is out of bounds")
+			}
+			inputToken := sse.BuilderToString(codes[index].WriteAsTonelessTo)
+			if inputToken != modelToken {
+				panic("inputToken != modelToken")
+			}
+			newCodes, err := sse.Utf8ToSSEs(modelState, sse.FromLemma)
+			if err != nil {
+				panic(err)
+			}
+			if len(newCodes) != 1 {
+				panic("len(newCodes) != 1")
+			}
+			if inputToken == sse.BuilderToString(newCodes[0].WriteAsTonelessTo) {
+				const ignoreSpaceAndCase sse.SSE = 0x8FFF_FFFF_FFFF_FFFF
+				if newCodes[0]&ignoreSpaceAndCase != codes[index]&ignoreSpaceAndCase {
+					const pitchMask sse.SSE = 0x0_003_003_003_003_003
+					codes[index] &= ^pitchMask
+					codes[index] |= pitchMask & newCodes[0]
+				}
+			}
+			for ; outputIndex <= index; outputIndex++ {
+				codes[outputIndex].WriteAsLemmaTo(&outputTextBuilder)
+			}
+			fmt.Printf("%v", outputTextBuilder.String())
 		}
 	}
 

@@ -120,7 +120,7 @@ const (
 
 var utf8RE = regexp.MustCompile(
 	`([ -]?)((?i)b|d|f|gb|g|h|kp|k|l|mb|mp|mv|m|nd|ngb|ng|ny|nz|n|p|r|s|t|v|w|y|z|)` +
-		`((?i)(ɛ̈|ɛ̂|ɛ̣|ɛ|ɔ̈|ɔ̂|ɔ̣|ɔ|ẍ|x̂|x̣|x|c̈|ĉ|c̣|c)|((ä|â|ạ|a|ë|ê|ẹ|e|ï|î|i|ị|ö|ô|ọ|o|ü|û|ụ|u)(ñ|n|)))|(.)`) //
+		`((?i)(ɛ̈|ɛ̂|ɛ̣|ɛ|ɔ̈|ɔ̂|ɔ̣|ɔ|ẍ|x̂|x̣|x|c̈|ĉ|c̣|c)|((ä|â|ạ|a|ë|ê|ẹ|e|ï|î|i|ị|ö|ô|ọ|o|ü|û|ụ|u)(ñ|n|)))|((?s:.))`) //
 const (
 	utf8RE_WholeBegin = iota
 	utf8RE_WholeEnd
@@ -561,11 +561,11 @@ func utf8FromSangoCodeValue(code uint16, options WriteUtf8Options) string {
 	if options.WithShift {
 		switch shiftCode {
 		case ShiftCode_lower:
-			s = strings.ToLower(s)
+			s = cases.Lower(language.English).String(s)
 		case ShiftCode_Title:
-			s = strings.ToTitle(s)
+			s = cases.Title(language.English).String(s)
 		case ShiftCode_UPPER:
-			s = strings.ToUpper(s)
+			s = cases.Upper(language.English).String(s)
 		}
 	}
 	if !options.WithHeight {
@@ -862,7 +862,7 @@ func utf8ToSangoCodeValue(affix, consonant, vowel, nasal string, options FromUtf
 		return IsSango_MASK, fmt.Errorf("bad affix %q", affix)
 	}
 	isNasal := false
-	switch strings.ToLower(nasal) {
+	switch cases.Lower(language.English).String(nasal) {
 	case "":
 		isNasal = false
 	case "ñ":
@@ -886,7 +886,7 @@ func utf8ToSangoCodeValue(affix, consonant, vowel, nasal string, options FromUtf
 	default:
 		return IsSango_MASK, fmt.Errorf("bad case of syllable %q", syllable)
 	}
-	switch strings.ToLower(consonant) {
+	switch cases.Lower(language.English).String(consonant) {
 	case "":
 		code |= uint16(ConsonantCode_h)
 	case "b":
@@ -962,7 +962,7 @@ func utf8ToSangoCodeValue(affix, consonant, vowel, nasal string, options FromUtf
 		vowelCode_o = VowelCode_O
 		vowelCode_u = VowelCode_U
 	}
-	switch strings.ToLower(vowel) {
+	switch cases.Lower(language.English).String(vowel) {
 	case "ɛ̈":
 		code |= uint16(VowelCode_x)
 		code |= uint16(PitchCode_Mid)
