@@ -8,18 +8,23 @@ func Init(rootCmd *cobra.Command) {
 	rootCmd.AddCommand(hmmCmd)
 
 	hmmCmd.AddCommand(trainCmd)
-	trainCmd.Flags().StringP("txt", "t", "",
-		"input filename of the training text (defaults to stdin)")
+	trainCmd.Flags().StringP("in", "i", "",
+		"filename of the input training text")
 	trainCmd.Flags().StringP("model", "m", "",
-		"output filename of the HMM")
+		"filename of the generated HMM")
+	trainCmd.MarkFlagRequired("in")
 	trainCmd.MarkFlagRequired("model")
 
 	hmmCmd.AddCommand(predictCmd)
-	predictCmd.Flags().StringP("txt", "t", "",
-		"input filename of the input text (defaults to stdin)")
+	predictCmd.Flags().StringP("in", "i", "",
+		"filename of the input text")
 	predictCmd.Flags().StringP("model", "m", "",
 		"input filename of the HMM")
+	predictCmd.Flags().StringP("out", "o", "",
+		"filename of the predicted output text")
+	predictCmd.MarkFlagRequired("in")
 	predictCmd.MarkFlagRequired("model")
+	predictCmd.MarkFlagRequired("out")
 
 	hmmCmd.AddCommand(evaluateCmd)
 	evaluateCmd.Flags().StringP("actual", "a", "",
@@ -42,7 +47,7 @@ var (
 		Long:  "Read Sango training text from stdin and train HMM counts of its words and their diacritics.",
 		Args:  cobra.MaximumNArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			trainingTextFilename, err := cmd.Flags().GetString("txt")
+			inputTextFilename, err := cmd.Flags().GetString("in")
 			if err != nil {
 				return err
 			}
@@ -50,7 +55,7 @@ var (
 			if err != nil {
 				return err
 			}
-			return MainTrain(trainingTextFilename, modelOutputFilename)
+			return MainTrain(inputTextFilename, modelOutputFilename)
 		},
 	}
 
@@ -60,7 +65,7 @@ var (
 		Long:  "Read Sango predicting text from stdin and restore their vowels' diacritics.",
 		Args:  cobra.MaximumNArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			inputTextFilename, err := cmd.Flags().GetString("txt")
+			inputTextFilename, err := cmd.Flags().GetString("in")
 			if err != nil {
 				return err
 			}
@@ -68,7 +73,11 @@ var (
 			if err != nil {
 				return err
 			}
-			return MainPredict(inputTextFilename, modelInputFilename)
+			outputTextFilename, err := cmd.Flags().GetString("out")
+			if err != nil {
+				return err
+			}
+			return MainPredict(inputTextFilename, modelInputFilename, outputTextFilename)
 		},
 	}
 

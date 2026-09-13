@@ -86,8 +86,10 @@ func (x *FromToCount) GetCount() int64 {
 type Model struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Deduplicated states found in the training corpus
+	// TODO: Switch from string to sse.GetShortCode
 	States []string `protobuf:"bytes,1,rep,name=states,proto3" json:"states,omitempty"`
 	// Deduplicated tokens found in the training corpus
+	// TODO: Switch from string to sse.GetShortCode after masking bits
 	Tokens []string `protobuf:"bytes,2,rep,name=tokens,proto3" json:"tokens,omitempty"`
 	// transition[iFrom].to[iTo]
 	//
@@ -183,6 +185,59 @@ func (x *Model) GetUniquePairs() int64 {
 	return 0
 }
 
+// Encoded Sango words and Unicode code points
+type SSECodes struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Output of sses[k].GetShortCode()
+	// Reconstruct text using:
+	//
+	//	b := strings.Builder{}
+	//	for _, shortCode := shortCodes {
+	//	  sse.SSE.FromShortCode(shortCode).WriteAsLemmaTo(&b)
+	//	}
+	//	s := b.String()
+	ShortCodes    []uint64 `protobuf:"varint,1,rep,packed,name=short_codes,json=shortCodes,proto3" json:"short_codes,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SSECodes) Reset() {
+	*x = SSECodes{}
+	mi := &file_hmm_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SSECodes) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SSECodes) ProtoMessage() {}
+
+func (x *SSECodes) ProtoReflect() protoreflect.Message {
+	mi := &file_hmm_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SSECodes.ProtoReflect.Descriptor instead.
+func (*SSECodes) Descriptor() ([]byte, []int) {
+	return file_hmm_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *SSECodes) GetShortCodes() []uint64 {
+	if x != nil {
+		return x.ShortCodes
+	}
+	return nil
+}
+
 var File_hmm_proto protoreflect.FileDescriptor
 
 const file_hmm_proto_rawDesc = "" +
@@ -198,7 +253,10 @@ const file_hmm_proto_rawDesc = "" +
 	"\vtransitions\x18\x03 \x03(\v2\x10.hmm.FromToCountR\vtransitions\x12.\n" +
 	"\temissions\x18\x04 \x03(\v2\x10.hmm.FromToCountR\temissions\x123\n" +
 	"\fstate_counts\x18\x05 \x03(\v2\x10.hmm.FromToCountR\vstateCounts\x12!\n" +
-	"\funique_pairs\x18\x06 \x01(\x03R\vuniquePairsB&Z$github.com/zokwezo/sango/src/lib/hmmb\x06proto3"
+	"\funique_pairs\x18\x06 \x01(\x03R\vuniquePairs\"+\n" +
+	"\bSSECodes\x12\x1f\n" +
+	"\vshort_codes\x18\x01 \x03(\x04R\n" +
+	"shortCodesB&Z$github.com/zokwezo/sango/src/lib/hmmb\x06proto3"
 
 var (
 	file_hmm_proto_rawDescOnce sync.Once
@@ -212,10 +270,11 @@ func file_hmm_proto_rawDescGZIP() []byte {
 	return file_hmm_proto_rawDescData
 }
 
-var file_hmm_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_hmm_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
 var file_hmm_proto_goTypes = []any{
 	(*FromToCount)(nil), // 0: hmm.FromToCount
 	(*Model)(nil),       // 1: hmm.Model
+	(*SSECodes)(nil),    // 2: hmm.SSECodes
 }
 var file_hmm_proto_depIdxs = []int32{
 	0, // 0: hmm.Model.transitions:type_name -> hmm.FromToCount
@@ -239,7 +298,7 @@ func file_hmm_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_hmm_proto_rawDesc), len(file_hmm_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   2,
+			NumMessages:   3,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

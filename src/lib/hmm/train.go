@@ -9,12 +9,16 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-func MainTrain(trainingTextFilename, modelOutputFilename string) error {
-	trainingText, err := os.ReadFile(trainingTextFilename)
+func MainTrain(inputTextFilename, modelOutputFilename string) error {
+	out := []byte{}
+	if err := ioutil.WriteFile(modelOutputFilename, out, 0644); err != nil {
+		return err
+	}
+	inputText, err := os.ReadFile(inputTextFilename)
 	if err != nil {
 		return err
 	}
-	_, trainingData := PrepareInputText(string(trainingText))
+	_, inputData := PrepareInputText(string(inputText))
 
 	h := HMM{
 		States:      make(map[string]bool),
@@ -23,19 +27,15 @@ func MainTrain(trainingTextFilename, modelOutputFilename string) error {
 		Emissions:   make(map[string]map[string]int64),
 		StateCounts: make(map[string]int64),
 	}
-	h.Train(trainingData)
+	h.Train(inputData)
 	m := h.ToModel()
 
 	// Write the model to disk.
-	out, err := proto.Marshal(&m)
+	out, err = proto.Marshal(&m)
 	if err != nil {
 		return err
 	}
-	if err := ioutil.WriteFile(modelOutputFilename, out, 0644); err != nil {
-		return err
-	}
-
-	return nil
+	return ioutil.WriteFile(modelOutputFilename, out, 0644)
 }
 
 // Populates the raw count matrices from our tiny low-resource dataset.

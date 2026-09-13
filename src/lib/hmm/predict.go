@@ -16,7 +16,11 @@ import (
 // Global constants for Kneser-Ney
 const Discount = 0.75
 
-func MainPredict(inputTextFilename, modelInputFilename string) error {
+func MainPredict(inputTextFilename, modelInputFilename, outputTextFilename string) error {
+	out := []byte{}
+	if err := ioutil.WriteFile(outputTextFilename, out, 0644); err != nil {
+		return err
+	}
 	modelInputWireFormat, err := ioutil.ReadFile(modelInputFilename)
 	if err != nil {
 		return err
@@ -79,11 +83,19 @@ func MainPredict(inputTextFilename, modelInputFilename string) error {
 			for ; outputIndex <= index; outputIndex++ {
 				codes[outputIndex].WriteAsLemmaTo(&outputTextBuilder)
 			}
-			fmt.Printf("%v", outputTextBuilder.String())
+			fmt.Fprintf(os.Stderr, "%v", outputTextBuilder.String())
 		}
 	}
 
-	return nil
+	sseCodes := SSECodes{ShortCodes: make([]uint64, 0)}
+	for _, code := range codes {
+		sseCodes.ShortCodes = append(sseCodes.ShortCodes, code.GetShortCode())
+	}
+	out, err = proto.Marshal(&sseCodes)
+	if err != nil {
+		return err
+	}
+	return ioutil.WriteFile(outputTextFilename, out, 0644)
 }
 
 // GetEmissionKneserNey calculates the smoothed emission probability.

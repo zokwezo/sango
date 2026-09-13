@@ -38,3 +38,15 @@ message Model {
   // Total unique (state, word) types in the training corpus
   int64                unique_pairs = 6;
 }
+
+// Encoded Sango words and Unicode code points
+message SSECodes {
+  // Output of sses[k].GetShortCode()
+	// Reconstruct text using:
+	//   b := strings.Builder{}
+	//   for _, shortCode := shortCodes {
+	//     sse.SSE.FromShortCode(shortCode).WriteAsLemmaTo(&b)
+	//   }
+	//   s := b.String()
+  repeated uint64 short_codes = 1;
+}
