@@ -20,11 +20,14 @@ func Init(rootCmd *cobra.Command) {
 		"filename of the input text")
 	predictCmd.Flags().StringP("model", "m", "",
 		"input filename of the HMM")
-	predictCmd.Flags().StringP("out", "o", "",
-		"filename of the predicted output text")
+	predictCmd.Flags().StringP("orig_codes", "o", "",
+		"filename of the encoded original input text")
+	predictCmd.Flags().StringP("pred_codes", "p", "",
+		"filename of the encoded predicted output text")
 	predictCmd.MarkFlagRequired("in")
 	predictCmd.MarkFlagRequired("model")
-	predictCmd.MarkFlagRequired("out")
+	predictCmd.MarkFlagRequired("orig_codes")
+	predictCmd.MarkFlagRequired("pred_codes")
 
 	hmmCmd.AddCommand(evaluateCmd)
 	evaluateCmd.Flags().StringP("actual", "a", "",
@@ -73,11 +76,15 @@ var (
 			if err != nil {
 				return err
 			}
-			outputTextFilename, err := cmd.Flags().GetString("out")
+			origCodesFilename, err := cmd.Flags().GetString("orig_codes")
 			if err != nil {
 				return err
 			}
-			return MainPredict(inputTextFilename, modelInputFilename, outputTextFilename)
+			predCodesFilename, err := cmd.Flags().GetString("pred_codes")
+			if err != nil {
+				return err
+			}
+			return MainPredict(inputTextFilename, modelInputFilename, origCodesFilename, predCodesFilename)
 		},
 	}
 

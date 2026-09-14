@@ -16,9 +16,9 @@ import (
 // Global constants for Kneser-Ney
 const Discount = 0.75
 
-func MainPredict(inputTextFilename, modelInputFilename, outputTextFilename string) error {
+func MainPredict(inputTextFilename, modelInputFilename, origCodesFilename, predCodesFilename string) error {
 	out := []byte{}
-	if err := ioutil.WriteFile(outputTextFilename, out, 0644); err != nil {
+	if err := ioutil.WriteFile(origCodesFilename, out, 0644); err != nil {
 		return err
 	}
 	modelInputWireFormat, err := ioutil.ReadFile(modelInputFilename)
@@ -38,6 +38,19 @@ func MainPredict(inputTextFilename, modelInputFilename, outputTextFilename strin
 	}
 
 	codes, tis := PrepareInputText(string(inputText))
+	sseCodes := SSECodes{ShortCodes: make([]uint64, 0)}
+	for _, code := range codes {
+		sseCodes.ShortCodes = append(sseCodes.ShortCodes, code.GetShortCode())
+	}
+	out, err = proto.Marshal(&sseCodes)
+	if err != nil {
+		return err
+	}
+	err = ioutil.WriteFile(origCodesFilename, out, 0644)
+	if err != nil {
+		return err
+	}
+	sseCodes.ShortCodes = sseCodes.ShortCodes[:0] // clear but keep allocated memory
 
 	n := len(codes)
 	index := 0
@@ -87,7 +100,6 @@ func MainPredict(inputTextFilename, modelInputFilename, outputTextFilename strin
 		}
 	}
 
-	sseCodes := SSECodes{ShortCodes: make([]uint64, 0)}
 	for _, code := range codes {
 		sseCodes.ShortCodes = append(sseCodes.ShortCodes, code.GetShortCode())
 	}
@@ -95,7 +107,7 @@ func MainPredict(inputTextFilename, modelInputFilename, outputTextFilename strin
 	if err != nil {
 		return err
 	}
-	return ioutil.WriteFile(outputTextFilename, out, 0644)
+	return ioutil.WriteFile(predCodesFilename, out, 0644)
 }
 
 // GetEmissionKneserNey calculates the smoothed emission probability.
