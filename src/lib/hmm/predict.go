@@ -21,13 +21,15 @@ func MainPredict(inputTextFilename, modelInputFilename, origCodesFilename, predC
 	if err := ioutil.WriteFile(origCodesFilename, out, 0644); err != nil {
 		return err
 	}
-	modelInputWireFormat, err := ioutil.ReadFile(modelInputFilename)
-	if err != nil {
-		return err
-	}
 	m := Model{}
-	if err := proto.Unmarshal(modelInputWireFormat, &m); err != nil {
-		return err
+	{
+		data, err := ioutil.ReadFile(modelInputFilename)
+		if err != nil {
+			return err
+		}
+		if err := proto.Unmarshal(data, &m); err != nil {
+			return err
+		}
 	}
 	h := HMM{}
 	h.FromModel(&m)
@@ -42,13 +44,15 @@ func MainPredict(inputTextFilename, modelInputFilename, origCodesFilename, predC
 	for _, code := range codes {
 		sseCodes.ShortCodes = append(sseCodes.ShortCodes, code.GetShortCode())
 	}
-	out, err = proto.Marshal(&sseCodes)
-	if err != nil {
-		return err
-	}
-	err = ioutil.WriteFile(origCodesFilename, out, 0644)
-	if err != nil {
-		return err
+	{
+		out, err = proto.Marshal(&sseCodes)
+		if err != nil {
+			return err
+		}
+		err = ioutil.WriteFile(origCodesFilename, out, 0644)
+		if err != nil {
+			return err
+		}
 	}
 	sseCodes.ShortCodes = sseCodes.ShortCodes[:0] // clear but keep allocated memory
 

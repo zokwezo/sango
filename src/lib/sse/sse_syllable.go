@@ -118,6 +118,7 @@ const (
 	canonicalRE_PitchEnd
 )
 
+// TODO: First split into words by word boundary, then determine whether a word is Sango before converting.
 var utf8RE = regexp.MustCompile(
 	`([ -]?)((?i)b|d|f|gb|g|h|kp|k|l|mb|mp|mv|m|nd|ngb|ng|ny|nz|n|p|r|s|t|v|w|y|z|)` +
 		`((?i)(ɛ̈|ɛ̂|ɛ̣|ɛ|ɔ̈|ɔ̂|ɔ̣|ɔ|ẍ|x̂|x̣|x|c̈|ĉ|c̣|c)|((ä|â|ạ|a|ë|ê|ẹ|e|ï|î|i|ị|ö|ô|ọ|o|ü|û|ụ|u)(ñ|n|)))|((?s:.))`) //

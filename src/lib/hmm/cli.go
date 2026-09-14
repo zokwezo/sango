@@ -94,15 +94,15 @@ var (
 		Long:  "Read test Sango text and human-verified Sango text and outputs statistics on the precision, recall, and F1 score.",
 		Args:  cobra.MaximumNArgs(0),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			actualFilename, err := cmd.Flags().GetString("actual")
+			actualCodesFilename, err := cmd.Flags().GetString("actual")
 			if err != nil {
 				return err
 			}
-			expectFilename, err := cmd.Flags().GetString("expect")
+			expectCodesFilename, err := cmd.Flags().GetString("expect")
 			if err != nil {
 				return err
 			}
-			return MainEvaluate(actualFilename, expectFilename)
+			return MainEvaluate(actualCodesFilename, expectCodesFilename)
 		},
 	}
 )

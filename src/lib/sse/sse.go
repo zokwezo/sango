@@ -41,14 +41,16 @@ func (sse SSE) IsSango() bool { return sse>>63 != 0 }
 
 func (sse SSE) String() string             { return sse.toString() }
 func (sse SSE) Less(rhs SSE) bool          { return sse.less(rhs) }
+func (sse SSE) Compare(rhs SSE) int        { return sse.compare(rhs) }
 func CanonicalKey(canonical string) string { return canonicalKey(canonical) }
 func CanonicalCompare(lhs, rhs string) int { return canonicalCompare(lhs, rhs) }
 
 type SSEs []SSE
 
-func (sses SSEs) Len() int           { return len(sses) }
-func (sses SSEs) Swap(i, j int)      { sses[i], sses[j] = sses[j], sses[i] }
-func (sses SSEs) Less(i, j int) bool { return sses[i].Less(sses[j]) }
+func (sses SSEs) Len() int             { return len(sses) }
+func (sses SSEs) Swap(i, j int)        { sses[i], sses[j] = sses[j], sses[i] }
+func (sses SSEs) Less(i, j int) bool   { return sses[i].Less(sses[j]) }
+func (sses SSEs) Compare(i, j int) int { return sses[i].Compare(sses[j]) }
 
 func FromShortCode(shortCode uint64) SSE { return SSE(padRight(shortCode)) }
 func (sse SSE) GetShortCode() uint64     { return unpadRight(uint64(sse)) }
@@ -78,10 +80,9 @@ func (sse SSE) WriteAsCanonicalTo(s *strings.Builder) {
 }
 
 func Utf8ToSSEs(s string, options FromUtf8Options) (SSEs, error) {
-	utf8ToCodes := func(u string) ([]sseCode, int) {
+	return toSSEs(s, func(u string) ([]sseCode, int) {
 		return utf8ToCodes(u, options)
-	}
-	return toSSEs(s, utf8ToCodes)
+	})
 }
 
 func CanonicalToSSEs(s string) (SSEs, error) {

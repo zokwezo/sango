@@ -1,14 +1,19 @@
 package hmm
 
 import (
+	"cmp"
 	"fmt"
-	"os"
+	"io/ioutil"
+	"math"
 	"slices"
 	"strings"
+
+	"github.com/zokwezo/sango/src/lib/sse"
+	"google.golang.org/protobuf/proto"
 )
 
-// Metrics holds the classification performance statistics
-type Metrics struct {
+// Metric holds the classification performance statistics
+type Metric struct {
 	Precision float64 // fraction of predicted that are correct
 	Recall    float64 // fraction of correct that are predicted
 	F1Score   float64 // harmonic mean of Precision and Recall
@@ -16,105 +21,132 @@ type Metrics struct {
 	FP        int     // # false positives
 	FN        int     // # false negatives
 }
-type MetricsMap map[string]*Metrics
+type MetricMap map[sse.SSE]*Metric
 
-func (mm MetricsMap) forState(state string) *Metrics {
+func (mm MetricMap) forState(state sse.SSE) *Metric {
 	if mm[state] == nil {
-		mm[state] = &Metrics{}
+		mm[state] = &Metric{}
 	}
 	return mm[state]
 }
 
-func MainEvaluate(actual, expect string) error {
-	inFilenames := [2]string{actual, expect}
-	var sentences [2][][]string // {actual, expect}
-	for k, inFilename := range inFilenames {
-		inputText, err := os.ReadFile(inFilename)
-		if err != nil {
-			return err
-		}
-		for _, sentence := range strings.Split(strings.Trim(string(inputText), " "), "\n") {
-			sentence = strings.Trim(sentence, " ")
-			if sentence != "" {
-				sentences[k] = append(sentences[k], strings.Split(sentence, " "))
+type CodeLemmaMetricPair = struct {
+	code   sse.SSE
+	lemma  string
+	metric Metric
+}
+
+func MainEvaluate(actualFilename, expectFilename string) error {
+	bothSSECodes := [2]SSECodes{} // {actual, expect}
+	{
+		inFilenames := [2]string{actualFilename, expectFilename}
+		for k, inFilename := range inFilenames {
+			data, err := ioutil.ReadFile(inFilename)
+			if err != nil {
+				return err
+			}
+			if err := proto.Unmarshal(data, &bothSSECodes[k]); err != nil {
+				return err
 			}
 		}
 	}
 
 	// Verify that actual and expect have the same topology.
-	nsa := len(sentences[0])
-	nse := len(sentences[1])
+	a := &bothSSECodes[0].ShortCodes
+	e := &bothSSECodes[1].ShortCodes
+	nsa := len(*a)
+	nse := len(*e)
+	fmt.Printf("Corpus has %v actual and %v expected codes\n", nsa, nse)
 	if nsa != nse {
-		return fmt.Errorf("actual has %v sentences but expect has %v sentences", nsa, nse)
+		return fmt.Errorf("Corpus has %v actual but %v expected codes\n", nsa, nse)
 	}
-	nWords := 0
-	for k := range nsa {
-		nwa := len(sentences[0][k])
-		nwe := len(sentences[1][k])
-		if nwa != nwe {
-			return fmt.Errorf("actual[%v] has %v words but expect[%v] has %v words", k, nwa, k, nwe)
-		}
-		nWords += nwa
-	}
-	fmt.Printf("Corpus has %v sentences and %v words\n", nsa, nWords)
 
-	metricsMap, err := Evaluate(sentences)
+	metricMap, err := Evaluate(&bothSSECodes)
 	if err != nil {
 		return err
 	}
 
-	sortedStates := make([]string, 0, len(metricsMap))
-	for k := range metricsMap {
-		sortedStates = append(sortedStates, k)
+	codeLemmaMetricPairs := make([]CodeLemmaMetricPair, 0, len(metricMap))
+	maxLemmaLen := 7
+	for code, metric := range metricMap {
+		lemma := sse.BuilderToString(code.WriteAsLemmaTo)
+		codeLemmaMetricPairs = append(codeLemmaMetricPairs, CodeLemmaMetricPair{code: code, lemma: lemma, metric: *metric})
+		maxLemmaLen = max(maxLemmaLen, len(lemma))
 	}
-	slices.Sort(sortedStates)
+	slices.SortStableFunc(codeLemmaMetricPairs, func(lhs, rhs CodeLemmaMetricPair) int {
+		if c := lhs.code.Compare(rhs.code); c != 0 {
+			return c
+		}
+		return cmp.Compare(lhs.lemma, rhs.lemma)
+	})
 
+	maxRankLen := max(2, int(math.Ceil(math.Log10(float64(len(codeLemmaMetricPairs)+1)))))
 	fmt.Println("")
-	fmt.Println("STATE | PRECISION |  RECALL   | F1-SCORE   ")
-	fmt.Println("------+-----------+-----------+------------")
-	for _, state := range sortedStates {
-		m := metricsMap[state]
-		if m.TP+m.FP > 0 {
-			m.Precision = float64(m.TP) / float64(m.TP+m.FP)
+	fmt.Printf("# %s |       CODE       | LEMMA %s | PRECISION |  RECALL   | F1-SCORE   \n",
+		strings.Repeat(" ", maxRankLen-2), strings.Repeat(" ", maxLemmaLen-7))
+	fmt.Printf("--%s-+------------------+-------%s-+-----------+-----------+------------\n",
+		strings.Repeat("-", maxRankLen-2), strings.Repeat("-", maxLemmaLen-7))
+	for k, e := range codeLemmaMetricPairs {
+		if e.metric.TP+e.metric.FP > 0 {
+			e.metric.Precision = float64(e.metric.TP) / float64(e.metric.TP+e.metric.FP)
 		}
-		if m.TP+m.FN > 0 {
-			m.Recall = float64(m.TP) / float64(m.TP+m.FN)
+		if e.metric.TP+e.metric.FN > 0 {
+			e.metric.Recall = float64(e.metric.TP) / float64(e.metric.TP+e.metric.FN)
 		}
-		if m.Precision+m.Recall > 0 {
-			m.F1Score = 2 * (m.Precision * m.Recall) / (m.Precision + m.Recall)
+		if e.metric.Precision+e.metric.Recall > 0 {
+			e.metric.F1Score = 2 * (e.metric.Precision * e.metric.Recall) / (e.metric.Precision + e.metric.Recall)
 		}
-		if state == "" {
-			state = "?"
-		}
-		fmt.Printf("  %s   | %6.2f %%  | %6.2f %%  | %6.2f %%\n",
-			state, m.Precision*100, m.Recall*100, m.F1Score*100)
+		fmt.Printf("%-*v | %016X | %-*q | %6.2f %%  | %6.2f %%  | %6.2f %%\n",
+			maxRankLen, k, uint64(e.code), maxLemmaLen, e.lemma, e.metric.Precision*100, e.metric.Recall*100, e.metric.F1Score*100)
 	}
 
 	return nil
 }
 
 // Evaluate runs predictions on test data and prints Precision, Recall, and F1 per state
-func Evaluate(sentences [2][][]string) (MetricsMap, error) {
-	metricsMap := MetricsMap{}
-	n := len(sentences[0])
-	if len(sentences[1]) != n {
-		return metricsMap, fmt.Errorf("bad number of sentences passed to Evaluate")
+func Evaluate(bothSSECodes *[2]SSECodes) (MetricMap, error) {
+	const (
+		noSpacePrefixAnd sse.SSE = 0x8FFF_FFFF_FFFF_FFFF
+		noSpacePrefixOr  sse.SSE = 0x9000_0000_0000_0000
+	)
+	m := MetricMap{}
+	a := &bothSSECodes[0].ShortCodes
+	e := &bothSSECodes[1].ShortCodes
+	n := len(*a)
+	if len(*e) != n {
+		return m, fmt.Errorf("bad number of bothSSECodes passed to Evaluate")
 	}
-	for i := range n {
-		m := len(sentences[0][i])
-		if len(sentences[1][i]) != m {
-			return metricsMap, fmt.Errorf("bad number of tokens in sentence %v passed to Evaluate", i)
-		}
-		for j := range m {
-			actual := sentences[0][i][j]
-			expect := sentences[1][i][j]
+	for k := range n {
+		actual := sse.FromShortCode((*a)[k])
+		expect := sse.FromShortCode((*e)[k])
+		if actual.IsSango() && expect.IsSango() {
+			aa := uint64(actual)
+			ee := uint64(expect)
+			for x := aa; x != 0; x >>= 12 {
+				if x&0x0_000_000_000_000_FFF != 0 &&
+					x&0x0_000_000_000_000_003 == 0 {
+					fmt.Printf("actual[%v] = %016X -> %016X\n", k, (*a)[k], aa)
+					panic("Unknown pitch")
+				}
+			}
+			for x := ee; x != 0; x >>= 12 {
+				if x&0x0_000_000_000_000_FFF != 0 &&
+					x&0x0_000_000_000_000_003 == 0 {
+					fmt.Printf("expect[%v] = %016X -> %016X\n", k, (*e)[k], ee)
+					panic("Unknown pitch")
+				}
+			}
+			actual &= noSpacePrefixAnd // set to no space prefix
+			expect &= noSpacePrefixAnd // set to no space prefix
+			actual |= noSpacePrefixOr  // set to lower case
+			expect |= noSpacePrefixOr  // set to lower case
 			if actual == expect {
-				metricsMap.forState(expect).TP++
+				m.forState(expect).TP++
 			} else {
-				metricsMap.forState(actual).FP++
-				metricsMap.forState(expect).FN++
+				m.forState(actual).FP++
+				m.forState(expect).FN++
 			}
 		}
 	}
-	return metricsMap, nil
+	return m, nil
 }

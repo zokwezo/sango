@@ -3,22 +3,21 @@
 package sse
 
 import (
+	"cmp"
 	"fmt"
 	"strconv"
 	"strings"
 )
 
 func (sse SSE) toString() string {
-	var s strings.Builder
-	sse.WriteAsCanonicalTo(&s)
-	return fmt.Sprintf("%v(%X)", s.String(), sse.GetShortCode())
+	return fmt.Sprintf("SSE(0x%016X)", uint64(sse))
 }
 
-func (sse SSE) less(rhs SSE) bool {
+func (sse SSE) compare(rhs SSE) int {
 	v := [2]uint64{uint64(sse), uint64(rhs)}
 	if v[0]&v[1]>>63 == 0 {
 		// At least one is Unicode. Use numeric ordering.
-		return v[0] < v[1]
+		return cmp.Compare(v[0], v[1])
 	}
 	// Both are Sango words. Use lexicographic order by syllable.
 	var codes [5][2]uint16
@@ -30,14 +29,15 @@ func (sse SSE) less(rhs SSE) bool {
 	}
 	for _, code := range codes {
 		c := syllableCompare(code[0], code[1])
-		if c < 0 {
-			return true
-		}
-		if c > 0 {
-			return false
+		if c != 0 {
+			return c
 		}
 	}
-	return false // they are equal
+	return 0 // they are equal
+}
+
+func (sse SSE) less(rhs SSE) bool {
+	return sse.compare(rhs) < 0
 }
 
 func unpadRight(word uint64) uint64 {
