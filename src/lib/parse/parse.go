@@ -1,168 +1,187 @@
-// Implements operations on 64-bit word(s)
+// Implements parsing of Sango text constructing a top-down left-to-right parse tree using regexp.
 
 package parse
 
 import (
+	"cmp"
 	"fmt"
 	"regexp"
+	"slices"
+	"strings"
 
-	"golang.org/x/text/cases"
-	"golang.org/x/text/language"
+	"golang.org/x/text/width"
 )
 
-type Span struct {
-	Begin   int
-	End     int
-	IsSango bool
+type ParseTree struct {
+	Begin    int
+	End      int
+	Subtrees []map[string]ParseTree
 }
 
-func CanonicalToIndexes(s string) [][]int {
-	return toIndexes(canonicalWordRE, s)
+type ParseMatcher int
+
+const (
+	SentenceFinal ParseMatcher = iota
+	SangoWord
+	SangoSyllable
+	CanonicalWord
+	CanonicalSyllable
+	NumParseMatchers
+)
+
+func (pm ParseMatcher) String() string {
+	return parseMatcherREs[pm].String()
 }
 
-func CanonicalToSpans(s string) []Span {
-	return toSpans(canonicalWordRE, s)
+// Creates a top-down left-to-right parse tree.
+// The inputParseTree defines the substring of interest, e.g.
+// inputParseTree = ParseTree{Begin: 0, End: len(s)}
+func Parse(parseMatchers []ParseMatcher, s string, inputParseTree ParseTree) ParseTree {
+	return parse(parseMatchers, s, inputParseTree)
 }
 
-func SangoToIndexes(s string) [][]int {
-	return toIndexes(sangoWordRE, s)
-}
-
-func SangoToSpans(s string) []Span {
-	return toSpans(sangoWordRE, s)
-}
-
-func GetSangoSyllables(s string, span Span) {
-	getSangoSyllables(s, span)
+// Creates a human-readable version of a parse tree.
+func (parseTree ParseTree) Annotate(s string, alignSubstrings bool, namesNotToShow map[string]bool) string {
+	return annotate(parseTree, s, alignSubstrings, namesNotToShow)
 }
 
 //////////////////////////////////////////////////////////////////////////////
 // IMPLEMENTATION
 
-const (
-	canonicalSyllablePattern = `(?<shift>[~=#]?)(?<consonant>[hHbBqQdDfgGklrmnpKPstvVwyYzZ])(?<vowelNasal>[aAeEiIoOxcuUXC])(?<pitch>[_:^]?)`
-	sangoSyllablePattern     = `(?i)(?<consonant>(?i)b|d|f|gb|g|h|kp|k|l|mb|mp|mv|m|nd|ngb|ng|ny|nz|n|p|r|s|t|v|w|y|z|)` +
-		`(?<vowelNasal>(?<openVowel>ɛ̈|ɛ̂|ɛ̣|ɛ|ɔ̈|ɔ̂|ɔ̣|ɔ|ẍ|x̂|x̣|x|c̈|ĉ|c̣|c)|(?<closeVowelNasal>(?<closeVowel>ä|â|ạ|a|ë|ê|ẹ|e|ï|î|i|ị|ö|ô|ọ|o|ü|û|ụ|u)(?<nasal>ñ|n|)))`
-	canonicalWordPattern = `(?:` + canonicalSyllablePattern + `)+`
-	sangoWordPattern     = `(?:` + sangoSyllablePattern + `)+`
-)
+var parseMatcherREs = func() [NumParseMatchers]*regexp.Regexp {
+	const (
+		canonicalSyllablePattern = `(?<syllable>(?<shift>[~=#]?)(?<consonant>[hHbBqQdDfgGklrmnpKPstvVwyYzZ])(?<vowelNasal>[aAeEiIoOxcuUXC])(?<pitch>[_:^]?))`
+		sangoSyllablePattern     = `(?<syllable>(?i)(?<consonant>(?i)b|d|f|gb|g|h|kp|k|l|mb|mp|mv|m|nd|ngb|ng|ny|nz|n|p|r|s|t|v|w|y|z|)(?<vowelNasal>(?<openVowel>ɛ̈|ɛ̂|ɛ̣|ɛ|ɔ̈|ɔ̂|ɔ̣|ɔ|ẍ|x̂|x̣|x|c̈|ĉ|c̣|c)|(?<closeVowelNasal>(?<closeVowel>ä|â|ạ|a|ë|ê|ẹ|e|ï|î|i|ị|ö|ô|ọ|o|ü|û|ụ|u)(?<nasal>ñ|n|))))`
+		canonicalWordPattern     = `(?<word>(?:(?:(?:[~=#]?)(?:[hHbBqQdDfgGklrmnpKPstvVwyYzZ])(?:[aAeEiIoOxcuUXC])(?:[_:^]?)))+)`
+		sangoWordPattern         = `(?<word>(?:(?:(?i)(?:(?i)b|d|f|gb|g|h|kp|k|l|mb|mp|mv|m|nd|ngb|ng|ny|nz|n|p|r|s|t|v|w|y|z|)(?:(?:ɛ̈|ɛ̂|ɛ̣|ɛ|ɔ̈|ɔ̂|ɔ̣|ɔ|ẍ|x̂|x̣|x|c̈|ĉ|c̣|c)|(?:(?:ä|â|ạ|a|ë|ê|ẹ|e|ï|î|i|ị|ö|ô|ọ|o|ü|û|ụ|u)(?:ñ|n|)))))+)`
+		sentencePattern          = `(?<sentence>.*?(?:[.!?](?:’|”|›|»)*[ \n]+|\n\n+|$))`
+	)
 
-var (
-	canonicalSyllableRE = regexp.MustCompile(canonicalSyllablePattern)
-	canonicalWordRE     = regexp.MustCompile(canonicalWordPattern) // 14 capturing groups
-	sangoSyllableRE     = regexp.MustCompile(sangoSyllablePattern)
-	sangoWordRE         = regexp.MustCompile(sangoWordPattern)
-)
+	return [NumParseMatchers]*regexp.Regexp{
+		regexp.MustCompile(sentencePattern),
+		regexp.MustCompile(sangoWordPattern),
+		regexp.MustCompile(sangoSyllablePattern),
+		regexp.MustCompile(canonicalWordPattern),
+		regexp.MustCompile(canonicalSyllablePattern),
+	}
+}()
 
-// Returns the accumulated codes and the index where processing stopped.
-// The latter will equal len(s) on success, else the index of the first error.
-func toIndexes(re *regexp.Regexp, s string) [][]int {
-	return re.FindAllStringSubmatchIndex(s, -1)
-}
-
-// Returns the accumulated codes and the index where processing stopped.
-// The latter will equal len(s) on success, else the index of the first error.
-func toSpans(re *regexp.Regexp, s string) []Span {
-	indexes := re.FindAllStringSubmatchIndex(s, -1)
-	fmt.Printf("indexes = %#v\n", indexes)
-	spans := make([]Span, 0, len(indexes)*2+1)
-	n := len(s)
-	a := 0
-	for _, index := range indexes {
-		b := index[0]
-		if b > a {
-			spans = append(spans, Span{IsSango: false, Begin: a, End: b})
-		}
-		c := index[1]
-		if c > b {
-			spans = append(spans, Span{IsSango: true, Begin: b, End: c})
-		}
-		a = c
+func parse(parseMatchers []ParseMatcher, s string, inputParseTree ParseTree) ParseTree {
+	if inputParseTree.Begin < 0 || inputParseTree.Begin > inputParseTree.End || inputParseTree.End > len(s) {
+		panic("Bad inputParseTree")
 	}
-	if n > a {
-		spans = append(spans, Span{IsSango: false, Begin: a, End: n})
+	if inputParseTree.Begin == inputParseTree.End {
+		return inputParseTree
 	}
-	return spans
-}
-
-func getSangoSyllables(s string, span Span) {
-	if !span.IsSango {
-		panic("word is not Sango")
+	if len(parseMatchers) == 0 {
+		return inputParseTree
 	}
-	ss := s[span.Begin:span.End]
-	ii := toIndexes(sangoSyllableRE, ss)
-	numSyllables := len(ii)
-	for j := range numSyllables {
-		numIndexes := len(ii[j])
-		if numIndexes != 14 {
-			panic("numIndexes != 14")
-		}
-		for k := range numIndexes {
-			ii[j][k] += span.Begin
-		}
-	}
-	// If consonant N was unjustly stolen to be the nasal of the previous syllable, put it back.
-	// In case of ambiguity, assume consonant N (user can use an apostrophe or hyphen separator to force nasal N).
-	for jCurr := 1; jCurr < numSyllables; jCurr++ {
-		jPrev := jCurr - 1
-		bPrevNasal := ii[jPrev][12]
-		ePrevNasal := ii[jPrev][13]
-		bCurrConsonant := ii[jCurr][2]
-		eCurrConsonant := ii[jCurr][3]
-		if d := ePrevNasal - bPrevNasal; 0 < bPrevNasal && bPrevNasal < ePrevNasal && ePrevNasal <= bCurrConsonant && bCurrConsonant <= eCurrConsonant {
-			switch cases.Lower(language.English).String(s[bCurrConsonant:min(bCurrConsonant+1, eCurrConsonant)]) {
-			case "d":
-				fallthrough
-			case "g":
-				fallthrough
-			case "y":
-				fallthrough
-			case "z":
-				ii[jPrev][11] -= d
-				fallthrough
-			case "":
-				// Return stolen nasal from previous syllable to current one.
-				ii[jPrev][1] -= d
-				ii[jPrev][5] -= d
-				ii[jPrev][9] -= d
-				ii[jPrev][13] -= d
-				if ii[jPrev][12] != ii[jPrev][13] {
-					panic("after returning nasal, prev nasal is not empty")
-				}
-				ii[jCurr][0] -= d
-				ii[jCurr][2] -= d
+	re := parseMatcherREs[parseMatchers[0]]
+	indexFor := map[string]int{}
+	for _, name := range re.SubexpNames() {
+		if re.SubexpIndex(name) > 0 {
+			if i := re.SubexpIndex(name); i >= 0 {
+				indexFor[name] = i
 			}
 		}
 	}
-	for j := range numSyllables {
-		fmt.Printf("word[%v] ", j)
-		bw := ii[j][0]
-		ew := ii[j][1]
-		if ew < bw || bw < 0 {
-			panic("bad extracted word")
+	b := inputParseTree.Begin
+	e := inputParseTree.End
+	inputParseTree.Subtrees = []map[string]ParseTree{}
+	indexes := re.FindAllStringSubmatchIndex(s[b:e], -1)
+	for i, index := range indexes {
+		for j := range index {
+			indexes[i][j] += b
 		}
-		fmt.Printf("= s[%v:%v] = %q =>", bw, ew, s[bw:ew])
-		bc := ii[j][2]
-		ec := ii[j][3]
-		if ec < bc || bc < 0 {
-			panic("bad extracted consonant")
-		}
-		fmt.Printf(" (s[%v:%v] = %q", bc, ec, s[bc:ec])
-		bv := ii[j][6]
-		ev := ii[j][7]
-		if bv < 0 || ev < bv {
-			bv = ii[j][10]
-			ev = ii[j][11]
-		}
-		if ev < bv || bv < 0 {
-			panic("bad extracted vowel")
-		}
-		fmt.Printf(", s[%v:%v] = %q", bv, ev, s[bv:ev])
-		bn := ii[j][12]
-		en := ii[j][13]
-		if en < bn || bn < 0 {
-			panic("bad extracted nasal")
-		}
-		fmt.Printf(", s[%v:%v] = %q)\n", bn, en, s[bn:en])
 	}
+	for _, index := range indexes {
+		c := index[0]
+		if c > b {
+			parseSubtrees := map[string]ParseTree{}
+			parseSubtrees["unmatched"] = ParseTree{Begin: b, End: c}
+			inputParseTree.Subtrees = append(inputParseTree.Subtrees, parseSubtrees)
+		}
+		d := index[1]
+		if d > c {
+			parseSubtrees := map[string]ParseTree{}
+			for name, j := range indexFor {
+				if x, y := index[2*j], index[2*j+1]; x >= 0 && y >= 0 {
+					childParseTree := ParseTree{Begin: x, End: y}
+					parseSubtrees[name] = parse(parseMatchers[1:], s, childParseTree)
+				}
+			}
+			inputParseTree.Subtrees = append(inputParseTree.Subtrees, parseSubtrees)
+		}
+		b = d
+	}
+	if e > b {
+		parseSubtrees := map[string]ParseTree{}
+		parseSubtrees["unmatched"] = ParseTree{Begin: b, End: e}
+		inputParseTree.Subtrees = append(inputParseTree.Subtrees, parseSubtrees)
+	}
+	return inputParseTree
+}
+
+// getStringWidth calculates how many terminal columns a string occupies.
+func getStringWidth(s string) int {
+	totalWidth := 0
+	for _, r := range s {
+		p := width.LookupRune(r)
+		switch p.Kind() {
+		case width.EastAsianWide, width.EastAsianFullwidth:
+			totalWidth += 2
+		case width.EastAsianNarrow, width.EastAsianHalfwidth, width.Neutral:
+			totalWidth += 1
+		// Ambiguous or zero-width characters (like combining accents) add 0 or 1
+		default:
+			totalWidth += 1
+		}
+	}
+	return totalWidth
+}
+
+func annotate(parseTree ParseTree, s string, alignSubstrings bool, namesNotToShow map[string]bool) string {
+	type Row struct {
+		begin int
+		end   int
+		value string
+	}
+	rowCompare := func(l, r Row) int {
+		if c := cmp.Compare(l.begin, r.begin); c != 0 {
+			return c
+		}
+		if c := -cmp.Compare(l.end, r.end); c != 0 {
+			return c
+		}
+		return cmp.Compare(l.value, r.value)
+	}
+	rows := []Row{}
+	var f func(string, ParseTree)
+	f = func(n string, c ParseTree) {
+		if 0 <= c.Begin && c.Begin < c.End && c.End <= len(s) {
+			if !namesNotToShow[n] {
+				rowValue := ""
+				if alignSubstrings {
+					rowValue = fmt.Sprintf("%-20v [%3v:%3v] = %v%v\n", n, c.Begin, c.End,
+						strings.Repeat(" ", getStringWidth(s[0:c.Begin])), s[c.Begin:c.End])
+				} else {
+					rowValue = fmt.Sprintf("%-20v [%3v:%3v] = %v\n", n, c.Begin, c.End, s[c.Begin:c.End])
+				}
+				rows = append(rows, Row{begin: c.Begin, end: c.End, value: rowValue})
+			}
+			for _, parseSubtree := range c.Subtrees {
+				for name, d := range parseSubtree {
+					f(name, d)
+				}
+			}
+		}
+	}
+	f("whole", parseTree)
+	slices.SortStableFunc(rows, rowCompare)
+	var o strings.Builder
+	o.WriteString("\n")
+	for _, row := range rows {
+		o.WriteString(row.value)
+	}
+	return o.String()
 }
