@@ -19,7 +19,21 @@ func TestParseCanonical(t *testing.T) {
 	s := ` § ~ha_HO:-Do:ni^. 日本語は難しい!`
 	parseMatchers := []ParseMatcher{SentenceFinal, CanonicalWord, CanonicalSyllable}
 	actual := Parse(parseMatchers, s, ParseTree{Begin: 0, End: len(s)})
-	actualStr := actual.Annotate(s, true, nil)
+	actualStr := actual.Annotate(s, true, map[string]bool{
+		"closeVowel":      true,
+		"closeVowelNasal": true,
+		"consonant":       true,
+		"nasal":           true,
+		"openVowel":       true,
+		"pitch":           true,
+		"sentence":        true,
+		"shift":           true,
+		"syllable":        true,
+		"unmatched":       true,
+		"vowelNasal":      true,
+		"whole":           true,
+		"word":            true,
+	})
 	expectStr := `
 whole                [  0: 42] =  § ~ha_HO:-Do:ni^. 日本語は難しい!
 sentence             [  0: 20] =  § ~ha_HO:-Do:ni^. 
@@ -57,7 +71,21 @@ func TestParseSango(t *testing.T) {
 	s := `Ahöñ-ndönî AHÖÑ-NDÖNÎ, ândɛ bâa-mo-tɛnɛ? BƐ̂-kɔ̈mbïtɛbɛ̂-kɔ̈mbïtɛ難BƐ̂-KƆ̈MBÏTƐ!`
 	parseMatchers := []ParseMatcher{SentenceFinal, SangoWord, SangoSyllable}
 	actual := Parse(parseMatchers, s, ParseTree{Begin: 0, End: len(s)})
-	actualStr := actual.Annotate(s, true, nil)
+	actualStr := actual.Annotate(s, true, map[string]bool{
+		"closeVowel":      true,
+		"closeVowelNasal": true,
+		"consonant":       true,
+		"nasal":           true,
+		"openVowel":       true,
+		"pitch":           true,
+		"sentence":        true,
+		"shift":           true,
+		"syllable":        true,
+		"unmatched":       true,
+		"vowelNasal":      true,
+		"whole":           true,
+		"word":            true,
+	})
 	expectStr := `
 whole                [  0:112] = Ahöñ-ndönî AHÖÑ-NDÖNÎ, ândɛ bâa-mo-tɛnɛ? BƐ̂-kɔ̈mbïtɛbɛ̂-kɔ̈mbïtɛ難BƐ̂-KƆ̈MBÏTƐ!
 sentence             [  0: 54] = Ahöñ-ndönî AHÖÑ-NDÖNÎ, ândɛ bâa-mo-tɛnɛ? 
@@ -218,16 +246,16 @@ unmatched            [111:112] =                                                
 
 func TestParseRealSangoText(t *testing.T) {
 	s := `
-Na yâ tî taksï na Bangî
+Na yâ tî takisï na Bangî
 
 Benoît Kongbo
 
-«… na pöpö tî âzo otâ sô na pêko tî taksï nî sô mbênî wâlï akono gï töngana bâgara.
+«… na pöpö tî âzo otâ sô na pêko tî takisï nî sô mbênî wâlï akono gï töngana bâgara.
 Tîtene mbï dutï nzönî, mbï pûsu lo kêtê…»
 
 Mbï löndö tî sïgî na pekô tî büngbïngö-terê na wayïndä tî Alliance française, na lo sô ayeke wayïndä tî Espace langue et formation, na kötä wasüngö-mbëtï Pierre Sammy sô mbï yeke gue na ndo tî lo ândö mîngi, na Gabriel, mbênî wasüngö-mbëtï ngâ na âmbâ tî mbï maseka-kôlï sô ayê kua tî süngö-mbëtï.
 
-Mbï yeke tambûla tî gue na balabâla tî Dipandäa, ndo sô kâ mbï yeke mû taksï daä tî gue na yângâda.
+Mbï yeke tambûla tî gue na balabâla tî Dipandäa, ndo sô kâ mbï yeke mû takisï daä tî gue na yângâda.
 Mbï yeke gbû li tî mbï na ndö tî kua sô amû na ë.
 Lo hûnda na ë tî sû mbênî mbëtï sô ë lîngbi tî mû na lo na yâ tî yenga ûse.
 
@@ -250,15 +278,15 @@ Mbï yeke sâra nî na ngoi sô mbï yeke na âsango tî vunga.
 Ânzönî tënë sô mbï yeke na nî tîtene na ndö tî ködörö tî mbï ayeke na yâ tî kôzo bûku tî mbï awe.
 Tënë wa ânde sï mbï zîa na ndö nî?
 
-Kötä pîpî tî mbênî taksï sï azî mbï na yâ tî gbüngö-li sô.
+Kötä pîpî tî mbênî takisï sï azî mbï na yâ tî gbüngö-li sô.
 Ayeke gï na ngoi sô sï mbï hînga mbï sï na yângâ tî kötä lêgë awe.
 
-Wagbötöngö-taksï nî atene na kötä gô:
+Wagbötöngö-takisï nî atene na kötä gô:
 
 — Ben-Zvi-Miskine!
 Mo gue?
 
-Mbï sâra mabôko tî mbï na lo tîtene lo lütï sï mbï mû lörö na mbâgë tî taksï nî.
+Mbï sâra mabôko tî mbï na lo tîtene lo lütï sï mbï mû lörö na mbâgë tî takisï nî.
 
 Mbï tene na mâsa nî kôzo kûê tîtene mbï wara parâba pëpe:
 
@@ -269,18 +297,18 @@ Lo dë köngö mo bâa mo tene kâ fadë mbï fa na lo wüngö tî nginza nî p�
 
 — Me mo kö daä ma!
 
-Mbï kö na yâ tî taksï nî na lörö.
+Mbï kö na yâ tî takisï nî na lörö.
 
 — Awe, mâsa.
 Ë gue.
 
-Mbï wara lêgë tî dutï nzönî pëpe ngbanga tî sô na pöpö tî âzo otâ sô na pêko tî taksï nî sô, mbênî wâlï akono gï töngana bâgara.
-Tîtene mbï dutï nzönî, mbï pûsu lo kêtê me wâlï sô asûku ngbângbâ, lo pete mbï na sïönî bê na terê tî yângâ tî taksï ni, sï lo tene:
+Mbï wara lêgë tî dutï nzönî pëpe ngbanga tî sô na pöpö tî âzo otâ sô na pêko tî takisï nî sô, mbênî wâlï akono gï töngana bâgara.
+Tîtene mbï dutï nzönî, mbï pûsu lo kêtê me wâlï sô asûku ngbângbâ, lo pete mbï na sïönî bê na terê tî yângâ tî takisï ni, sï lo tene:
 
-— Mâsa, taksï tî mo nî ayeke kêtê töngasô ngbanga tî nye?
+— Mâsa, takisï tî mo nî ayeke kêtê töngasô ngbanga tî nye?
 Bâa yê, gï na lëkërëngö têre tî mbï tîtene maseka-kôlï sô gerê tî lô akpa gï tî kôlô sô adutï nzönî, yâ tî terê tî mbï kûê ayeke so.
 
-Wagbötöngö-taksï nî atene na ngîâ na yângâ tî lo:
+Wagbötöngö-takisï nî atene na ngîâ na yângâ tî lo:
 
 — Mo hînga fadë, mamâ, mo fûta ngêrë tî ndo ûse tîtene mo bâa pâsi pëpe!
 
@@ -288,7 +316,7 @@ Wâlï sô akpa gï doli sô atï na wâ agbï, lo tene:
 
 — Âla mä tënë tî kpändä sô!
 Lo hînga mbï äpe, mbï hînga lo äpe.
-Lo yeke tene tënë na mbï mo bâa mo tene mbï yeke mbênî kötä konô sô asï yä tî taksï nî kûê.
+Lo yeke tene tënë na mbï mo bâa mo tene mbï yeke mbênî kötä konô sô asï yä tî takisï nî kûê.
 Mä mbï sï, môlengê.
 Mbï lîngbi tî dutï töngana mamâ tî mo.
 Gï na särängö terê tî âla töngasô, âla âmaseka, sï âla ke kûi hîo sô.
@@ -296,20 +324,20 @@ Gï na särängö terê tî âla töngasô, âla âmaseka, sï âla ke kûi hîo
 Ndo adë ngii sï pakara sô na gatï tî mamâ sô azî yângâ:
 
 — Mbï yeke hûnda terê tî mbï, mbï tene, âla wara sïönî mayëre tî zîa âzo osïö na pekö sô na ndo wa?
-Taksï tî mo nî ayeke kêtê ahön kopo tî âsusu.
+Takisï tî mo nî ayeke kêtê ahön kopo tî âsusu.
 
 Wagbötöngö-kutukutu nî azî yângâ pëpe tënë tî bîâ sô lo yeke hë na gbegô.
 
 Kôlï sô na terê tî wâlï sô na kotï tî mbï akîri atene:
 
-— Na yâ tî âmbênî ködörö, na tâpandë tî Farânzi sô mbï ke gue daä töngana lêgë tî yäkä tî mbï, âtaksï ayeke mû gï zo ôko.
+— Na yâ tî âmbênî ködörö, na tâpandë tî Farânzi sô mbï ke gue daä töngana lêgë tî yäkä tî mbï, âtakisï ayeke mû gï zo ôko.
 Na ndönî, âla ayeke zîa lo na ndo sô lo yeke gue daä.
 
-Gï sô lo tene töngasô sô âkperekpere nî alöndö ngangü ahön ndö tî îâ sô ayeke toto ngâ na kötä köngö tî taksï ni.
+Gï sô lo tene töngasô sô âkperekpere nî alöndö ngangü ahön ndö tî îâ sô ayeke toto ngâ na kötä köngö tî takisï ni.
 
-Masia sô adutï na pöpö tî Wagbötöngö-taksï na mbênî maseka sô amo li tî lo ndâli tî kötä kä sô ayeke daä atene:
+Masia sô adutï na pöpö tî Wagbötöngö-takisï na mbênî maseka sô amo li tî lo ndâli tî kötä kä sô ayeke daä atene:
 
-— Na mbâgë, tënë tî mo nî ayeke na lêgë nî, me na mbâgë ngâ, alingbi mo hîinga ë dutï nzönî na yâ tî taksï ahön bus.
+— Na mbâgë, tënë tî mo nî ayeke na lêgë nî, me na mbâgë ngâ, alingbi mo hîinga ë dutï nzönî na yâ tî takisï ahön bus.
 
 Môlengê-kôlï sô na kä na li tî lo sô atene na môlengê-wâlï nî:
 
@@ -325,25 +353,25 @@ Mbï lîngbi tî kânga bê tî mbï na ndö tî fünngö gbe tî mabôko tî â
 
 Ka mbï, âla yeke hûnda terê tî âla, mbï tene tî mbï nye?
 Mbï zî yângâ ôko pëpe.
-Sô fadë mbï kö na yâ tî taksï sô, sösö ahon ndö tî mbï mîngi.
+Sô fadë mbï kö na yâ tî takisï sô, sösö ahon ndö tî mbï mîngi.
 Mbï yê tî sösö na ngangü tî terê tî mbï kûê sï pupu aya mbï.
 Na Bangî, mo sösö, ayeke hë mo ngbii asï na lâ tî kûâ tî mo.
 Ka mbï sösö nî sï sasa asïgîgî agbû bongö tî mbï, fadë mbï yeke sâra töngana nye?
 Alîngbi mbï dutï kpô tî pete sösö sô ayê gï tî sungba na ngangü sô.
 
-Wagbötöngö-taksï nî azî gô tî fonôno nî ngangü.
+Wagbötöngö-takisï nî azî gô tî fonôno nî ngangü.
 Töngana mbênî yê tî ndimä, sösö sô mbï kânga fadë gbä sô asïgî gï yeke bâa mo tene mozoko nî ayê däa tîtene lo sïgî.
 
 Wâlï sô na terê tî mbï sï akpa gï kötä bäbolo sô atene na kötä gô:
 
 — Hêe, mâsa, mo pêe tî kîri na gô tî fonôno-nî kêtê äpe?
-Ë yeke na yâ tî nganda äpe, ë yeke na yâ tî taksï laâ!
+Ë yeke na yâ tî nganda äpe, ë yeke na yâ tî takisï laâ!
 
 Âdëköngö alöndö mbâgë na mbâgë:
 
 — Nye laâ afün töngasô, mâsa?
 
-— Mo yö fünngö nyama na yâ tî taksï nî wala nye?
+— Mo yö fünngö nyama na yâ tî takisï nî wala nye?
 
 — Kpändä wa laâ asösö sô?
 
@@ -357,14 +385,14 @@ Kötä wâlï sô na terê tî mbï sï amû ndo kûê sô atene:
 
 — Mo bâa sô, ayeke gï mâsa laâ asösö sô.
 
-Me wagbötöngö-taksï nî akîri tënë na wâlï nî atene:
+Me wagbötöngö-takisï nî akîri tënë na wâlï nî atene:
 
 — Tî mbï ayeke gï mo, pûpûlenge waâ!
 Mbï hînga ka sôsô tî âwâlï sô ngbondä tî âla akono mîngi sô kûê.
 
 Lê tî wâlï sô abe na ngonzo sï lo hûnda tîtene mâsa nî azîa lo na sêse fadëfadësô.
 Ë yeke na barâsi balëokü na sängbï-lêgë tî Ben-Zvi-Sica.
-Taksï nî alütï na dëmängö terê tî lo.
+Takisï nî alütï na dëmängö terê tî lo.
 Wâlï nî asïgîgiî na kugbë tî sâki ôko lo mû na mâsa nî.
 voazîne tî mbï nî, sô ayeke voazîne tî mbï mbênî pëpe tëtî sô lo zûu na sêse awe sô, ake na kürü gô:
 
@@ -377,8 +405,8 @@ Ka tënë nî ayeke na ndo wa, mamâ tî mbï?
 
 — Mbï yeke mû ka balëûse na okü töngana mo yeke gï na balëûse na okü.
 
-Mâsa nî azî gerê, taksï tî lo nî ahön yongôro na terê tî wâlï tî gïngö tënë sô sï lo tene nï hînga li tî nï na âzo tî Bêafrîka pëpe.
-Ngêrë tî taksï ayeke balëotâ.
+Mâsa nî azî gerê, takisï tî lo nî ahön yongôro na terê tî wâlï tî gïngö tënë sô sï lo tene nï hînga li tî nï na âzo tî Bêafrîka pëpe.
+Ngêrë tî takisï ayeke balëotâ.
 Ayeke na nzönî bê laâ sï lo yeke yô âzo na balëûse na okü, sô ayeke ngêrë tî köngö na yâ tî bus sô.
 
 Töngana kutukutu nî asï na dambëtï tî Ben-Zvi awe, mbï zûu na sêse ngâ.
@@ -394,11 +422,11 @@ Ahûnda na ë tî bûngbi tî sâra mbênî bûku na farânzi ngâ na sängö.
 
 — Mo hînga yê sô mo yê tî sîra mbëtï na ndö nî sô awe?
 
-— Mbï yê tî vunga sango tî yê sô asï fadë na yâ tî taksï sô.
+— Mbï yê tî vunga sango tî yê sô asï fadë na yâ tî takisï sô.
 
 — Nye laâ asï nye?
 
-—Âzo tî yâ tî taksï nî adîko tënë töna âkûkulû sï mbï sösö tîtene âla dutï kpo.
+—Âzo tî yâ tî takisï nî adîko tënë töna âkûkulû sï mbï sösö tîtene âla dutï kpo.
 
 Sylvianne atï na kötä ngîâ sï nzara tî mbênî sösö agbû mbï.
 Me mbï kânga nî.
@@ -457,402 +485,395 @@ Mbï tene na lo na ngîâ na yângâ tî mbï.
 	parseMatchers := []ParseMatcher{SentenceFinal, SangoWord, SangoSyllable}
 	actual := Parse(parseMatchers, s, ParseTree{Begin: 0, End: len(s)})
 	actualStr := actual.Annotate(s, false, map[string]bool{
-		"closeVowel":      true,
-		"closeVowelNasal": true,
-		"consonant":       true,
-		"nasal":           true,
-		"openVowel":       true,
-		"syllable":        true,
-		"unmatched":       true,
-		"vowelNasal":      true,
-		"whole":           true,
-		"word":            true,
+		"sentence": true,
 	})
 	expectStr := `
-sentence             [  1: 30] = Na yâ tî taksï na Bangî
+sentence             [  0: 31] = 
+Na yâ tî takisï na Bangî
 
 
-sentence             [ 30: 46] = Benoît Kongbo
+sentence             [ 31: 47] = Benoît Kongbo
 
 
-sentence             [ 46:151] = «… na pöpö tî âzo otâ sô na pêko tî taksï nî sô mbênî wâlï akono gï töngana bâgara.
+sentence             [ 47:153] = «… na pöpö tî âzo otâ sô na pêko tî takisï nî sô mbênî wâlï akono gï töngana bâgara.
 
-sentence             [151:206] = Tîtene mbï dutï nzönî, mbï pûsu lo kêtê…»
+sentence             [153:208] = Tîtene mbï dutï nzönî, mbï pûsu lo kêtê…»
 
 
-sentence             [206:557] = Mbï löndö tî sïgî na pekô tî büngbïngö-terê na wayïndä tî Alliance française, na lo sô ayeke wayïndä tî Espace langue et formation, na kötä wasüngö-mbëtï Pierre Sammy sô mbï yeke gue na ndo tî lo ândö mîngi, na Gabriel, mbênî wasüngö-mbëtï ngâ na âmbâ tî mbï maseka-kôlï sô ayê kua tî süngö-mbëtï.
+sentence             [208:559] = Mbï löndö tî sïgî na pekô tî büngbïngö-terê na wayïndä tî Alliance française, na lo sô ayeke wayïndä tî Espace langue et formation, na kötä wasüngö-mbëtï Pierre Sammy sô mbï yeke gue na ndo tî lo ândö mîngi, na Gabriel, mbênî wasüngö-mbëtï ngâ na âmbâ tî mbï maseka-kôlï sô ayê kua tî süngö-mbëtï.
 
 
-sentence             [557:672] = Mbï yeke tambûla tî gue na balabâla tî Dipandäa, ndo sô kâ mbï yeke mû taksï daä tî gue na yângâda.
+sentence             [559:675] = Mbï yeke tambûla tî gue na balabâla tî Dipandäa, ndo sô kâ mbï yeke mû takisï daä tî gue na yângâda.
 
-sentence             [672:731] = Mbï yeke gbû li tî mbï na ndö tî kua sô amû na ë.
+sentence             [675:734] = Mbï yeke gbû li tî mbï na ndö tî kua sô amû na ë.
 
-sentence             [731:824] = Lo hûnda na ë tî sû mbênî mbëtï sô ë lîngbi tî mû na lo na yâ tî yenga ûse.
+sentence             [734:827] = Lo hûnda na ë tî sû mbênî mbëtï sô ë lîngbi tî mû na lo na yâ tî yenga ûse.
 
 
-sentence             [824:846] = Lo tene fadë na ë:
+sentence             [827:849] = Lo tene fadë na ë:
 
 
-sentence             [846:984] = — Kodë nî, ayeke tî sâra mbëtï tî âla nî töngana mbênî bûku sô yângâ tî ködörö nî ayeke dutï sängö na farânzi.
+sentence             [849:987] = — Kodë nî, ayeke tî sâra mbëtï tî âla nî töngana mbênî bûku sô yângâ tî ködörö nî ayeke dutï sängö na farânzi.
 
-sentence             [1123:1148] = na âzo tî Bêafrîka.
+sentence             [987:1151] = Ndâ tî pialö sô, ayeke tî mû lêgë na âmbênî na pöpö tî âla sô ayeke sû mbëtï na gbemingo tî fa terê tî âla polêlê
+na âzo tî Bêafrîka.
 
 
-sentence             [1148:1383] = Tî taâ tënë nî, pialö sô abâa gïgî na pekô tî gbüngö-li tî vassilis, wasüngö-mbëtï tî farânzi sô taâ marä tî lo ayeke gerêke sô asû mbênî bûku na ndö tî sängö sô ïrï nî ayeke Les mots étrangers.
+sentence             [1151:1386] = Tî taâ tënë nî, pialö sô abâa gïgî na pekô tî gbüngö-li tî vassilis, wasüngö-mbëtï tî farânzi sô taâ marä tî lo ayeke gerêke sô asû mbênî bûku na ndö tî sängö sô ïrï nî ayeke Les mots étrangers.
 
-sentence             [1383:1522] = Na ûse gängö tî lo na sêse tî Bêafrîka, lo sâra na ë tënë tî pialö tî süngö bûku lêgëôko na sängö ngâ na farânzi.
+sentence             [1386:1525] = Na ûse gängö tî lo na sêse tî Bêafrîka, lo sâra na ë tënë tî pialö tî süngö bûku lêgëôko na sängö ngâ na farânzi.
 
-sentence             [1522:1705] = Ë kûê ë yê daä na nî ngbanga tî sô ayeke nzönî kodë tî zîa nzara tî dïköngö-mbëtï na yâ tî âzo tî Bêafriîka, sô ahînga ngâ na âla sô ahînga nî pëpe.
+sentence             [1525:1708] = Ë kûê ë yê daä na nî ngbanga tî sô ayeke nzönî kodë tî zîa nzara tî dïköngö-mbëtï na yâ tî âzo tî Bêafriîka, sô ahînga ngâ na âla sô ahînga nî pëpe.
 
-sentence             [1705:1963] = Mawa nî ayeke sô anînga kêtêz mbï hön tënë tî kua tî süngö mbênî bûku na Limoges na sêse tî Farânzi sï mbï wara âsango na ndö tî pialö sô pëpe ngbii asï na lâkûi tî büngbïngö-terê sô mbï löndö tî tene tënë nî sô.
+sentence             [1708:1966] = Mawa nî ayeke sô anînga kêtêz mbï hön tënë tî kua tî süngö mbênî bûku na Limoges na sêse tî Farânzi sï mbï wara âsango na ndö tî pialö sô pëpe ngbii asï na lâkûi tî büngbïngö-terê sô mbï löndö tî tene tënë nî sô.
 
 
-sentence             [1963:2103] = Mbï yeke gi bë tî mbï ngbanga tî sô mbï yeke sû mbênî bûku sô mbï yê tî tokua na da lëkërëngö nî na sêse tî Gameroun.
+sentence             [1966:2106] = Mbï yeke gi bë tî mbï ngbanga tî sô mbï yeke sû mbênî bûku sô mbï yê tî tokua na da lëkërëngö nî na sêse tî Gameroun.
 
-sentence             [2103:2224] = Mbï zîa bê tî mbï daä mîngi sï mbeto ayeke gbû mbï tî wara lêgë pëpe tî sû mbëtï sô Alliance ahûnda.
+sentence             [2106:2227] = Mbï zîa bê tî mbï daä mîngi sï mbeto ayeke gbû mbï tî wara lêgë pëpe tî sû mbëtï sô Alliance ahûnda.
 
-sentence             [2224:2306] = Mbï yê tî hûnzi bûku sô hîo sï mbï yê tî sâra mbênî yê ndê pëpe.
+sentence             [2227:2309] = Mbï yê tî hûnzi bûku sô hîo sï mbï yê tî sâra mbênî yê ndê pëpe.
 
-sentence             [2306:2376] = Mbï yê tîtene ahûnda mbï hündängö sï mbï sû mbëtï pëpe.
+sentence             [2309:2379] = Mbï yê tîtene ahûnda mbï hündängö sï mbï sû mbëtï pëpe.
 
-sentence             [2376:2440] = Mbï yeke sâra nî na ngoi sô mbï yeke na âsango tî vunga.
+sentence             [2379:2443] = Mbï yeke sâra nî na ngoi sô mbï yeke na âsango tî vunga.
 
-sentence             [2440:2560] = Ânzönî tënë sô mbï yeke na nî tîtene na ndö tî ködörö tî mbï ayeke na yâ tî kôzo bûku tî mbï awe.
+sentence             [2443:2563] = Ânzönî tënë sô mbï yeke na nî tîtene na ndö tî ködörö tî mbï ayeke na yâ tî kôzo bûku tî mbï awe.
 
-sentence             [2560:2604] = Tënë wa ânde sï mbï zîa na ndö nî?
+sentence             [2563:2607] = Tënë wa ânde sï mbï zîa na ndö nî?
 
 
-sentence             [2604:2679] = Kötä pîpî tî mbênî taksï sï azî mbï na yâ tî gbüngö-li sô.
+sentence             [2607:2683] = Kötä pîpî tî mbênî takisï sï azî mbï na yâ tî gbüngö-li sô.
 
-sentence             [2679:2761] = Ayeke gï na ngoi sô sï mbï hînga mbï sï na yângâ tî kötä lêgë awe.
+sentence             [2683:2765] = Ayeke gï na ngoi sô sï mbï hînga mbï sï na yângâ tî kötä lêgë awe.
 
 
-sentence             [2761:2808] = Wagbötöngö-taksï nî atene na kötä gô:
+sentence             [2765:2813] = Wagbötöngö-takisï nî atene na kötä gô:
 
 
-sentence             [2808:2829] = — Ben-Zvi-Miskine!
+sentence             [2813:2834] = — Ben-Zvi-Miskine!
 
-sentence             [2829:2838] = Mo gue?
+sentence             [2834:2843] = Mo gue?
 
 
-sentence             [2838:2938] = Mbï sâra mabôko tî mbï na lo tîtene lo lütï sï mbï mû lörö na mbâgë tî taksï nî.
+sentence             [2843:2944] = Mbï sâra mabôko tî mbï na lo tîtene lo lütï sï mbï mû lörö na mbâgë tî takisï nî.
 
 
-sentence             [2938:3007] = Mbï tene na mâsa nî kôzo kûê tîtene mbï wara parâba pëpe:
+sentence             [2944:3013] = Mbï tene na mâsa nî kôzo kûê tîtene mbï wara parâba pëpe:
 
 
-sentence             [3007:3059] = — Mâsa, mbï yeke zûu na dambëtï tî Ben-Zvi.
+sentence             [3013:3065] = — Mâsa, mbï yeke zûu na dambëtï tî Ben-Zvi.
 
-sentence             [3059:3098] = Mbï yeke na pâta balëûse na okü.
+sentence             [3065:3104] = Mbï yeke na pâta balëûse na okü.
 
 
-sentence             [3098:3184] = Lo dë köngö mo bâa mo tene kâ fadë mbï fa na lo wüngö tî nginza nî pëpe:
+sentence             [3104:3190] = Lo dë köngö mo bâa mo tene kâ fadë mbï fa na lo wüngö tî nginza nî pëpe:
 
 
-sentence             [3184:3208] = — Me mo kö daä ma!
+sentence             [3190:3214] = — Me mo kö daä ma!
 
 
-sentence             [3208:3251] = Mbï kö na yâ tî taksï nî na lörö.
+sentence             [3214:3258] = Mbï kö na yâ tî takisï nî na lörö.
 
 
-sentence             [3251:3267] = — Awe, mâsa.
+sentence             [3258:3274] = — Awe, mâsa.
 
-sentence             [3267:3276] = Ë gue.
+sentence             [3274:3283] = Ë gue.
 
 
-sentence             [3276:3433] = Mbï wara lêgë tî dutï nzönî pëpe ngbanga tî sô na pöpö tî âzo otâ sô na pêko tî taksï nî sô, mbênî wâlï akono gï töngana bâgara.
+sentence             [3283:3441] = Mbï wara lêgë tî dutï nzönî pëpe ngbanga tî sô na pöpö tî âzo otâ sô na pêko tî takisï nî sô, mbênî wâlï akono gï töngana bâgara.
 
-sentence             [3433:3594] = Tîtene mbï dutï nzönî, mbï pûsu lo kêtê me wâlï sô asûku ngbângbâ, lo pete mbï na sïönî bê na terê tî yângâ tî taksï ni, sï lo tene:
+sentence             [3441:3603] = Tîtene mbï dutï nzönî, mbï pûsu lo kêtê me wâlï sô asûku ngbângbâ, lo pete mbï na sïönî bê na terê tî yângâ tî takisï ni, sï lo tene:
 
 
-sentence             [3594:3663] = — Mâsa, taksï tî mo nî ayeke kêtê töngasô ngbanga tî nye?
+sentence             [3603:3673] = — Mâsa, takisï tî mo nî ayeke kêtê töngasô ngbanga tî nye?
 
-sentence             [3663:3829] = Bâa yê, gï na lëkërëngö têre tî mbï tîtene maseka-kôlï sô gerê tî lô akpa gï tî kôlô sô adutï nzönî, yâ tî terê tî mbï kûê ayeke so.
+sentence             [3673:3839] = Bâa yê, gï na lëkërëngö têre tî mbï tîtene maseka-kôlï sô gerê tî lô akpa gï tî kôlô sô adutï nzönî, yâ tî terê tî mbï kûê ayeke so.
 
 
-sentence             [3829:3890] = Wagbötöngö-taksï nî atene na ngîâ na yângâ tî lo:
+sentence             [3839:3901] = Wagbötöngö-takisï nî atene na ngîâ na yângâ tî lo:
 
 
-sentence             [3890:3978] = — Mo hînga fadë, mamâ, mo fûta ngêrë tî ndo ûse tîtene mo bâa pâsi pëpe!
+sentence             [3901:3989] = — Mo hînga fadë, mamâ, mo fûta ngêrë tî ndo ûse tîtene mo bâa pâsi pëpe!
 
 
-sentence             [3978:4036] = Wâlï sô akpa gï doli sô atï na wâ agbï, lo tene:
+sentence             [3989:4047] = Wâlï sô akpa gï doli sô atï na wâ agbï, lo tene:
 
 
-sentence             [4036:4074] = — Âla mä tënë tî kpändä sô!
+sentence             [4047:4085] = — Âla mä tënë tî kpändä sô!
 
-sentence             [4074:4116] = Lo hînga mbï äpe, mbï hînga lo äpe.
+sentence             [4085:4127] = Lo hînga mbï äpe, mbï hînga lo äpe.
 
-sentence             [4116:4226] = Lo yeke tene tënë na mbï mo bâa mo tene mbï yeke mbênî kötä konô sô asï yä tî taksï nî kûê.
+sentence             [4127:4238] = Lo yeke tene tënë na mbï mo bâa mo tene mbï yeke mbênî kötä konô sô asï yä tî takisï nî kûê.
 
-sentence             [4226:4251] = Mä mbï sï, môlengê.
+sentence             [4238:4263] = Mä mbï sï, môlengê.
 
-sentence             [4251:4297] = Mbï lîngbi tî dutï töngana mamâ tî mo.
+sentence             [4263:4309] = Mbï lîngbi tî dutï töngana mamâ tî mo.
 
-sentence             [4297:4384] = Gï na särängö terê tî âla töngasô, âla âmaseka, sï âla ke kûi hîo sô.
+sentence             [4309:4396] = Gï na särängö terê tî âla töngasô, âla âmaseka, sï âla ke kûi hîo sô.
 
 
-sentence             [4384:4451] = Ndo adë ngii sï pakara sô na gatï tî mamâ sô azî yângâ:
+sentence             [4396:4463] = Ndo adë ngii sï pakara sô na gatï tî mamâ sô azî yângâ:
 
 
-sentence             [4451:4571] = — Mbï yeke hûnda terê tî mbï, mbï tene, âla wara sïönî mayëre tî zîa âzo osïö na pekö sô na ndo wa?
+sentence             [4463:4583] = — Mbï yeke hûnda terê tî mbï, mbï tene, âla wara sïönî mayëre tî zîa âzo osïö na pekö sô na ndo wa?
 
-sentence             [4571:4626] = Taksï tî mo nî ayeke kêtê ahön kopo tî âsusu.
+sentence             [4583:4639] = Takisï tî mo nî ayeke kêtê ahön kopo tî âsusu.
 
 
-sentence             [4626:4717] = Wagbötöngö-kutukutu nî azî yângâ pëpe tënë tî bîâ sô lo yeke hë na gbegô.
+sentence             [4639:4730] = Wagbötöngö-kutukutu nî azî yângâ pëpe tënë tî bîâ sô lo yeke hë na gbegô.
 
 
-sentence             [4717:4785] = Kôlï sô na terê tî wâlï sô na kotï tî mbï akîri atene:
+sentence             [4730:4798] = Kôlï sô na terê tî wâlï sô na kotï tî mbï akîri atene:
 
 
-sentence             [4785:4937] = — Na yâ tî âmbênî ködörö, na tâpandë tî Farânzi sô mbï ke gue daä töngana lêgë tî yäkä tî mbï, âtaksï ayeke mû gï zo ôko.
+sentence             [4798:4951] = — Na yâ tî âmbênî ködörö, na tâpandë tî Farânzi sô mbï ke gue daä töngana lêgë tî yäkä tî mbï, âtakisï ayeke mû gï zo ôko.
 
-sentence             [4937:4998] = Na ndönî, âla ayeke zîa lo na ndo sô lo yeke gue daä.
+sentence             [4951:5012] = Na ndönî, âla ayeke zîa lo na ndo sô lo yeke gue daä.
 
 
-sentence             [4998:5136] = Gï sô lo tene töngasô sô âkperekpere nî alöndö ngangü ahön ndö tî îâ sô ayeke toto ngâ na kötä köngö tî taksï ni.
+sentence             [5012:5151] = Gï sô lo tene töngasô sô âkperekpere nî alöndö ngangü ahön ndö tî îâ sô ayeke toto ngâ na kötä köngö tî takisï ni.
 
 
-sentence             [5136:5269] = Masia sô adutï na pöpö tî Wagbötöngö-taksï na mbênî maseka sô amo li tî lo ndâli tî kötä kä sô ayeke daä atene:
+sentence             [5151:5285] = Masia sô adutï na pöpö tî Wagbötöngö-takisï na mbênî maseka sô amo li tî lo ndâli tî kötä kä sô ayeke daä atene:
 
 
-sentence             [5269:5410] = — Na mbâgë, tënë tî mo nî ayeke na lêgë nî, me na mbâgë ngâ, alingbi mo hîinga ë dutï nzönî na yâ tî taksï ahön bus.
+sentence             [5285:5427] = — Na mbâgë, tënë tî mo nî ayeke na lêgë nî, me na mbâgë ngâ, alingbi mo hîinga ë dutï nzönî na yâ tî takisï ahön bus.
 
 
-sentence             [5410:5487] = Môlengê-kôlï sô na kä na li tî lo sô atene na môlengê-wâlï nî:
+sentence             [5427:5504] = Môlengê-kôlï sô na kä na li tî lo sô atene na môlengê-wâlï nî:
 
 
-sentence             [5487:5526] = — Tâtënë laä mo tene sô, îtä.
+sentence             [5504:5543] = — Tâtënë laä mo tene sô, îtä.
 
-sentence             [5526:5586] = Mbï sô mo bâa mbï sô, mbï yeke mû bus lâôko pëpe.
+sentence             [5543:5603] = Mbï sô mo bâa mbï sô, mbï yeke mû bus lâôko pëpe.
 
-sentence             [5586:5632] = Mbï yeke zo sô ayê dütïngö kpô mîngi.
+sentence             [5603:5649] = Mbï yeke zo sô ayê dütïngö kpô mîngi.
 
-sentence             [5632:5791] = Andâa, na yâ tî bus, zo kûê ayeke tene tënë, ayeke dë köngö, ayeke hë ngîâ na yâ tî mê tî âzo, ngâ ayeke sösö na mbänä tî bê tî lo.
+sentence             [5649:5808] = Andâa, na yâ tî bus, zo kûê ayeke tene tënë, ayeke dë köngö, ayeke hë ngîâ na yâ tî mê tî âzo, ngâ ayeke sösö na mbänä tî bê tî lo.
 
 
-sentence             [5791:5894] = Kôlï tî hümä sô adutï na mbâgë kâ mo bâa mo tene lo löndö na ködörö wandê sô atene:
+sentence             [5808:5911] = Kôlï tî hümä sô adutï na mbâgë kâ mo bâa mo tene lo löndö na ködörö wandê sô atene:
 
 
-sentence             [5894:5981] = —Tî mbï, mbï kpë bus ngbanga tî sô mbï yê fünngö tî terê tî âzo pëpe.
+sentence             [5911:5998] = —Tî mbï, mbï kpë bus ngbanga tî sô mbï yê fünngö tî terê tî âzo pëpe.
 
-sentence             [5981:6150] = Mbï lîngbi tî kânga bê tî mbï na ndö tî fünngö gbe tî mabôko tî âmötöröbôi pëpe, wala ngâ na gbikï tî âla sô ayeke buba bongö tî mbï pëpe.
+sentence             [5998:6167] = Mbï lîngbi tî kânga bê tî mbï na ndö tî fünngö gbe tî mabôko tî âmötöröbôi pëpe, wala ngâ na gbikï tî âla sô ayeke buba bongö tî mbï pëpe.
 
 
-sentence             [6150:6216] = Ka mbï, âla yeke hûnda terê tî âla, mbï tene tî mbï nye?
+sentence             [6167:6233] = Ka mbï, âla yeke hûnda terê tî âla, mbï tene tî mbï nye?
 
-sentence             [6216:6245] = Mbï zî yângâ ôko pëpe.
+sentence             [6233:6262] = Mbï zî yângâ ôko pëpe.
 
-sentence             [6245:6321] = Sô fadë mbï kö na yâ tî taksï sô, sösö ahon ndö tî mbï mîngi.
+sentence             [6262:6339] = Sô fadë mbï kö na yâ tî takisï sô, sösö ahon ndö tî mbï mîngi.
 
-sentence             [6321:6396] = Mbï yê tî sösö na ngangü tî terê tî mbï kûê sï pupu aya mbï.
+sentence             [6339:6414] = Mbï yê tî sösö na ngangü tî terê tî mbï kûê sï pupu aya mbï.
 
-sentence             [6396:6467] = Na Bangî, mo sösö, ayeke hë mo ngbii asï na lâ tî kûâ tî mo.
+sentence             [6414:6485] = Na Bangî, mo sösö, ayeke hë mo ngbii asï na lâ tî kûâ tî mo.
 
-sentence             [6467:6565] = Ka mbï sösö nî sï sasa asïgîgî agbû bongö tî mbï, fadë mbï yeke sâra töngana nye?
+sentence             [6485:6583] = Ka mbï sösö nî sï sasa asïgîgî agbû bongö tî mbï, fadë mbï yeke sâra töngana nye?
 
-sentence             [6565:6647] = Alîngbi mbï dutï kpô tî pete sösö sô ayê gï tî sungba na ngangü sô.
+sentence             [6583:6665] = Alîngbi mbï dutï kpô tî pete sösö sô ayê gï tî sungba na ngangü sô.
 
 
-sentence             [6647:6706] = Wagbötöngö-taksï nî azî gô tî fonôno nî ngangü.
+sentence             [6665:6725] = Wagbötöngö-takisï nî azî gô tî fonôno nî ngangü.
 
-sentence             [6706:6848] = Töngana mbênî yê tî ndimä, sösö sô mbï kânga fadë gbä sô asïgî gï yeke bâa mo tene mozoko nî ayê däa tîtene lo sïgî.
+sentence             [6725:6867] = Töngana mbênî yê tî ndimä, sösö sô mbï kânga fadë gbä sô asïgî gï yeke bâa mo tene mozoko nî ayê däa tîtene lo sïgî.
 
 
-sentence             [6848:6931] = Wâlï sô na terê tî mbï sï akpa gï kötä bäbolo sô atene na kötä gô:
+sentence             [6867:6950] = Wâlï sô na terê tî mbï sï akpa gï kötä bäbolo sô atene na kötä gô:
 
 
-sentence             [6931:7002] = — Hêe, mâsa, mo pêe tî kîri na gô tî fonôno-nî kêtê äpe?
+sentence             [6950:7021] = — Hêe, mâsa, mo pêe tî kîri na gô tî fonôno-nî kêtê äpe?
 
-sentence             [7002:7067] = Ë yeke na yâ tî nganda äpe, ë yeke na yâ tî taksï laâ!
+sentence             [7021:7087] = Ë yeke na yâ tî nganda äpe, ë yeke na yâ tî takisï laâ!
 
 
-sentence             [7067:7110] = Âdëköngö alöndö mbâgë na mbâgë:
+sentence             [7087:7130] = Âdëköngö alöndö mbâgë na mbâgë:
 
 
-sentence             [7110:7148] = — Nye laâ afün töngasô, mâsa?
+sentence             [7130:7168] = — Nye laâ afün töngasô, mâsa?
 
 
-sentence             [7148:7207] = — Mo yö fünngö nyama na yâ tî taksï nî wala nye?
+sentence             [7168:7228] = — Mo yö fünngö nyama na yâ tî takisï nî wala nye?
 
 
-sentence             [7207:7242] = — Kpändä wa laâ asösö sô?
+sentence             [7228:7263] = — Kpändä wa laâ asösö sô?
 
 
-sentence             [7242:7331] = — Mozoko sô ayeke toto ngangü mîngi sô laâ amû lêgë na zo sô tî sösö sô.
+sentence             [7263:7352] = — Mozoko sô ayeke toto ngangü mîngi sô laâ amû lêgë na zo sô tî sösö sô.
 
 
-sentence             [7331:7386] = — Sösö nî afün gï töngana kûâ tî mbo, dê!
+sentence             [7352:7407] = — Sösö nî afün gï töngana kûâ tî mbo, dê!
 
 
-sentence             [7386:7439] = — Alîngbi lo gue abâa yâ tî purû tî lo sï.
+sentence             [7407:7460] = — Alîngbi lo gue abâa yâ tî purû tî lo sï.
 
 
-sentence             [7439:7506] = Kötä wâlï sô na terê tî mbï sï amû ndo kûê sô atene:
+sentence             [7460:7527] = Kötä wâlï sô na terê tî mbï sï amû ndo kûê sô atene:
 
 
-sentence             [7506:7558] = — Mo bâa sô, ayeke gï mâsa laâ asösö sô.
+sentence             [7527:7579] = — Mo bâa sô, ayeke gï mâsa laâ asösö sô.
 
 
-sentence             [7558:7622] = Me wagbötöngö-taksï nî akîri tënë na wâlï nî atene:
+sentence             [7579:7644] = Me wagbötöngö-takisï nî akîri tënë na wâlï nî atene:
 
 
-sentence             [7622:7667] = — Tî mbï ayeke gï mo, pûpûlenge waâ!
+sentence             [7644:7689] = — Tî mbï ayeke gï mo, pûpûlenge waâ!
 
-sentence             [7667:7749] = Mbï hînga ka sôsô tî âwâlï sô ngbondä tî âla akono mîngi sô kûê.
+sentence             [7689:7771] = Mbï hînga ka sôsô tî âwâlï sô ngbondä tî âla akono mîngi sô kûê.
 
 
-sentence             [7749:7847] = Lê tî wâlï sô abe na ngonzo sï lo hûnda tîtene mâsa nî azîa lo na sêse fadëfadësô.
+sentence             [7771:7869] = Lê tî wâlï sô abe na ngonzo sï lo hûnda tîtene mâsa nî azîa lo na sêse fadëfadësô.
 
-sentence             [7847:7913] = Ë yeke na barâsi balëokü na sängbï-lêgë tî Ben-Zvi-Sica.
+sentence             [7869:7935] = Ë yeke na barâsi balëokü na sängbï-lêgë tî Ben-Zvi-Sica.
 
-sentence             [7913:7960] = Taksï nî alütï na dëmängö terê tî lo.
+sentence             [7935:7983] = Takisï nî alütï na dëmängö terê tî lo.
 
-sentence             [7960:8029] = Wâlï nî asïgîgiî na kugbë tî sâki ôko lo mû na mâsa nî.
+sentence             [7983:8052] = Wâlï nî asïgîgiî na kugbë tî sâki ôko lo mû na mâsa nî.
 
-sentence             [8029:8151] = voazîne tî mbï nî, sô ayeke voazîne tî mbï mbênî pëpe tëtî sô lo zûu na sêse awe sô, ake na kürü gô:
+sentence             [8052:8174] = voazîne tî mbï nî, sô ayeke voazîne tî mbï mbênî pëpe tëtî sô lo zûu na sêse awe sô, ake na kürü gô:
 
 
-sentence             [8151:8213] = — Mo dîko tanga tî nginza sô mo kîri na mbï sô laâ?
+sentence             [8174:8236] = — Mo dîko tanga tî nginza sô mo kîri na mbï sô laâ?
 
 
-sentence             [8213:8268] = — Mbï kîri na mo ngbangbo na balë mbârâmbârâ.
+sentence             [8236:8291] = — Mbï kîri na mo ngbangbo na balë mbârâmbârâ.
 
-sentence             [8268:8316] = Ka tënë nî ayeke na ndo wa, mamâ tî mbï?
+sentence             [8291:8339] = Ka tënë nî ayeke na ndo wa, mamâ tî mbï?
 
 
-sentence             [8316:8395] = — Mbï tene na mo fadë mbï tene mbï yeke gï na balëûse na okü, äpe?
+sentence             [8339:8418] = — Mbï tene na mo fadë mbï tene mbï yeke gï na balëûse na okü, äpe?
 
 
-sentence             [8395:8478] = — Mbï yeke mû ka balëûse na okü töngana mo yeke gï na balëûse na okü.
+sentence             [8418:8501] = — Mbï yeke mû ka balëûse na okü töngana mo yeke gï na balëûse na okü.
 
 
-sentence             [8478:8640] = Mâsa nî azî gerê, taksï tî lo nî ahön yongôro na terê tî wâlï tî gïngö tënë sô sï lo tene nï hînga li tî nï na âzo tî Bêafrîka pëpe.
+sentence             [8501:8664] = Mâsa nî azî gerê, takisï tî lo nî ahön yongôro na terê tî wâlï tî gïngö tënë sô sï lo tene nï hînga li tî nï na âzo tî Bêafrîka pëpe.
 
-sentence             [8640:8676] = Ngêrë tî taksï ayeke balëotâ.
+sentence             [8664:8701] = Ngêrë tî takisï ayeke balëotâ.
 
-sentence             [8676:8796] = Ayeke na nzönî bê laâ sï lo yeke yô âzo na balëûse na okü, sô ayeke ngêrë tî köngö na yâ tî bus sô.
+sentence             [8701:8821] = Ayeke na nzönî bê laâ sï lo yeke yô âzo na balëûse na okü, sô ayeke ngêrë tî köngö na yâ tî bus sô.
 
 
-sentence             [8796:8878] = Töngana kutukutu nî asï na dambëtï tî Ben-Zvi awe, mbï zûu na sêse ngâ.
+sentence             [8821:8903] = Töngana kutukutu nî asï na dambëtï tî Ben-Zvi awe, mbï zûu na sêse ngâ.
 
-sentence             [8878:9003] = Na mbâgë tî lêgë na dawäa tî mbênî dapïkängö-singa, Sylvianne ayeke kü mbï töngana tî sô ë mä terê daä.
+sentence             [8903:9028] = Na mbâgë tî lêgë na dawäa tî mbênî dapïkängö-singa, Sylvianne ayeke kü mbï töngana tî sô ë mä terê daä.
 
-sentence             [9003:9109] = Mbï gue na terê tî lo sï lêgëôko, ë mû lêgë sô ague na Centre Baobab tî kîri na yângâda.
+sentence             [9028:9134] = Mbï gue na terê tî lo sï lêgëôko, ë mû lêgë sô ague na Centre Baobab tî kîri na yângâda.
 
 
-sentence             [9109:9137] = Lo hûnda mbï tî hînga:
+sentence             [9134:9162] = Lo hûnda mbï tî hînga:
 
 
-sentence             [9137:9190] = — Büngbïngö-terê nî atambûla na lêgë nî?
+sentence             [9162:9215] = — Büngbïngö-terê nî atambûla na lêgë nî?
 
 
-sentence             [9190:9199] = — Iin.
+sentence             [9215:9224] = — Iin.
 
-sentence             [9199:9279] = Ahûnda na ë tî bûngbi tî sâra mbênî bûku na farânzi ngâ na sängö.
+sentence             [9224:9304] = Ahûnda na ë tî bûngbi tî sâra mbênî bûku na farânzi ngâ na sängö.
 
 
-sentence             [9279:9348] = — Mo hînga yê sô mo yê tî sîra mbëtï na ndö nî sô awe?
+sentence             [9304:9373] = — Mo hînga yê sô mo yê tî sîra mbëtï na ndö nî sô awe?
 
 
-sentence             [9348:9424] = — Mbï yê tî vunga sango tî yê sô asï fadë na yâ tî taksï sô.
+sentence             [9373:9450] = — Mbï yê tî vunga sango tî yê sô asï fadë na yâ tî takisï sô.
 
 
-sentence             [9424:9448] = — Nye laâ asï nye?
+sentence             [9450:9474] = — Nye laâ asï nye?
 
 
-sentence             [9448:9551] = —Âzo tî yâ tî taksï nî adîko tënë töna âkûkulû sï mbï sösö tîtene âla dutï kpo.
+sentence             [9474:9578] = —Âzo tî yâ tî takisï nî adîko tënë töna âkûkulû sï mbï sösö tîtene âla dutï kpo.
 
 
-sentence             [9551:9624] = Sylvianne atï na kötä ngîâ sï nzara tî mbênî sösö agbû mbï.
+sentence             [9578:9651] = Sylvianne atï na kötä ngîâ sï nzara tî mbênî sösö agbû mbï.
 
-sentence             [9624:9645] = Me mbï kânga nî.
+sentence             [9651:9672] = Me mbï kânga nî.
 
 
-sentence             [9645:9687] = — Ahînga atene mo laâ mo sösö sô?
+sentence             [9672:9714] = — Ahînga atene mo laâ mo sösö sô?
 
 
-sentence             [9687:9764] = — Mbï sösö nî na ngoi sô mâsa nî azî gô tî fonôno nî ngangü.
+sentence             [9714:9791] = — Mbï sösö nî na ngoi sô mâsa nî azî gô tî fonôno nî ngangü.
 
 
-sentence             [9764:9816] = — Tî taâ tënë nî, atumba fünngö nî äpe?
+sentence             [9791:9843] = — Tî taâ tënë nî, atumba fünngö nî äpe?
 
 
-sentence             [9816:9898] = — Âhînga fadë atene mbï laâ mbï sösö sô, ka kamënë ayeke gbû mbï.
+sentence             [9843:9925] = — Âhînga fadë atene mbï laâ mbï sösö sô, ka kamënë ayeke gbû mbï.
 
 
-sentence             [9898:9939] = — Sösö ayeke yê tî kamënë pëpe!
+sentence             [9925:9966] = — Sösö ayeke yê tî kamënë pëpe!
 
-sentence             [9939:9975] = Sösö afa atene zo ayeke na sêni.
+sentence             [9966:10002] = Sösö afa atene zo ayeke na sêni.
 
-sentence             [9975:10083] = Atâa töngana âsûru yâ tî zo awe sô, ayeke kü tîtene zo nî asösö awe, sï lo lîngbi tî te yê.
+sentence             [10002:10110] = Atâa töngana âsûru yâ tî zo awe sô, ayeke kü tîtene zo nî asösö awe, sï lo lîngbi tî te yê.
 
-sentence             [10083:10142] = Âmunzû ayeke dema pëpe töngana mbâ tî âla asösö.
+sentence             [10110:10169] = Âmunzû ayeke dema pëpe töngana mbâ tî âla asösö.
 
 
-sentence             [10142:10260] = Na dabüzë tî Amadi, mbï vo gbâ tî mânga sô ïrï nî Menthol sô sï mbï zîa wâ na terê tî mbênî ôko.
+sentence             [10169:10287] = Na dabüzë tî Amadi, mbï vo gbâ tî mânga sô ïrï nî Menthol sô sï mbï zîa wâ na terê tî mbênî ôko.
 
-sentence             [10260:10332] = Pialö tî süngö bûku na farânzi-sängö sô akîri na li tî mbï.
+sentence             [10287:10359] = Pialö tî süngö bûku na farânzi-sängö sô akîri na li tî mbï.
 
-sentence             [10332:10437] = Tî särängö mbëtï na farânzi sï mbï kîri mbï lekere nî na sängö sô aso li tî mbï mîngi.
+sentence             [10359:10464] = Tî särängö mbëtï na farânzi sï mbï kîri mbï lekere nî na sängö sô aso li tî mbï mîngi.
 
-sentence             [10437:10557] = Töngana nye ânde sï mbï sâra mbëtï na yângâ tî ködörö tî mbï sô mbï hînga tî tene nzönî pëpe sô?
+sentence             [10464:10584] = Töngana nye ânde sï mbï sâra mbëtï na yângâ tî ködörö tî mbï sô mbï hînga tî tene nzönî pëpe sô?
 
-sentence             [10557:10665] = Âfa nî fadë na mbî na dambëtï, mbï lîngbi tî wara kpälë tî särängö mbëtï na sängö pëpe.
+sentence             [10584:10692] = Âfa nî fadë na mbî na dambëtï, mbï lîngbi tî wara kpälë tî särängö mbëtï na sängö pëpe.
 
-sentence             [10665:10688] = Me mawa nî ayeke sô!
+sentence             [10692:10715] = Me mawa nî ayeke sô!
 
-sentence             [10688:10926] = Gï na fängö na mbï tî tene ngâ na tî sâra mbëtï nzönî na yângâ tî ködörö tî âzo sô amû na ë Dipandäa, âzo tî tënëngö kötä farânzi tî ködörö tî ë asâra sï ë hînga tënëngö sängö nzönî pëpe.
+sentence             [10715:10953] = Gï na fängö na mbï tî tene ngâ na tî sâra mbëtï nzönî na yângâ tî ködörö tî âzo sô amû na ë Dipandäa, âzo tî tënëngö kötä farânzi tî ködörö tî ë asâra sï ë hînga tënëngö sängö nzönî pëpe.
 
-sentence             [10926:10997] = Âmbupa tî farânzi asï sïngö na yâ tî sängö sô ë yeke tene.
+sentence             [10953:11024] = Âmbupa tî farânzi asï sïngö na yâ tî sängö sô ë yeke tene.
 
-sentence             [10997:11145] = Mbï yeke tö ndâ tî sâra mbëtï na marä sängö sô, ngbanga tî sô nzönî ködë tî manda yângâ tî ködörö, ayeke gï tî tene nî.
+sentence             [11024:11172] = Mbï yeke tö ndâ tî sâra mbëtï na marä sängö sô, ngbanga tî sô nzönî ködë tî manda yângâ tî ködörö, ayeke gï tî tene nî.
 
 
-sentence             [11145:11201] = Mo yê tî bâa, sîngamê tî mbï tî mabôko atoto.
+sentence             [11172:11228] = Mo yê tî bâa, sîngamê tî mbï tî mabôko atoto.
 
 
-sentence             [11201:11212] = — Alô?
+sentence             [11228:11239] = — Alô?
 
 
-sentence             [11212:11228] = Mbï ma atene:
+sentence             [11239:11255] = Mbï ma atene:
 
 
-sentence             [11228:11254] = — Töngana nye, petï?
+sentence             [11255:11281] = — Töngana nye, petï?
 
 
-sentence             [11254:11271] = — Zo wa laâ?
+sentence             [11281:11298] = — Zo wa laâ?
 
 
-sentence             [11271:11303] = — Mo girisa gô tî mbï awe?
+sentence             [11298:11330] = — Mo girisa gô tî mbï awe?
 
-sentence             [11303:11324] = Mbï Yvon laâ äpe.
+sentence             [11330:11351] = Mbï Yvon laâ äpe.
 
-sentence             [11324:11344] = Mo yeke na ndo wa?
+sentence             [11351:11371] = Mo yeke na ndo wa?
 
 
-sentence             [11344:11382] = — Mbï yeke gue na yângâda laâ.
+sentence             [11371:11409] = — Mbï yeke gue na yângâda laâ.
 
 
-sentence             [11382:11450] = — Mo pêe tî gä hîo na ndo sô ë ike wara ka terê daä sô?
+sentence             [11409:11477] = — Mo pêe tî gä hîo na ndo sô ë ike wara ka terê daä sô?
 
 
-sentence             [11450:11571] = — Mbï pêe, me na yâ tî ngbonga ôko ngbanga tî sô mbï yê tî sû mbênî mbëtï na farânzi ngâ na sängö.
+sentence             [11477:11598] = — Mbï pêe, me na yâ tî ngbonga ôko ngbanga tî sô mbï yê tî sû mbênî mbëtï na farânzi ngâ na sängö.
 
 
-sentence             [11571:11610] = — Alîngbi tî kü kêkerêke äpe?
+sentence             [11598:11637] = — Alîngbi tî kü kêkerêke äpe?
 
 
-sentence             [11610:11714] = — Mbï yê tî tö ndâ nî gï fafadësô, töngasô äpe sô, mbï lîngbi tî sû nî ânde äpe.
+sentence             [11637:11741] = — Mbï yê tî tö ndâ nî gï fafadësô, töngasô äpe sô, mbï lîngbi tî sû nî ânde äpe.
 
 
-sentence             [11714:11826] = — Mbï lîngbi tî kü gï töngana mo yê daä tî sâra tënë tî mbï na yâ tî mbëtï tî mo nî sï.
+sentence             [11741:11853] = — Mbï lîngbi tî kü gï töngana mo yê daä tî sâra tënë tî mbï na yâ tî mbëtï tî mo nî sï.
 
 
-sentence             [11826:11873] = Mbï tene na lo na ngîâ na yângâ tî mbï.
+sentence             [11853:11900] = Mbï tene na lo na ngîâ na yângâ tî mbï.
 
-sentence             [11873:11874] = 	
+sentence             [11900:11901] = 	
 `
 	if actualStr != expectStr {
 		t.Errorf("bad Parse:\nfound %v but expected %v\n", actualStr, expectStr)

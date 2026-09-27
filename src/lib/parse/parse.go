@@ -5,10 +5,12 @@ package parse
 import (
 	"cmp"
 	"fmt"
-	"regexp"
 	"slices"
+	"strconv"
 	"strings"
 
+	"github.com/dlclark/regexp2/v2"
+	"github.com/dlclark/regexp2/v2/compat"
 	"golang.org/x/text/width"
 )
 
@@ -41,28 +43,28 @@ func Parse(parseMatchers []ParseMatcher, s string, inputParseTree ParseTree) Par
 }
 
 // Creates a human-readable version of a parse tree.
-func (parseTree ParseTree) Annotate(s string, alignSubstrings bool, namesNotToShow map[string]bool) string {
-	return annotate(parseTree, s, alignSubstrings, namesNotToShow)
+func (parseTree ParseTree) Annotate(s string, alignSubstrings bool, namesToShow map[string]bool) string {
+	return annotate(parseTree, s, alignSubstrings, namesToShow)
 }
 
 //////////////////////////////////////////////////////////////////////////////
 // IMPLEMENTATION
 
-var parseMatcherREs = func() [NumParseMatchers]*regexp.Regexp {
+var parseMatcherREs = func() [NumParseMatchers]*regexp2.Regexp {
 	const (
 		canonicalSyllablePattern = `(?<syllable>(?<shift>[~=#]?)(?<consonant>[hHbBqQdDfgGklrmnpKPstvVwyYzZ])(?<vowelNasal>[aAeEiIoOxcuUXC])(?<pitch>[_:^]?))`
 		sangoSyllablePattern     = `(?<syllable>(?i)(?<consonant>(?i)b|d|f|gb|g|h|kp|k|l|mb|mp|mv|m|nd|ngb|ng|ny|nz|n|p|r|s|t|v|w|y|z|)(?<vowelNasal>(?<openVowel>ɛ̈|ɛ̂|ɛ̣|ɛ|ɔ̈|ɔ̂|ɔ̣|ɔ|ẍ|x̂|x̣|x|c̈|ĉ|c̣|c)|(?<closeVowelNasal>(?<closeVowel>ä|â|ạ|a|ë|ê|ẹ|e|ï|î|i|ị|ö|ô|ọ|o|ü|û|ụ|u)(?<nasal>ñ|n|))))`
-		canonicalWordPattern     = `(?<word>(?:(?:(?:[~=#]?)(?:[hHbBqQdDfgGklrmnpKPstvVwyYzZ])(?:[aAeEiIoOxcuUXC])(?:[_:^]?)))+)`
-		sangoWordPattern         = `(?<word>(?:(?:(?i)(?:(?i)b|d|f|gb|g|h|kp|k|l|mb|mp|mv|m|nd|ngb|ng|ny|nz|n|p|r|s|t|v|w|y|z|)(?:(?:ɛ̈|ɛ̂|ɛ̣|ɛ|ɔ̈|ɔ̂|ɔ̣|ɔ|ẍ|x̂|x̣|x|c̈|ĉ|c̣|c)|(?:(?:ä|â|ạ|a|ë|ê|ẹ|e|ï|î|i|ị|ö|ô|ọ|o|ü|û|ụ|u)(?:ñ|n|)))))+)`
+		canonicalWordPattern     = `(?<word>(?:(?:(?:[~=#]?)(?:[hHbBqQdDfgGklrmnpKPstvVwyYzZ])(?:[aAeEiIoOxcuUXC])(?:[_:^]?)))+(?![hHbBqQdDfgGklrmnpKPstvVwyYzZaAeEiIoOxcuUXC_:^]))`
+		sangoWordPattern         = `(?<word>(?:(?:(?i)(?:(?i)b|d|f|gb|g|h|kp|k|l|mb|mp|mv|m|nd|ngb|ng|ny|nz|n|p|r|s|t|v|w|y|z|)(?:(?:ɛ̈|ɛ̂|ɛ̣|ɛ|ɔ̈|ɔ̂|ɔ̣|ɔ|ẍ|x̂|x̣|x|c̈|ĉ|c̣|c)|(?:(?:ä|â|ạ|a|ë|ê|ẹ|e|ï|î|i|ị|ö|ô|ọ|o|ü|û|ụ|u)(?:ñ|n|)))))+(?!(?i)[a-z]|ɛ̈|ɛ̂|ɛ̣|ɛ|ɔ̈|ɔ̂|ɔ̣|ɔ|ẍ|x̂|x̣|x|c̈|ĉ|c̣|c|ä|â|ạ|ë|ê|ẹ|ï|î|ị|ö|ô|ọ|ü|û|ụ|ñ))`
 		sentencePattern          = `(?<sentence>.*?(?:[.!?](?:’|”|›|»)*[ \n]+|\n\n+|$))`
 	)
 
-	return [NumParseMatchers]*regexp.Regexp{
-		regexp.MustCompile(sentencePattern),
-		regexp.MustCompile(sangoWordPattern),
-		regexp.MustCompile(sangoSyllablePattern),
-		regexp.MustCompile(canonicalWordPattern),
-		regexp.MustCompile(canonicalSyllablePattern),
+	return [NumParseMatchers]*regexp2.Regexp{
+		regexp2.MustCompile(sentencePattern, regexp2.RE2, regexp2.OptionMaintainCaptureOrder()),
+		regexp2.MustCompile(sangoWordPattern, regexp2.RE2, regexp2.OptionMaintainCaptureOrder()),
+		regexp2.MustCompile(sangoSyllablePattern, regexp2.RE2, regexp2.OptionMaintainCaptureOrder()),
+		regexp2.MustCompile(canonicalWordPattern, regexp2.RE2, regexp2.OptionMaintainCaptureOrder()),
+		regexp2.MustCompile(canonicalSyllablePattern, regexp2.RE2, regexp2.OptionMaintainCaptureOrder()),
 	}
 }()
 
@@ -78,9 +80,9 @@ func parse(parseMatchers []ParseMatcher, s string, inputParseTree ParseTree) Par
 	}
 	re := parseMatcherREs[parseMatchers[0]]
 	indexFor := map[string]int{}
-	for _, name := range re.SubexpNames() {
-		if re.SubexpIndex(name) > 0 {
-			if i := re.SubexpIndex(name); i >= 0 {
+	for _, name := range re.GetGroupNames() {
+		if i := re.GroupNumberFromName(name); i >= 0 {
+			if number := strconv.Itoa(i); name != number {
 				indexFor[name] = i
 			}
 		}
@@ -88,7 +90,7 @@ func parse(parseMatchers []ParseMatcher, s string, inputParseTree ParseTree) Par
 	b := inputParseTree.Begin
 	e := inputParseTree.End
 	inputParseTree.Subtrees = []map[string]ParseTree{}
-	indexes := re.FindAllStringSubmatchIndex(s[b:e], -1)
+	indexes := compat.Wrap(re).FindAllStringSubmatchIndex(s[b:e], -1)
 	for i, index := range indexes {
 		for j := range index {
 			indexes[i][j] += b
@@ -96,6 +98,14 @@ func parse(parseMatchers []ParseMatcher, s string, inputParseTree ParseTree) Par
 	}
 	for _, index := range indexes {
 		c := index[0]
+		if parseMatchers[0] == SentenceFinal {
+			// Move sentence start back to the end of the previous sentence.
+			delta := c - b
+			for _, j := range indexFor {
+				index[2*j] -= delta
+			}
+			c = b
+		}
 		if c > b {
 			parseSubtrees := map[string]ParseTree{}
 			parseSubtrees["unmatched"] = ParseTree{Begin: b, End: c}
@@ -140,7 +150,7 @@ func getStringWidth(s string) int {
 	return totalWidth
 }
 
-func annotate(parseTree ParseTree, s string, alignSubstrings bool, namesNotToShow map[string]bool) string {
+func annotate(parseTree ParseTree, s string, alignSubstrings bool, namesToShow map[string]bool) string {
 	type Row struct {
 		begin int
 		end   int
@@ -159,7 +169,7 @@ func annotate(parseTree ParseTree, s string, alignSubstrings bool, namesNotToSho
 	var f func(string, ParseTree)
 	f = func(n string, c ParseTree) {
 		if 0 <= c.Begin && c.Begin < c.End && c.End <= len(s) {
-			if !namesNotToShow[n] {
+			if namesToShow[n] {
 				rowValue := ""
 				if alignSubstrings {
 					rowValue = fmt.Sprintf("%-20v [%3v:%3v] = %v%v\n", n, c.Begin, c.End,
