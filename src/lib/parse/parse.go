@@ -53,9 +53,9 @@ func (parseTree ParseTree) Annotate(s string, alignSubstrings bool, namesToShow 
 var parseMatcherREs = func() [NumParseMatchers]*regexp2.Regexp {
 	const (
 		canonicalSyllablePattern = `(?<syllable>(?<shift>[~=#]?)(?<consonant>[hHbBqQdDfgGklrmnpKPstvVwyYzZ])(?<vowelNasal>[aAeEiIoOxcuUXC])(?<pitch>[_:^]?))`
-		sangoSyllablePattern     = `(?<syllable>(?i)(?<consonant>(?i)b|d|f|gb|g|h|kp|k|l|mb|mp|mv|m|nd|ngb|ng|ny|nz|n|p|r|s|t|v|w|y|z|)(?<vowelNasal>(?<openVowel>ɛ̈|ɛ̂|ɛ̣|ɛ|ɔ̈|ɔ̂|ɔ̣|ɔ|ẍ|x̂|x̣|x|c̈|ĉ|c̣|c)|(?<closeVowelNasal>(?<closeVowel>ä|â|ạ|a|ë|ê|ẹ|e|ï|î|i|ị|ö|ô|ọ|o|ü|û|ụ|u)(?<nasal>ñ|n|))))`
-		canonicalWordPattern     = `(?<word>(?:(?:(?:[~=#]?)(?:[hHbBqQdDfgGklrmnpKPstvVwyYzZ])(?:[aAeEiIoOxcuUXC])(?:[_:^]?)))+(?![hHbBqQdDfgGklrmnpKPstvVwyYzZaAeEiIoOxcuUXC_:^]))`
-		sangoWordPattern         = `(?<word>(?:(?:(?i)(?:(?i)b|d|f|gb|g|h|kp|k|l|mb|mp|mv|m|nd|ngb|ng|ny|nz|n|p|r|s|t|v|w|y|z|)(?:(?:ɛ̈|ɛ̂|ɛ̣|ɛ|ɔ̈|ɔ̂|ɔ̣|ɔ|ẍ|x̂|x̣|x|c̈|ĉ|c̣|c)|(?:(?:ä|â|ạ|a|ë|ê|ẹ|e|ï|î|i|ị|ö|ô|ọ|o|ü|û|ụ|u)(?:ñ|n|)))))+(?!(?i)[a-z]|ɛ̈|ɛ̂|ɛ̣|ɛ|ɔ̈|ɔ̂|ɔ̣|ɔ|ẍ|x̂|x̣|x|c̈|ĉ|c̣|c|ä|â|ạ|ë|ê|ẹ|ï|î|ị|ö|ô|ọ|ü|û|ụ|ñ))`
+		sangoSyllablePattern     = `(?<syllable>(?i)(?<consonant>(?i)b|d|f|gb|g|h|kp|k|l|mb|mp|mv|m|nd|ngb|ng|ny|nz|n|p|r|s|t|v|w|y|z|)(?<vowelNasal>(?<openVowel>ɛ̈|ɛ̂|ɛ̣|ɛ|ɔ̈|ɔ̂|ɔ̣|ɔ|ẍ|x̂|x̣|x|c̈|ĉ|c̣|c)|(?<closeVowelNasal>(?<closeVowel>ä|â|ạ|a|ë|ê|ẹ|e|ï|î|i|ị|ö|ô|ọ|o|ü|û|ụ|u)(?<nasal>(?:ñ|n)(?!(?i)(?:d|g|gb|y|z)?(?:ɛ̈|ɛ̂|ɛ̣|ɛ|ɔ̈|ɔ̂|ɔ̣|ɔ|ẍ|x̂|x̣|x|c̈|ĉ|c̣|c|ä|â|ạ|a|ë|ê|ẹ|e|ï|î|i|ị|ö|ô|ọ|o|ü|û|ụ|u))|))))`
+		canonicalWordPattern     = `(?<word>(?<![\p{L}\p{M}_:^~])(?:(?:(?:[~=#]?)(?:[hHbBqQdDfgGklrmnpKPstvVwyYzZ])(?:[aAeEiIoOxcuUXC])(?:[_:^]?)))+(?![\p{L}\p{M}_:^~]))`
+		sangoWordPattern         = `(?<word>(?<![\p{L}\p{M}])(?:(?:(?i)(?:(?i)b|d|f|gb|g|h|kp|k|l|mb|mp|mv|m|nd|ngb|ng|ny|nz|n|p|r|s|t|v|w|y|z|)(?:(?:ɛ̈|ɛ̂|ɛ̣|ɛ|ɔ̈|ɔ̂|ɔ̣|ɔ|ẍ|x̂|x̣|x|c̈|ĉ|c̣|c)|(?:(?:ä|â|ạ|a|ë|ê|ẹ|e|ï|î|i|ị|ö|ô|ọ|o|ü|û|ụ|u)(?:ñ|n|)))))+(?![\p{L}\p{M}]))`
 		sentencePattern          = `(?<sentence>.*?(?:[.!?](?:’|”|›|»)*[ \n]+|\n\n+|$))`
 	)
 
