@@ -3,9 +3,7 @@
 package parse
 
 import (
-	"cmp"
 	"fmt"
-	"slices"
 	"strconv"
 	"strings"
 
@@ -17,7 +15,8 @@ import (
 type ParseTree struct {
 	Begin    int
 	End      int
-	Subtrees []map[string]ParseTree
+	Name     string
+	Subtrees [][]ParseTree // [#][named]
 }
 
 type ParseMatcher int
@@ -43,7 +42,7 @@ func Parse(parseMatchers []ParseMatcher, s string, inputParseTree ParseTree) Par
 }
 
 // Creates a human-readable version of a parse tree.
-func (parseTree ParseTree) Annotate(s string, alignSubstrings bool, namesToShow map[string]bool) string {
+func (parseTree ParseTree) Annotate(s string, alignSubstrings bool, namesToShow map[string]bool) strings.Builder {
 	return annotate(parseTree, s, alignSubstrings, namesToShow)
 }
 
@@ -79,17 +78,23 @@ func parse(parseMatchers []ParseMatcher, s string, inputParseTree ParseTree) Par
 		return inputParseTree
 	}
 	re := parseMatcherREs[parseMatchers[0]]
-	indexFor := map[string]int{}
+	type IndexFor struct {
+		Name  string
+		Index int
+	}
+	indexFor := []IndexFor{}
 	for _, name := range re.GetGroupNames() {
+		// Annoyingly, regexp2.Regexp.GetGroupNames names unnamed capture groups
+		// as strconv.Itoa(i) for the ith capture group. Filter these out.
 		if i := re.GroupNumberFromName(name); i >= 0 {
 			if number := strconv.Itoa(i); name != number {
-				indexFor[name] = i
+				indexFor = append(indexFor, IndexFor{Name: name, Index: i})
 			}
 		}
 	}
 	b := inputParseTree.Begin
 	e := inputParseTree.End
-	inputParseTree.Subtrees = []map[string]ParseTree{}
+	inputParseTree.Subtrees = [][]ParseTree{}
 	indexes := compat.Wrap(re).FindAllStringSubmatchIndex(s[b:e], -1)
 	for i, index := range indexes {
 		for j := range index {
@@ -101,23 +106,24 @@ func parse(parseMatchers []ParseMatcher, s string, inputParseTree ParseTree) Par
 		if parseMatchers[0] == SentenceFinal {
 			// Move sentence start back to the end of the previous sentence.
 			delta := c - b
-			for _, j := range indexFor {
+			for _, i := range indexFor {
+				j := i.Index
 				index[2*j] -= delta
 			}
 			c = b
 		}
 		if c > b {
-			parseSubtrees := map[string]ParseTree{}
-			parseSubtrees["unmatched"] = ParseTree{Begin: b, End: c}
+			parseSubtrees := []ParseTree{ParseTree{Begin: b, End: c, Name: "unmatched"}}
 			inputParseTree.Subtrees = append(inputParseTree.Subtrees, parseSubtrees)
 		}
 		d := index[1]
 		if d > c {
-			parseSubtrees := map[string]ParseTree{}
-			for name, j := range indexFor {
+			parseSubtrees := []ParseTree{}
+			for _, i := range indexFor {
+				name, j := i.Name, i.Index
 				if x, y := index[2*j], index[2*j+1]; x >= 0 && y >= 0 {
-					childParseTree := ParseTree{Begin: x, End: y}
-					parseSubtrees[name] = parse(parseMatchers[1:], s, childParseTree)
+					childParseTree := ParseTree{Begin: x, End: y, Name: name}
+					parseSubtrees = append(parseSubtrees, parse(parseMatchers[1:], s, childParseTree))
 				}
 			}
 			inputParseTree.Subtrees = append(inputParseTree.Subtrees, parseSubtrees)
@@ -125,8 +131,7 @@ func parse(parseMatchers []ParseMatcher, s string, inputParseTree ParseTree) Par
 		b = d
 	}
 	if e > b {
-		parseSubtrees := map[string]ParseTree{}
-		parseSubtrees["unmatched"] = ParseTree{Begin: b, End: e}
+		parseSubtrees := []ParseTree{ParseTree{Begin: b, End: e, Name: "unmatched"}}
 		inputParseTree.Subtrees = append(inputParseTree.Subtrees, parseSubtrees)
 	}
 	return inputParseTree
@@ -150,48 +155,28 @@ func getStringWidth(s string) int {
 	return totalWidth
 }
 
-func annotate(parseTree ParseTree, s string, alignSubstrings bool, namesToShow map[string]bool) string {
-	type Row struct {
-		begin int
-		end   int
-		value string
-	}
-	rowCompare := func(l, r Row) int {
-		if c := cmp.Compare(l.begin, r.begin); c != 0 {
-			return c
-		}
-		if c := -cmp.Compare(l.end, r.end); c != 0 {
-			return c
-		}
-		return cmp.Compare(l.value, r.value)
-	}
-	rows := []Row{}
-	var f func(string, ParseTree)
-	f = func(n string, c ParseTree) {
+func annotate(parseTree ParseTree, s string, alignSubstrings bool, namesToShow map[string]bool) strings.Builder {
+	o := strings.Builder{}
+	o.WriteString("\n")
+	var f func(ParseTree)
+	f = func(c ParseTree) {
 		if 0 <= c.Begin && c.Begin < c.End && c.End <= len(s) {
+			n := c.Name
 			if namesToShow[n] {
-				rowValue := ""
 				if alignSubstrings {
-					rowValue = fmt.Sprintf("%-20v [%3v:%3v] = %v%v\n", n, c.Begin, c.End,
-						strings.Repeat(" ", getStringWidth(s[0:c.Begin])), s[c.Begin:c.End])
+					o.WriteString(fmt.Sprintf("%-20v [%3v:%3v] = %v%v\n", n, c.Begin, c.End,
+						strings.Repeat(" ", getStringWidth(s[0:c.Begin])), s[c.Begin:c.End]))
 				} else {
-					rowValue = fmt.Sprintf("%-20v [%3v:%3v] = %v\n", n, c.Begin, c.End, s[c.Begin:c.End])
+					o.WriteString(fmt.Sprintf("%-20v [%3v:%3v] = %v\n", n, c.Begin, c.End, s[c.Begin:c.End]))
 				}
-				rows = append(rows, Row{begin: c.Begin, end: c.End, value: rowValue})
 			}
 			for _, parseSubtree := range c.Subtrees {
-				for name, d := range parseSubtree {
-					f(name, d)
+				for _, parseTree := range parseSubtree {
+					f(parseTree)
 				}
 			}
 		}
 	}
-	f("whole", parseTree)
-	slices.SortStableFunc(rows, rowCompare)
-	var o strings.Builder
-	o.WriteString("\n")
-	for _, row := range rows {
-		o.WriteString(row.value)
-	}
-	return o.String()
+	f(parseTree)
+	return o
 }

@@ -3,6 +3,7 @@ package parse
 import (
 	"log"
 	"os"
+	"strings"
 	"testing"
 )
 
@@ -18,8 +19,8 @@ func TestMain(m *testing.M) {
 func TestParseCanonical(t *testing.T) {
 	s := ` § ~ha_HO:-Do:ni^. 日本語は難しい!`
 	parseMatchers := []ParseMatcher{SentenceFinal, CanonicalWord, CanonicalSyllable}
-	actual := Parse(parseMatchers, s, ParseTree{Begin: 0, End: len(s)})
-	actualStr := actual.Annotate(s, true, map[string]bool{
+	actual := Parse(parseMatchers, s, ParseTree{Begin: 0, End: len(s), Name: "whole"})
+	var actualBuilder strings.Builder = actual.Annotate(s, true, map[string]bool{
 		"closeVowel":      true,
 		"closeVowelNasal": true,
 		"consonant":       true,
@@ -34,6 +35,7 @@ func TestParseCanonical(t *testing.T) {
 		"whole":           true,
 		"word":            true,
 	})
+	actualStr := actualBuilder.String()
 	expectStr := `
 whole                [  0: 42] =  § ~ha_HO:-Do:ni^. 日本語は難しい!
 sentence             [  0: 20] =  § ~ha_HO:-Do:ni^. 
@@ -70,8 +72,8 @@ unmatched            [ 20: 42] =                    日本語は難しい!
 func TestParseSango(t *testing.T) {
 	s := `Ahöñ-ndönî AHÖÑ-NDÖNÎ, ândɛ bâa-mo-tɛnɛ? BƐ̂-kɔ̈mbïtɛbɛ̂-kɔ̈mbïtɛ難BƐ̂-KƆ̈MBÏTƐ!`
 	parseMatchers := []ParseMatcher{SentenceFinal, SangoWord, SangoSyllable}
-	actual := Parse(parseMatchers, s, ParseTree{Begin: 0, End: len(s)})
-	actualStr := actual.Annotate(s, true, map[string]bool{
+	actual := Parse(parseMatchers, s, ParseTree{Begin: 0, End: len(s), Name: "whole"})
+	var actualBuilder strings.Builder = actual.Annotate(s, true, map[string]bool{
 		"closeVowel":      true,
 		"closeVowelNasal": true,
 		"consonant":       true,
@@ -86,135 +88,136 @@ func TestParseSango(t *testing.T) {
 		"whole":           true,
 		"word":            true,
 	})
+	actualStr := actualBuilder.String()
 	expectStr := `
 whole                [  0:112] = Ahöñ-ndönî AHÖÑ-NDÖNÎ, ândɛ bâa-mo-tɛnɛ? BƐ̂-kɔ̈mbïtɛbɛ̂-kɔ̈mbïtɛ難BƐ̂-KƆ̈MBÏTƐ!
 sentence             [  0: 54] = Ahöñ-ndönî AHÖÑ-NDÖNÎ, ândɛ bâa-mo-tɛnɛ? 
 word                 [  0:  6] = Ahöñ
-closeVowel           [  0:  1] = A
-closeVowelNasal      [  0:  1] = A
 syllable             [  0:  1] = A
 vowelNasal           [  0:  1] = A
+closeVowelNasal      [  0:  1] = A
+closeVowel           [  0:  1] = A
 syllable             [  1:  6] =  höñ
 consonant            [  1:  2] =  h
-closeVowelNasal      [  2:  6] =   öñ
 vowelNasal           [  2:  6] =   öñ
+closeVowelNasal      [  2:  6] =   öñ
 closeVowel           [  2:  4] =   ö
 nasal                [  4:  6] =    ñ
 unmatched            [  6:  7] =     -
 word                 [  7: 14] =      ndönî
 syllable             [  7: 11] =      ndö
 consonant            [  7:  9] =      nd
-closeVowel           [  9: 11] =        ö
-closeVowelNasal      [  9: 11] =        ö
 vowelNasal           [  9: 11] =        ö
+closeVowelNasal      [  9: 11] =        ö
+closeVowel           [  9: 11] =        ö
 syllable             [ 11: 14] =         nî
 consonant            [ 11: 12] =         n
-closeVowel           [ 12: 14] =          î
-closeVowelNasal      [ 12: 14] =          î
 vowelNasal           [ 12: 14] =          î
+closeVowelNasal      [ 12: 14] =          î
+closeVowel           [ 12: 14] =          î
 unmatched            [ 14: 15] =            
 word                 [ 15: 21] =            AHÖÑ
-closeVowel           [ 15: 16] =            A
-closeVowelNasal      [ 15: 16] =            A
 syllable             [ 15: 16] =            A
 vowelNasal           [ 15: 16] =            A
+closeVowelNasal      [ 15: 16] =            A
+closeVowel           [ 15: 16] =            A
 syllable             [ 16: 21] =             HÖÑ
 consonant            [ 16: 17] =             H
-closeVowelNasal      [ 17: 21] =              ÖÑ
 vowelNasal           [ 17: 21] =              ÖÑ
+closeVowelNasal      [ 17: 21] =              ÖÑ
 closeVowel           [ 17: 19] =              Ö
 nasal                [ 19: 21] =               Ñ
 unmatched            [ 21: 22] =                -
 word                 [ 22: 29] =                 NDÖNÎ
 syllable             [ 22: 26] =                 NDÖ
 consonant            [ 22: 24] =                 ND
-closeVowel           [ 24: 26] =                   Ö
-closeVowelNasal      [ 24: 26] =                   Ö
 vowelNasal           [ 24: 26] =                   Ö
+closeVowelNasal      [ 24: 26] =                   Ö
+closeVowel           [ 24: 26] =                   Ö
 syllable             [ 26: 29] =                    NÎ
 consonant            [ 26: 27] =                    N
-closeVowel           [ 27: 29] =                     Î
-closeVowelNasal      [ 27: 29] =                     Î
 vowelNasal           [ 27: 29] =                     Î
+closeVowelNasal      [ 27: 29] =                     Î
+closeVowel           [ 27: 29] =                     Î
 unmatched            [ 29: 31] =                      , 
 word                 [ 31: 37] =                        ândɛ
-closeVowel           [ 31: 33] =                        â
-closeVowelNasal      [ 31: 33] =                        â
 syllable             [ 31: 33] =                        â
 vowelNasal           [ 31: 33] =                        â
+closeVowelNasal      [ 31: 33] =                        â
+closeVowel           [ 31: 33] =                        â
 syllable             [ 33: 37] =                         ndɛ
 consonant            [ 33: 35] =                         nd
-openVowel            [ 35: 37] =                           ɛ
 vowelNasal           [ 35: 37] =                           ɛ
+openVowel            [ 35: 37] =                           ɛ
 unmatched            [ 37: 38] =                             
 word                 [ 38: 42] =                             bâa
 syllable             [ 38: 41] =                             bâ
 consonant            [ 38: 39] =                             b
-closeVowel           [ 39: 41] =                              â
-closeVowelNasal      [ 39: 41] =                              â
 vowelNasal           [ 39: 41] =                              â
-closeVowel           [ 41: 42] =                               a
-closeVowelNasal      [ 41: 42] =                               a
+closeVowelNasal      [ 39: 41] =                              â
+closeVowel           [ 39: 41] =                              â
 syllable             [ 41: 42] =                               a
 vowelNasal           [ 41: 42] =                               a
+closeVowelNasal      [ 41: 42] =                               a
+closeVowel           [ 41: 42] =                               a
 unmatched            [ 42: 43] =                                -
-syllable             [ 43: 45] =                                 mo
 word                 [ 43: 45] =                                 mo
+syllable             [ 43: 45] =                                 mo
 consonant            [ 43: 44] =                                 m
-closeVowel           [ 44: 45] =                                  o
-closeVowelNasal      [ 44: 45] =                                  o
 vowelNasal           [ 44: 45] =                                  o
+closeVowelNasal      [ 44: 45] =                                  o
+closeVowel           [ 44: 45] =                                  o
 unmatched            [ 45: 46] =                                   -
 word                 [ 46: 52] =                                    tɛnɛ
 syllable             [ 46: 49] =                                    tɛ
 consonant            [ 46: 47] =                                    t
-openVowel            [ 47: 49] =                                     ɛ
 vowelNasal           [ 47: 49] =                                     ɛ
+openVowel            [ 47: 49] =                                     ɛ
 syllable             [ 49: 52] =                                      nɛ
 consonant            [ 49: 50] =                                      n
-openVowel            [ 50: 52] =                                       ɛ
 vowelNasal           [ 50: 52] =                                       ɛ
+openVowel            [ 50: 52] =                                       ɛ
 unmatched            [ 52: 54] =                                        ? 
 sentence             [ 54:112] =                                          BƐ̂-kɔ̈mbïtɛbɛ̂-kɔ̈mbïtɛ難BƐ̂-KƆ̈MBÏTƐ!
-syllable             [ 54: 59] =                                          BƐ̂
 word                 [ 54: 59] =                                          BƐ̂
+syllable             [ 54: 59] =                                          BƐ̂
 consonant            [ 54: 55] =                                          B
-openVowel            [ 55: 59] =                                           Ɛ̂
 vowelNasal           [ 55: 59] =                                           Ɛ̂
+openVowel            [ 55: 59] =                                           Ɛ̂
 unmatched            [ 59: 60] =                                             -
 word                 [ 60: 77] =                                              kɔ̈mbïtɛbɛ̂
 syllable             [ 60: 65] =                                              kɔ̈
 consonant            [ 60: 61] =                                              k
-openVowel            [ 61: 65] =                                               ɔ̈
 vowelNasal           [ 61: 65] =                                               ɔ̈
+openVowel            [ 61: 65] =                                               ɔ̈
 syllable             [ 65: 69] =                                                 mbï
 consonant            [ 65: 67] =                                                 mb
-closeVowel           [ 67: 69] =                                                   ï
-closeVowelNasal      [ 67: 69] =                                                   ï
 vowelNasal           [ 67: 69] =                                                   ï
+closeVowelNasal      [ 67: 69] =                                                   ï
+closeVowel           [ 67: 69] =                                                   ï
 syllable             [ 69: 72] =                                                    tɛ
 consonant            [ 69: 70] =                                                    t
-openVowel            [ 70: 72] =                                                     ɛ
 vowelNasal           [ 70: 72] =                                                     ɛ
+openVowel            [ 70: 72] =                                                     ɛ
 syllable             [ 72: 77] =                                                      bɛ̂
 consonant            [ 72: 73] =                                                      b
-openVowel            [ 73: 77] =                                                       ɛ̂
 vowelNasal           [ 73: 77] =                                                       ɛ̂
+openVowel            [ 73: 77] =                                                       ɛ̂
 unmatched            [ 77: 99] =                                                         -kɔ̈mbïtɛ難BƐ̂-
 word                 [ 99:111] =                                                                        KƆ̈MBÏTƐ
 syllable             [ 99:104] =                                                                        KƆ̈
 consonant            [ 99:100] =                                                                        K
-openVowel            [100:104] =                                                                         Ɔ̈
 vowelNasal           [100:104] =                                                                         Ɔ̈
+openVowel            [100:104] =                                                                         Ɔ̈
 syllable             [104:108] =                                                                           MBÏ
 consonant            [104:106] =                                                                           MB
-closeVowel           [106:108] =                                                                             Ï
-closeVowelNasal      [106:108] =                                                                             Ï
 vowelNasal           [106:108] =                                                                             Ï
+closeVowelNasal      [106:108] =                                                                             Ï
+closeVowel           [106:108] =                                                                             Ï
 syllable             [108:111] =                                                                              TƐ
 consonant            [108:109] =                                                                              T
-openVowel            [109:111] =                                                                               Ɛ
 vowelNasal           [109:111] =                                                                               Ɛ
+openVowel            [109:111] =                                                                               Ɛ
 unmatched            [111:112] =                                                                                !
 `
 	if actualStr != expectStr {
@@ -461,10 +464,11 @@ Mo yeke na ndo wa?
 Mbï tene na lo na ngîâ na yângâ tî mbï.
 	`
 	parseMatchers := []ParseMatcher{SentenceFinal, SangoWord, SangoSyllable}
-	actual := Parse(parseMatchers, s, ParseTree{Begin: 0, End: len(s)})
-	actualStr := actual.Annotate(s, false, map[string]bool{
+	actual := Parse(parseMatchers, s, ParseTree{Begin: 0, End: len(s), Name: "whole"})
+	var actualBuilder strings.Builder = actual.Annotate(s, false, map[string]bool{
 		"sentence": true,
 	})
+	actualStr := actualBuilder.String()
 	expectStr := `
 sentence             [  0: 31] = 
 Na yâ tî takisï na Bangî
