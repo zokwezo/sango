@@ -18,7 +18,6 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
-// TODO: Add test to compare SSEs.
 func TestSyllableCompare(t *testing.T) {
 	canonicals := [5]string{" =ha_", " ~ha_", "-Do:", "ni^", "HO:"}
 	expect := [5][5]int{
@@ -248,24 +247,28 @@ func TestEmptyCanonicalToCodes(t *testing.T) {
 
 func TestCanonicalToCodes(t *testing.T) {
 	log.Println("ENTER TestCanonicalToCodes")
-	c := `U+65E5U+672CU+8A9EU+306FU+96E3U+3057U+3044U+0021U+0020U+00A7 ~ha_HO:-Do:ni^ ` +
-		`=ha_HO:-Do:ni^ ha^Dx_ ba^ha_-mo_-tx_nx_ ~bx^-kc:Bi:tx_bx^-kc:Bi:tx_U+96E3` +
-		`=bx^-=kc:=Bi:=tx_ bx^-kc:Bi:tx_ ~bx^-kc:Bi:tx_ =bx^-=kc:=Bi:=tx_ ha_HO:Do:ni^`
+	c := `U+65E5U+672CU+8A9EU+306FU+96E3U+3057U+3044U+0021U+0020U+00A7U+0020~ha_HO:U+002DDo:ni^U+0020` +
+		`=ha_HO:U+002DDo:ni^U+0020ha^Dx_U+0020ba^ha_U+002Dmo_U+002Dtx_nx_U+0020~bx^U+002Dkc:Bi:tx_bx^U+002D` +
+		`kc:Bi:tx_U+96E3=bx^U+002D=kc:=Bi:=tx_U+0020bx^U+002Dkc:Bi:tx_U+0020~bx^U+002Dkc:Bi:tx_U+0020=bx^` +
+		`U+002D=kc:=Bi:=tx_U+0020ha_HO:Do:ni^`
 	u := func(v uint16) sseCode { return sseCode{value: v, isSango: false} }
 	s := func(v uint16) sseCode { return sseCode{value: v, isSango: true} }
 	expect := []sseCode{
 		u(0x65E5), u(0x672C), u(0x8A9E), u(0x306F), u(0x96E3),
 		u(0x3057), u(0x3044), u(0x0021), u(0x0020), u(0x00A7),
-		s(0xE089), s(0x9236), s(0x9C72), s(0x9423), s(0xF089),
-		s(0x9236), s(0x9C72), s(0x9423), s(0xD08B), s(0x9455),
-		s(0xD0CB), s(0x9089), s(0x9B31), s(0x9E55), s(0x9415),
-		s(0xE0D7), s(0x9A6E), s(0x9362), s(0x9655), s(0x90D7),
-		s(0x9A6E), s(0x9362), s(0x9655),
-		u(0x96E3),
-		s(0xB0D7), s(0xBA6E), s(0xB362), s(0xB655), s(0xD0D7),
-		s(0x9A6E), s(0x9362), s(0x9655), s(0xE0D7), s(0x9A6E),
-		s(0x9362), s(0x9655), s(0xF0D7), s(0xBA6E), s(0xB362),
-		s(0xB655), s(0xD089), s(0x9236), s(0x9472), s(0x9423),
+		u(0x0020), s(0xA089), s(0x9236), u(0x002D), s(0x9472),
+		s(0x9423), u(0x0020), s(0xB089), s(0x9236), u(0x002D),
+		s(0x9472), s(0x9423), u(0x0020), s(0x908B), s(0x9455),
+		u(0x0020), s(0x90CB), s(0x9089), u(0x002D), s(0x9331),
+		u(0x002D), s(0x9655), s(0x9415), u(0x0020), s(0xA0D7),
+		u(0x002D), s(0x926E), s(0x9362), s(0x9655), s(0x90D7),
+		u(0x002D), s(0x926E), s(0x9362), s(0x9655), u(0x96E3),
+		s(0xB0D7), u(0x002D), s(0xB26E), s(0xB362), s(0xB655),
+		u(0x0020), s(0x90D7), u(0x002D), s(0x926E), s(0x9362),
+		s(0x9655), u(0x0020), s(0xA0D7), u(0x002D), s(0x926E),
+		s(0x9362), s(0x9655), u(0x0020), s(0xB0D7), u(0x002D),
+		s(0xB26E), s(0xB362), s(0xB655), u(0x0020), s(0x9089),
+		s(0x9236), s(0x9472), s(0x9423),
 	}
 	expectLen := len(c)
 	actual, actualLen := canonicalToCodes(c)
@@ -296,22 +299,21 @@ func TestCanonicalToCodes(t *testing.T) {
 
 func TestGoodCanonicalToSSEs(t *testing.T) {
 	log.Println("ENTER TestGoodCanonicalToSSEs")
-	c := `U+65E5U+672CU+8A9EU+306FU+96E3U+3057U+3044U+0021U+0020U+00A7 ~ha_HO:-Do:ni^` +
-		` =ha_HO:-Do:ni^ ha^Dx_ ba^ha_-mo_-tx_nx_ ~bx^-kc:Bi:tx_bx^-kc:Bi:tx_U+96E3` +
-		`bx^-=kc:=Bi:=tx_ bx^-kc:Bi:tx_ ~bx^-kc:Bi:tx_ ~bx^-=kc:=Bi:=tx_ ha_HO:Do:ni^`
+	c := `U+65E5U+672CU+8A9EU+306FU+96E3U+3057U+3044U+0021U+0020U+00A7U+0020~ha_HO:-Do:ni^U+0020` +
+		`=ha_HO:-Do:ni^U+0020ha^Dx_U+0020ba^ha_-mo_-tx_nx_U+0020~bx^-kc:Bi:tx_bx^-kc:Bi:tx_U+96E3` +
+		`bx^-=kc:=Bi:=tx_U+0020bx^-kc:Bi:tx_U+0020~bx^-kc:Bi:tx_U+0020~bx^-=kc:=Bi:=tx_U+0020ha_HO:Do:ni^`
 	expect := SSEs{
-		0x65E5_672C_8A9E_306F, 0x0010_96E3_3057_3044, 0x0021_0020_00A7_0000,
-		0xE_089_236_000_000_000, 0x002D_0000_0000_0000, 0x9_472_423_000_000_000,
-		0xF_089_236_000_000_000, 0x002D_0000_0000_0000, 0xB_472_423_000_000_000,
-		0xD_08B_455_000_000_000, 0xD_0CB_089_000_000_000, 0x002D_0000_0000_0000,
-		0x9_331_000_000_000_000, 0x002D_0000_0000_0000, 0x9_655_415_000_000_000,
-		0xE_0D7_000_000_000_000, 0x002D_0000_0000_0000, 0x9_26E_362_655_0D7_000,
-		0x002D_0000_0000_0000, 0x9_26E_362_655_000_000, 0x0010_96E3_0000_0000,
-		0x9_0D7_000_000_000_000, 0x002D_0000_0000_0000, 0xB_26E_362_655_000_000,
-		0xD_0D7_000_000_000_000, 0x002D_0000_0000_0000, 0x9_26E_362_655_000_000,
-		0xE_0D7_000_000_000_000, 0x002D_0000_0000_0000, 0x9_26E_362_655_000_000,
-		0xE_0D7_000_000_000_000, 0x002D_0000_0000_0000, 0xB_26E_362_655_000_000,
-		0xD_089_236_472_423_000,
+		0x65E5_672C_8A9E_306F, 0x0010_96E3_3057_3044, 0x0021_0020_00A7_0020,
+		0xA_089_236_000_000_000, 0x002D_0000_0000_0000, 0x9_472_423_000_000_000, 0x0020_0000_0000_0000,
+		0xB_089_236_000_000_000, 0x002D_0000_0000_0000, 0x9_472_423_000_000_000, 0x0020_0000_0000_0000,
+		0x9_08B_455_000_000_000, 0x0020_0000_0000_0000, 0x9_0CB_089_000_000_000, 0x002D_0000_0000_0000,
+		0x9_331_000_000_000_000, 0x002D_0000_0000_0000, 0x9_655_415_000_000_000, 0x0020_0000_0000_0000,
+		0xA_0D7_000_000_000_000, 0x002D_0000_0000_0000, 0x9_26E_362_655_0D7_000, 0x002D_0000_0000_0000,
+		0x9_26E_362_655_000_000, 0x0010_96E3_0000_0000, 0x9_0D7_000_000_000_000, 0x002D_0000_0000_0000,
+		0xB_26E_362_655_000_000, 0x0020_0000_0000_0000, 0x9_0D7_000_000_000_000, 0x002D_0000_0000_0000,
+		0x9_26E_362_655_000_000, 0x0020_0000_0000_0000, 0xA_0D7_000_000_000_000, 0x002D_0000_0000_0000,
+		0x9_26E_362_655_000_000, 0x0020_0000_0000_0000, 0xA_0D7_000_000_000_000, 0x002D_0000_0000_0000,
+		0xB_26E_362_655_000_000, 0x0020_0000_0000_0000, 0x9_089_236_472_423_000,
 	}
 	dumpSSEs := func(sses SSEs) string {
 		s := "{"
@@ -335,13 +337,14 @@ func TestGoodCanonicalToSSEs(t *testing.T) {
 
 func TestBadCanonicalToSSEs(t *testing.T) {
 	log.Println("ENTER TestBadCanonicalToSSEs")
-	c := `U+65E5U+672CU+8A9EU+306FU+96E3U+3057U+3044U+0021U+0020U+00A7` +
-		` ~ha_HO:-Do:ni^ =ha_HO:-jo:ni^ ha^Dx_ ba^ha_-mo_-tx_nx_ ~bx^-kc:Bi:tx_bx^-kc:Bi:tx_` +
-		`U+96E3=bx^-=kc:=Bi:=tx_ bx^-kc:Bi:tx_ ~bx^-kc:Bi:tx_ =bx^-=kc:=Bi:=tx_ ha_HO:Do:ni^`
+	c := `U+65E5U+672CU+8A9EU+306FU+96E3U+3057U+3044U+0021U+0020U+00A7U+0020~ha_HO:U+002DDo:ni^` +
+		`U+0020=ha_HO:U+002Djo:ni^U+0020ha^Dx_U+0020ba^ha_U+002Dmo_U+002Dtx_nx_U+0020~bx^U+002Dkc:Bi:tx_bx^` +
+		`U+002Dkc:Bi:tx_U+96E3=bx^U+002D=kc:=Bi:=tx_U+0020bx^U+002Dkc:Bi:tx_U+0020~bx^U+002Dkc:Bi:tx_U+0020=bx^` +
+		`U+002D=kc:=Bi:=tx_U+0020ha_HO:Do:ni^`
 	expect := SSEs{
-		0x65E5_672C_8A9E_306F, 0x0010_96E3_3057_3044, 0x0021_0020_00A7_0000,
-		0xE_089_236_000_000_000, 0x002D_0000_0000_0000, 0x9_472_423_000_000_000,
-		0xF_089_236_000_000_000,
+		0x65E5_672C_8A9E_306F, 0x0010_96E3_3057_3044, 0x0021_0020_00A7_0020,
+		0xA_089_236_000_000_000, 0x002D_0000_0000_0000, 0x9_472_423_000_000_000,
+		0x0020_0000_0000_0000, 0xB_089_236_000_000_000, 0x002D_0000_0000_0000,
 	} // results up to broken parse
 	dumpSSEs := func(sses SSEs) string {
 		s := "{"
@@ -351,7 +354,7 @@ func TestBadCanonicalToSSEs(t *testing.T) {
 		s += " }"
 		return s
 	}
-	expectErr := fmt.Errorf("cannot parse string starting at s[83:] = %q", "-jo:ni^ ha...")
+	expectErr := fmt.Errorf("cannot parse string starting at s[104:] = %q", "jo:ni^U+00...")
 	actual, actualErr := CanonicalToSSEs(c)
 	if actualErr.Error() != expectErr.Error() {
 		t.Errorf("expected error not returned from CanonicalToSSEs\nactualErr = %v\nexpectErr = %v", actualErr, expectErr)
@@ -366,20 +369,20 @@ func TestBadCanonicalToSSEs(t *testing.T) {
 
 func TestCanonicalToSSEsForUnknownPitch(t *testing.T) {
 	log.Println("ENTER TestCanonicalToSSEsForUnknownPitch")
-	c := `~haHO-Doni =haHO-Doni haDx baha-mo-txnx ~bx-kcBitxbx-kcBitxU+96E3` +
-		`=bx-=kc=Bi=tx bx-kcBitx ~bx-kcBitx =bx-=kc=Bi=tx haHODoni`
+	c := `~haHOU+002DDoniU+0020=haHOU+002DDoniU+0020haDxU+0020bahaU+002DmoU+002DtxnxU+0020~bx` +
+		`U+002DkcBitxbxU+002DkcBitxU+96E3=bxU+002D=kc=Bi=txU+0020bxU+002DkcBitxU+0020~bxU+002DkcBitx` +
+		`U+0020=bxU+002D=kc=Bi=txU+0020haHODoni`
 	expect := SSEs{
-		0xA_088_234_000_000_000, 0x002D_0000_0000_0000, 0x9_470_420_000_000_000,
-		0xF_088_234_000_000_000, 0x002D_0000_0000_0000, 0xB_470_420_000_000_000,
-		0xD_088_454_000_000_000, 0xD_0C8_088_000_000_000, 0x002D_0000_0000_0000,
-		0x9_330_000_000_000_000, 0x002D_0000_0000_0000, 0x9_654_414_000_000_000,
-		0xE_0D4_000_000_000_000, 0x002D_0000_0000_0000, 0x9_26C_360_654_0D4_000,
-		0x002D_0000_0000_0000, 0x9_26C_360_654_000_000, 0x0010_96E3_0000_0000,
-		0xB_0D4_000_000_000_000, 0x002D_0000_0000_0000, 0xB_26C_360_654_000_000,
-		0xD_0D4_000_000_000_000, 0x002D_0000_0000_0000, 0x9_26C_360_654_000_000,
-		0xE_0D4_000_000_000_000, 0x002D_0000_0000_0000, 0x9_26C_360_654_000_000,
-		0xF_0D4_000_000_000_000, 0x002D_0000_0000_0000, 0xB_26C_360_654_000_000,
-		0xD_088_234_470_420_000,
+		0xA_088_234_000_000_000, 0x002D_0000_0000_0000, 0x9_470_420_000_000_000, 0x0020_0000_0000_0000,
+		0xB_088_234_000_000_000, 0x002D_0000_0000_0000, 0x9_470_420_000_000_000, 0x0020_0000_0000_0000,
+		0x9_088_454_000_000_000, 0x0020_0000_0000_0000, 0x9_0C8_088_000_000_000, 0x002D_0000_0000_0000,
+		0x9_330_000_000_000_000, 0x002D_0000_0000_0000, 0x9_654_414_000_000_000, 0x0020_0000_0000_0000,
+		0xA_0D4_000_000_000_000, 0x002D_0000_0000_0000, 0x9_26C_360_654_0D4_000, 0x002D_0000_0000_0000,
+		0x9_26C_360_654_000_000, 0x0010_96E3_0000_0000, 0xB_0D4_000_000_000_000, 0x002D_0000_0000_0000,
+		0xB_26C_360_654_000_000, 0x0020_0000_0000_0000, 0x9_0D4_000_000_000_000, 0x002D_0000_0000_0000,
+		0x9_26C_360_654_000_000, 0x0020_0000_0000_0000, 0xA_0D4_000_000_000_000, 0x002D_0000_0000_0000,
+		0x9_26C_360_654_000_000, 0x0020_0000_0000_0000, 0xB_0D4_000_000_000_000, 0x002D_0000_0000_0000,
+		0xB_26C_360_654_000_000, 0x0020_0000_0000_0000, 0x9_088_234_470_420_000,
 	}
 	dumpSSEs := func(sses SSEs) string {
 		s := "{"
@@ -403,8 +406,9 @@ func TestCanonicalToSSEsForUnknownPitch(t *testing.T) {
 
 func TestCanonicalToSSEsToCanonical(t *testing.T) {
 	log.Println("ENTER TestCanonicalToSSEsToCanonical")
-	c := `~ha~HO-Doni =haHO-Doni haDx baha-mo-txnx ~bx-kcBitxbx-kcBitxU+96E3` +
-		`=bx-=kc=Bi=tx bx-kcBitx ~bx-kcBitx =bx-=kc=Bi=tx haHODoni`
+	c := `~haHOU+002DDoniU+0020=ha=HOU+002DDoniU+0020haDxU+0020bahaU+002DmoU+002D` +
+		`txnxU+0020~bxU+002DkcBitxbxU+002DkcBitxU+96E3=bxU+002D=kc=Bi=txU+0020bx` +
+		`U+002DkcBitxU+0020~bxU+002DkcBitxU+0020=bxU+002D=kc=Bi=txU+0020haHODoni`
 	sses, err := CanonicalToSSEs(c)
 	if err != nil {
 		t.Errorf("unexpected error returned from CanonicalToSSEs\nerr = %v", err)
@@ -415,9 +419,7 @@ func TestCanonicalToSSEsToCanonical(t *testing.T) {
 		sse.WriteAsCanonicalTo(&s)
 	}
 	// expect c, but with Titlecase suppressed for nonleading syllables.
-	expect := `~haHOU+002DDoni =ha=HOU+002D=Do=ni haDx bahaU+002DmoU+002D` +
-		`txnx ~bxU+002DkcBitxbxU+002DkcBitxU+96E3=bxU+002D=kc=Bi=tx` +
-		` bxU+002DkcBitx ~bxU+002DkcBitx =bxU+002D=kc=Bi=tx haHODoni`
+	expect := c
 	actual := s.String()
 	if actual != expect {
 		t.Errorf("bad BadCanonicalToSSEs\nexpect: %v\nactual: %v\n", expect, actual)
@@ -447,19 +449,18 @@ func TestUtf8ToCodes(t *testing.T) {
 	s := func(v uint16) sseCode { return sseCode{value: v, isSango: true} }
 	expect := []sseCode{
 		u(0x65E5), u(0x672C), u(0x8A9E), u(0x306F), u(0x96E3), // `日本語は難`
-		u(0x3057), u(0x3044), u(0x0021), u(0x0020), u(0x00A7), // `しい! §`
-		s(0xE089), s(0x9236), s(0x9C72), s(0x9423), // ` Ahöñ-ndönî`
-		s(0xE089), s(0xB236), s(0xBC72), s(0xB423), // ` AHÖÑ-NDÖNÎ`
-		s(0xD08B), s(0x9455), // ` ândɛ`
-		s(0xD0CB), s(0x9089), s(0x9B31), s(0x9E55), s(0x9415), // ` bâa-mo-tɛnɛ`
-		s(0xF0D7), s(0x9A6E), s(0x9362), s(0x9655), // ` BƐ̂-kɔ̈mbïtɛb`
-		s(0x90D7), s(0x9A6E), s(0x9362), s(0x9655), //  `bɛ̂-kɔ̈mbïtɛ`
-		u(0x96E3),                                  //  `難`
-		s(0xB0D7), s(0xBA6E), s(0xB362), s(0xB655), //  `BƐ̂-KƆ̈MBÏTƐ`
-		s(0xD0D7), s(0x9A6E), s(0x9362), s(0x9655), // ` bɛ̂-kɔ̈mbïtɛ`
-		s(0xF0D7), s(0x9A6E), s(0x9362), s(0x9655), // ` BƐ̂-kɔ̈mbïtɛ`
-		s(0xF0D7), s(0xBA6E), s(0xB362), s(0xB655), // ` BƐ̂-KƆ̈MBÏTƐ`
-		s(0xD089), s(0x9236), s(0x9472), s(0x9423), // ` ahöñndönî`
+		u(0x3057), u(0x3044), u(0x0021), u(0x0020), u(0x00A7), u(0x0020), // `しい! § `
+		s(0xA089), s(0x9236), u(0x002D), s(0x9472), s(0x9423), u(0x0020), // `Ahöñ-ndönî `
+		s(0xA089), s(0xB236), u(0x002D), s(0xB472), s(0xB423), u(0x0020), // `AHÖÑ-NDÖNÎ `
+		s(0x908B), s(0x9455), u(0x0020), s(0x90CB), s(0x9089), u(0x002D), // `ândɛ bâa-`
+		s(0x9331), u(0x002D), s(0x9655), s(0x9415), u(0x0020), // `mo-tɛnɛ `
+		s(0xB0D7), u(0x002D), s(0x926E), s(0x9362), s(0x9655), // `BƐ̂-kɔ̈mbïtɛ`
+		s(0x90D7), u(0x002D), s(0x926E), s(0x9362), s(0x9655), u(0x96E3), // `bɛ̂-kɔ̈mbïtɛ難`
+		s(0xB0D7), u(0x002D), s(0xB26E), s(0xB362), s(0xB655), u(0x0020), // `BƐ̂-KƆ̈MBÏTƐ `
+		s(0x90D7), u(0x002D), s(0x926E), s(0x9362), s(0x9655), u(0x0020), // `bɛ̂-kɔ̈mbïtɛ `
+		s(0xB0D7), u(0x002D), s(0x926E), s(0x9362), s(0x9655), u(0x0020), // `BƐ̂-kɔ̈mbïtɛ `
+		s(0xB0D7), u(0x002D), s(0xB26E), s(0xB362), s(0xB655), u(0x0020), // `BƐ̂-KƆ̈MBÏTƐ `
+		s(0x9089), s(0x9236), s(0x9472), s(0x9423), // `ahöñndönî`
 	}
 	expectLen := len(c)
 	actual, actualLen := utf8ToCodes(c, FromLemma)
@@ -490,41 +491,49 @@ func TestUtf8ToCodes(t *testing.T) {
 
 func TestGoodUtf8ToSSEs(t *testing.T) {
 	log.Println("ENTER TestGoodUtf8ToSSEs")
-	c := `日本語は難しい! § Ahöñ-ndönî AHÖÑ-NDÖNÎ ândɛ bâa-mo-tɛnɛ` +
-		` BƐ̂-kɔ̈mbïtɛbɛ̂-kɔ̈mbïtɛ難BƐ̂-KƆ̈MBÏTƐ bɛ̂-kɔ̈mbïtɛ BƐ̂-kɔ̈mbïtɛ BƐ̂-KƆ̈MBÏTƐ ahöñndönî`
+	c := `日本語は難しい! § Ahöñ-ndönî AHÖÑ-NDÖNÎ ândɛ bâa-mo-tɛnɛ ` +
+		`BƐ̂-kɔ̈mbïtɛbɛ̂-kɔ̈mbïtɛ難BƐ̂-KƆ̈MBÏTƐ bɛ̂-kɔ̈mbïtɛ BƐ̂-kɔ̈mbïtɛ BƐ̂-KƆ̈MBÏTƐ ahöñndönî`
 	expect := SSEs{
-		0x65E5_672C_8A9E_306F, 0x0010_96E3_3057_3044, 0x0021_0020_00A7_0000, // `日本語は難しい! §`
-		0xE_089_236_000_000_000, // ` Ahöñ`
+		0x65E5_672C_8A9E_306F, 0x0010_96E3_3057_3044, 0x0021_0020_00A7_0020, // `日本語は難しい! § `
+		0xA_089_236_000_000_000, // `Ahöñ`
 		0x002D_0000_0000_0000,   // `-`
 		0x9_472_423_000_000_000, // `ndönî`
-		0xF_089_236_000_000_000, // ` AHÖÑ`
+		0x0020_0000_0000_0000,   // ` `
+		0xB_089_236_000_000_000, // `AHÖÑ`
 		0x002D_0000_0000_0000,   // `-`
 		0xB_472_423_000_000_000, // `NDÖNÎ`
-		0xD_08B_455_000_000_000, // ` ândɛ`
-		0xD_0CB_089_000_000_000, // ` bâa`
+		0x0020_0000_0000_0000,   // ` `
+		0x9_08B_455_000_000_000, // `ândɛ`
+		0x0020_0000_0000_0000,   // ` `
+		0x9_0CB_089_000_000_000, // `bâa`
 		0x002D_0000_0000_0000,   // `-`
 		0x9_331_000_000_000_000, // `mo`
 		0x002D_0000_0000_0000,   // `-`
 		0x9_655_415_000_000_000, // `tɛnɛ`
-		0xF_0D7_000_000_000_000, // ` BƐ̂`
+		0x0020_0000_0000_0000,   // ` `
+		0xB_0D7_000_000_000_000, // `BƐ̂`
 		0x002D_0000_0000_0000,   // `-`
-		0xB_26E_362_655_0D7_000, // `kɔ̈mbïtɛbɛ̂`
+		0x9_26E_362_655_0D7_000, // `kɔ̈mbïtɛbɛ̂`
 		0x002D_0000_0000_0000,   // `-`
-		0xB_26E_362_655_000_000, // `kɔ̈mbïtɛ`
+		0x9_26E_362_655_000_000, // `kɔ̈mbïtɛ`
 		0x0010_96E3_0000_0000,   // `難`
 		0xB_0D7_000_000_000_000, // `BƐ̂`
 		0x002D_0000_0000_0000,   // `-`
 		0xB_26E_362_655_000_000, // `KƆ̈MBÏTƐ`
-		0xD_0D7_000_000_000_000, // ` bɛ̂`
+		0x0020_0000_0000_0000,   // ` `
+		0x9_0D7_000_000_000_000, // `bɛ̂`
 		0x002D_0000_0000_0000,   // `-`
 		0x9_26E_362_655_000_000, // `kɔ̈mbïtɛ`
-		0xF_0D7_000_000_000_000, // ` BƐ̂`
+		0x0020_0000_0000_0000,   // ` `
+		0xB_0D7_000_000_000_000, // `BƐ̂`
 		0x002D_0000_0000_0000,   // `-`
-		0xB_26E_362_655_000_000, // `kɔ̈mbïtɛ`
-		0xF_0D7_000_000_000_000, // ` BƐ̂`
+		0x9_26E_362_655_000_000, // `kɔ̈mbïtɛ`
+		0x0020_0000_0000_0000,   // ` `
+		0xB_0D7_000_000_000_000, // `BƐ̂`
 		0x002D_0000_0000_0000,   // `-`
 		0xB_26E_362_655_000_000, // `KƆ̈MBÏTƐ`
-		0xD_089_236_472_423_000, // ` ahöñndönî`
+		0x0020_0000_0000_0000,   // ` `
+		0x9_089_236_472_423_000, // `ahöñndönî`
 	}
 	dumpSSEs := func(sses SSEs) string {
 		s := "{"
@@ -576,14 +585,14 @@ func TestUtf8ToSSEsFromToneless(t *testing.T) {
 	c := `Ahonndoni AHONNDONI ande baamotene` +
 		` BE-kombitebe-kombite難BƐ̂-KƆ̈MBÏTƐ bɛ̂-kɔ̈mbïtɛ BƐ̂-kɔ̈mbïtɛ BƐ̂-KƆ̈MBÏTƐ ahöñndönî`
 	expect := SSEs{
-		0xA_088_234_470_420_000, 0xF_088_234_470_420_000, 0xD_088_458_000_000_000,
-		0xD_0C8_088_330_658_418, 0xF_0D8_000_000_000_000, 0x002D_0000_0000_0000,
-		0xB_270_360_658_0D8_000, 0x002D_0000_0000_0000, 0xB_270_360_658_000_000,
-		0x0010_96E3_0000_0000, 0xB_0D7_000_000_000_000, 0x002D_0000_0000_0000,
-		0xB_26E_362_654_000_000, 0xD_0D7_000_000_000_000, 0x002D_0000_0000_0000,
-		0x9_26E_362_654_000_000, 0xF_0D7_000_000_000_000, 0x002D_0000_0000_0000,
-		0xB_26E_362_654_000_000, 0xF_0D7_000_000_000_000, 0x002D_0000_0000_0000,
-		0xB_26E_362_654_000_000, 0xD_088_236_472_423_000,
+		0xA_088_234_470_420_000, 0x0020_0000_0000_0000, 0xB_088_234_470_420_000, 0x0020_0000_0000_0000,
+		0x9_088_458_000_000_000, 0x0020_0000_0000_0000, 0x9_0C8_088_330_658_418, 0x0020_0000_0000_0000,
+		0xB_0D8_000_000_000_000, 0x002D_0000_0000_0000, 0x9_270_360_658_0D8_000, 0x002D_0000_0000_0000,
+		0x9_270_360_658_000_000, 0x0010_96E3_0000_0000, 0xB_0D7_000_000_000_000, 0x002D_0000_0000_0000,
+		0xB_26E_362_654_000_000, 0x0020_0000_0000_0000, 0x9_0D7_000_000_000_000, 0x002D_0000_0000_0000,
+		0x9_26E_362_654_000_000, 0x0020_0000_0000_0000, 0xB_0D7_000_000_000_000, 0x002D_0000_0000_0000,
+		0x9_26E_362_654_000_000, 0x0020_0000_0000_0000, 0xB_0D7_000_000_000_000, 0x002D_0000_0000_0000,
+		0xB_26E_362_654_000_000, 0x0020_0000_0000_0000, 0x9_088_236_472_423_000,
 	}
 	dumpSSEs := func(sses SSEs) string {
 		s := "{"
@@ -610,8 +619,8 @@ func TestUtf8ToSSEsFromToneless(t *testing.T) {
 
 func TestUtf8ToSSEsToUtf8(t *testing.T) {
 	log.Println("ENTER TestUtf8ToSSEsToUtf8")
-	c := `Ahöñ-ndönî AHÖÑ-NDÖNÎ ândɛ bâa-mo-tɛnɛ` +
-		` BƐ̂-kɔ̈mbïtɛbɛ̂-kɔ̈mbïtɛ難BƐ̂-KƆ̈MBÏTƐ bɛ̂-kɔ̈mbïtɛ BƐ̂-kɔ̈mbïtɛ BƐ̂-KƆ̈MBÏTƐ ahöñndönî`
+	c := `Ahöñ-ndönî AHÖÑ-NDÖNÎ ândɛ bâa-mo-tɛnɛ BƐ̂-kɔ̈mbïtɛbɛ̂-kɔ̈mbïtɛ` +
+		`難BƐ̂-KƆ̈MBÏTƐ bɛ̂-kɔ̈mbïtɛ BƐ̂-kɔ̈mbïtɛ BƐ̂-KƆ̈MBÏTƐ ahöñndönî`
 	sses, err := Utf8ToSSEs(c, FromLemma)
 	if err != nil {
 		t.Errorf("unexpected error returned from Utf8ToSSEs\nerr = %v", err)
@@ -621,8 +630,7 @@ func TestUtf8ToSSEsToUtf8(t *testing.T) {
 	for _, sse := range sses {
 		sse.WriteAsUtf8To(&s)
 	}
-	expect := `Ahöñ-ndönî AHÖÑ-NDÖNÎ ândɛ bâa-mo-tɛnɛ BƐ̂-KƆ̈MBÏTƐBƐ̂-KƆ̈MBÏTƐ` +
-		`難BƐ̂-KƆ̈MBÏTƐ bɛ̂-kɔ̈mbïtɛ BƐ̂-KƆ̈MBÏTƐ BƐ̂-KƆ̈MBÏTƐ ahöñndönî`
+	expect := c
 	actual := s.String()
 	if actual != expect {
 		t.Errorf("bad BadUtf8ToSSEs\nexpect: %v\nactual: %v\n", expect, actual)
@@ -638,53 +646,31 @@ func TestCodesToSSEs(t *testing.T) {
 	s := func(v uint16) sseCode { return sseCode{value: v, isSango: true} }
 	codes := []sseCode{
 		u(0x65E5), u(0x672C), u(0x8A9E), u(0x306F), u(0x96E3), // `日本語は難`
-		u(0x3057), u(0x3044), u(0x0021), u(0x0020), u(0x00A7), // `しい! §`
-		s(0xE089), s(0x9236), s(0x9C72), s(0x9423), // ` Ahöñ-ndönî`
-		s(0xE089), s(0xB236), s(0xBC72), s(0xB423), // ` AHÖÑ-NDÖNÎ`
-		s(0xD08B), s(0x9455), // ` ândɛ`
-		s(0xD0CB), s(0x9089), s(0x9B31), s(0x9E55), s(0x9415), // ` bâa-mo-tɛnɛ`
-		s(0xF0D7), s(0x9A6E), s(0x9362), s(0x9655), // ` BƐ̂-kɔ̈mbïtɛb`
-		s(0x90D7), s(0x9A6E), s(0x9362), s(0x9655), //  `bɛ̂-kɔ̈mbïtɛ`
-		u(0x96E3),                                  //  `難`
-		s(0xB0D7), s(0xBA6E), s(0xB362), s(0xB655), //  `BƐ̂-KƆ̈MBÏTƐ`
-		s(0xD0D7), s(0x9A6E), s(0x9362), s(0x9655), // ` bɛ̂-kɔ̈mbïtɛ`
-		s(0xF0D7), s(0x9A6E), s(0x9362), s(0x9655), // ` BƐ̂-kɔ̈mbïtɛ`
-		s(0xF0D7), s(0xBA6E), s(0xB362), s(0xB655), // ` BƐ̂-KƆ̈MBÏTƐ`
-		s(0xD089), s(0x9236), s(0x9472), s(0x9423), // ` ahöñndönî`
+		u(0x3057), u(0x3044), u(0x0021), u(0x0020), u(0x00A7), u(0x0020), // `しい! § `
+		s(0xA089), s(0x9236), u(0x002D), s(0x9472), s(0x9423), u(0x0020), // `Ahöñ-ndönî `
+		s(0xA089), s(0xB236), u(0x002D), s(0xB472), s(0xB423), u(0x0020), // `AHÖÑ-NDÖNÎ `
+		s(0x908B), s(0x9455), u(0x0020), s(0x90CB), s(0x9089), u(0x002D), // `ândɛ bâa-`
+		s(0x9331), u(0x002D), s(0x9655), s(0x9415), u(0x0020), // `mo-tɛnɛ `
+		s(0xB0D7), u(0x002D), s(0x926E), s(0x9362), s(0x9655), // `BƐ̂-kɔ̈mbïtɛ`
+		s(0x90D7), u(0x002D), s(0x926E), s(0x9362), s(0x9655), u(0x96E3), // `bɛ̂-kɔ̈mbïtɛ難`
+		s(0xB0D7), u(0x002D), s(0xB26E), s(0xB362), s(0xB655), u(0x0020), // `BƐ̂-KƆ̈MBÏTƐ `
+		s(0x90D7), u(0x002D), s(0x926E), s(0x9362), s(0x9655), u(0x0020), // `bɛ̂-kɔ̈mbïtɛ `
+		s(0xB0D7), u(0x002D), s(0x926E), s(0x9362), s(0x9655), u(0x0020), // `BƐ̂-kɔ̈mbïtɛ `
+		s(0xB0D7), u(0x002D), s(0xB26E), s(0xB362), s(0xB655), u(0x0020), // `BƐ̂-KƆ̈MBÏTƐ `
+		s(0x9089), s(0x9236), s(0x9472), s(0x9423), // `ahöñndönî`
 	}
 	expect := SSEs{
-		0x65E5_672C_8A9E_306F, 0x0010_96E3_3057_3044, 0x0021_0020_00A7_0000, // `日本語は難しい! §`
-		0xE_089_236_000_000_000, // ` Ahöñ`
-		0x002D_0000_0000_0000,   // `-`
-		0x9_472_423_000_000_000, // `ndönî`
-		0xF_089_236_000_000_000, // ` AHÖÑ`
-		0x002D_0000_0000_0000,   // `-`
-		0xB_472_423_000_000_000, // `NDÖNÎ`
-		0xD_08B_455_000_000_000, // ` ândɛ`
-		0xD_0CB_089_000_000_000, // ` bâa`
-		0x002D_0000_0000_0000,   // `-`
-		0x9_331_000_000_000_000, // `mo`
-		0x002D_0000_0000_0000,   // `-`
-		0x9_655_415_000_000_000, // `tɛnɛ`
-		0xF_0D7_000_000_000_000, // ` BƐ̂`
-		0x002D_0000_0000_0000,   // `-`
-		0xB_26E_362_655_0D7_000, // `kɔ̈mbïtɛbɛ̂`
-		0x002D_0000_0000_0000,   // `-`
-		0xB_26E_362_655_000_000, // `kɔ̈mbïtɛ`
-		0x0010_96E3_0000_0000,   // `難`
-		0xB_0D7_000_000_000_000, // `BƐ̂`
-		0x002D_0000_0000_0000,   // `-`
-		0xB_26E_362_655_000_000, // `KƆ̈MBÏTƐ`
-		0xD_0D7_000_000_000_000, // ` bɛ̂`
-		0x002D_0000_0000_0000,   // `-`
-		0x9_26E_362_655_000_000, // `kɔ̈mbïtɛ`
-		0xF_0D7_000_000_000_000, // ` BƐ̂`
-		0x002D_0000_0000_0000,   // `-`
-		0xB_26E_362_655_000_000, // `kɔ̈mbïtɛ`
-		0xF_0D7_000_000_000_000, // ` BƐ̂`
-		0x002D_0000_0000_0000,   // `-`
-		0xB_26E_362_655_000_000, // `KƆ̈MBÏTƐ`
-		0xD_089_236_472_423_000, // ` ahöñndönî`
+		0x65E5_672C_8A9E_306F, 0x0010_96E3_3057_3044, 0x0021_0020_00A7_0020, // `日本語は難しい! § `
+		0xA_089_236_000_000_000, 0x002D_0000_0000_0000, 0x9_472_423_000_000_000, 0x0020_0000_0000_0000, // ` Ahöñ-ndönî `
+		0xB_089_236_000_000_000, 0x002D_0000_0000_0000, 0xB_472_423_000_000_000, 0x0020_0000_0000_0000, // `AHÖÑ-NDÖNÎ `
+		0x9_08B_455_000_000_000, 0x0020_0000_0000_0000, 0x9_0CB_089_000_000_000, 0x002D_0000_0000_0000, // `ândɛ bâa-`
+		0x9_331_000_000_000_000, 0x002D_0000_0000_0000, 0x9_655_415_000_000_000, 0x0020_0000_0000_0000, // `mo-tɛnɛ `
+		0xB_0D7_000_000_000_000, 0x002D_0000_0000_0000, 0x9_26E_362_655_0D7_000, 0x002D_0000_0000_0000, // `BƐ̂-kɔ̈mbïtɛbɛ̂-`
+		0x9_26E_362_655_000_000, 0x0010_96E3_0000_0000, 0xB_0D7_000_000_000_000, 0x002D_0000_0000_0000, // `kɔ̈mbïtɛ難BƐ̂-`
+		0xB_26E_362_655_000_000, 0x0020_0000_0000_0000, 0x9_0D7_000_000_000_000, 0x002D_0000_0000_0000, // `KƆ̈MBÏTƐ bɛ̂-`
+		0x9_26E_362_655_000_000, 0x0020_0000_0000_0000, 0xB_0D7_000_000_000_000, 0x002D_0000_0000_0000, // `kɔ̈mbïtɛ BƐ̂-`
+		0x9_26E_362_655_000_000, 0x0020_0000_0000_0000, 0xB_0D7_000_000_000_000, 0x002D_0000_0000_0000, // `kɔ̈mbïtɛ BƐ̂-`
+		0xB_26E_362_655_000_000, 0x0020_0000_0000_0000, 0x9_089_236_472_423_000, // `KƆ̈MBÏTƐ ahöñndönî`
 	}
 	dumpSSEs := func(sses SSEs) string {
 		s := "{"
@@ -706,8 +692,8 @@ func TestCodesToSSEs(t *testing.T) {
 func TestWriteAsUtf8MixedKind(t *testing.T) {
 	log.Println("ENTER TestWriteAsUtf8MixedKind")
 	sses := SSEs{
-		0x65E5_672C_8A9E_306F, 0x0010_96E3_3057_3044, 0x0021_0020_00A7_0000, // `日本語は難しい! §`
-		0xE_089_236_C72_423_000, // ` Ahöñ-ndönî`
+		0x65E5_672C_8A9E_306F, 0x0010_96E3_3057_3044, 0x0021_0020_00A7_0020, // `日本語は難しい! § `
+		0xA_089_236_C72_423_000, // `Ahöñ-ndönî`
 		0xF_089_236_C72_423_000, // ` AHÖÑ-NDÖNÎ`
 		0xD_08B_455_000_000_000, // ` ândɛ`
 		0xD_0CB_089_B31_E55_415, // ` bâa-mo-tɛnɛ`
@@ -726,12 +712,11 @@ func TestWriteAsUtf8MixedKind(t *testing.T) {
 		sse.WriteAsUtf8To(&s)
 	}
 	s.WriteString("|")
-	expect := `|日本語は|難しい|! §| Ahöñ-ndönî| AHÖÑ-NDÖNÎ` +
-		`| ândɛ| bâa-mo-tɛnɛ| BƐ̂-KƆ̈MBÏTƐBƐ̂|-kɔ̈mbïtɛ|難|BƐ̂-KƆ̈MBÏTƐ` +
-		`| bɛ̂-kɔ̈mbïtɛ| BƐ̂-KƆ̈MBÏTƐ| BƐ̂-KƆ̈MBÏTƐ| ahöñndönî|`
+	expect := `|日本語は|難しい|! § |Ahöñndönî|AHÖÑNDÖNÎ|ândɛ|bâamotɛnɛ|BƐ̂KƆ̈MBÏTƐBƐ̂|` +
+		`kɔ̈mbïtɛ|難|BƐ̂KƆ̈MBÏTƐ|bɛ̂kɔ̈mbïtɛ|BƐ̂KƆ̈MBÏTƐ|BƐ̂KƆ̈MBÏTƐ|ahöñndönî|`
 	actual := s.String()
 	if actual != expect {
-		t.Errorf("in TestWriteAsUtf8MixedKindTo(\n%#v\n),\nexpect: %#v\nactual: %#v\n\n",
+		t.Errorf("in TestWriteAsUtf8MixedKind(\n%#v\n),\nexpect: %#v\nactual: %#v\n\n",
 			sses, expect, actual)
 	}
 	log.Println("LEAVE TestWriteAsUtf8MixedKind")
@@ -740,19 +725,38 @@ func TestWriteAsUtf8MixedKind(t *testing.T) {
 func TestWriteAsTonelessMixedKind(t *testing.T) {
 	log.Println("ENTER TestWriteAsTonelessMixedKind")
 	sses := SSEs{
-		0x65E5_672C_8A9E_306F, 0x0010_96E3_3057_3044, 0x0021_0020_00A7_0000, // `日本語は難しい! §`
-		0xE_089_236_C72_423_000, // ` Ahöñ-ndönî`
-		0xF_089_236_C72_423_000, // ` AHÖÑ-NDÖNÎ`
-		0xD_08B_455_000_000_000, // ` ândɛ`
-		0xD_0CB_089_B31_E55_415, // ` bâa-mo-tɛnɛ`
-		0xE_0D7_A6E_362_655_0D7, // ` Bɛ̂-kɔ̈mbïtɛbɛ̂`  [if any syllable is UPPER, the whole word is]
-		0x9_A6E_362_655_000_000, //    `-kɔ̈mbïtɛ`
-		0x0010_96E3_0000_0000,   //  `難`
-		0xB_0D7_A6E_362_655_000, //  `BƐ̂-KƆ̈MBÏTƐ`
-		0xD_0D7_A6E_362_655_000, // ` bɛ̂-kɔ̈mbïtɛ`
-		0xF_0D7_A6E_362_655_000, // ` BƐ̂-kɔ̈mbïtɛ`
-		0xF_0D7_A6E_362_655_000, // ` BƐ̂-KƆ̈MBÏTƐ`
-		0xD_089_236_472_423_000, // ` ahöñndönî`
+		0x65E5_672C_8A9E_306F, 0x0010_96E3_3057_3044, 0x0021_0020_00A7_0020, // `日本語は難しい! § `
+		0xA_089_236_C72_423_000, // `Ahöñ-ndönî`
+		0x0020_0000_0000_0000,   // ` `
+		0xB_089_236_C72_423_000, // `AHÖÑ-NDÖNÎ`
+		0x0020_0000_0000_0000,   // ` `
+		0xD_08B_455_000_000_000, // `ândɛ`
+		0x0020_0000_0000_0000,   // ` `
+		0xD_0CB_089_B31_E55_415, // `bâa-mo-tɛnɛ`
+		0x0020_0000_0000_0000,   // ` `
+		0xA_0D7_A6E_362_655_0D7, // `Bɛ̂`  [if any syllable is UPPER, the whole word is]
+		0x002D_0000_0000_0000,   // `-`
+		0xA_0D7_A6E_362_655_0D7, // `kɔ̈mbïtɛbɛ̂`  [if any syllable is UPPER, the whole word is]
+		0x002D_0000_0000_0000,   // `-`
+		0x9_A6E_362_655_000_000, // `kɔ̈mbïtɛ`
+		0x0010_96E3_0000_0000,   // `難`
+		0xB_0D7_A6E_362_655_000, // `BƐ̂`
+		0x002D_0000_0000_0000,   // `-`
+		0xB_0D7_A6E_362_655_000, // `KƆ̈MBÏTƐ`
+		0x0020_0000_0000_0000,   // ` `
+		0xD_0D7_A6E_362_655_000, // `bɛ̂`
+		0x002D_0000_0000_0000,   // `-`
+		0xD_0D7_A6E_362_655_000, // `kɔ̈mbïtɛ`
+		0x0020_0000_0000_0000,   // ` `
+		0xB_0D7_A6E_362_655_000, // `BƐ̂`
+		0x002D_0000_0000_0000,   // `-`
+		0xB_0D7_A6E_362_655_000, // `kɔ̈mbïtɛ`
+		0x0020_0000_0000_0000,   // ` `
+		0xB_0D7_A6E_362_655_000, // `BƐ̂`
+		0x002D_0000_0000_0000,   // `-`
+		0xB_0D7_A6E_362_655_000, // `KƆ̈MBÏTƐ`
+		0x0020_0000_0000_0000,   // ` `
+		0xD_089_236_472_423_000, // `ahöñndönî`
 	}
 	var s strings.Builder
 	for _, sse := range sses {
@@ -760,11 +764,12 @@ func TestWriteAsTonelessMixedKind(t *testing.T) {
 		sse.WriteAsTonelessTo(&s)
 	}
 	s.WriteString("|")
-	expect := `|日本語は|難しい|! §|ahonndoni|ahonndoni|ande|baamotene|bekombitebe` +
-		`|kombite|難|bekombite|bekombite|bekombite|bekombite|ahonndoni|`
+	expect := `|日本語は|難しい|! § |ahonndoni| |ahonndoni| |ande| |baamotene| ` +
+		`|bekombitebe|-|bekombitebe|-|kombite|難|bekombite|-|bekombite| |bekombite|-` +
+		`|bekombite| |bekombite|-|bekombite| |bekombite|-|bekombite| |ahonndoni|`
 	actual := s.String()
 	if actual != expect {
-		t.Errorf("in TestWriteAsTonelessMixedKindTo(\n%#v\n),\nexpect: %#v\nactual: %#v\n\n",
+		t.Errorf("in TestWriteAsTonelessMixedKind(\n%#v\n),\nexpect: %#v\nactual: %#v\n\n",
 			sses, expect, actual)
 	}
 	log.Println("LEAVE TestWriteAsTonelessMixedKind")
@@ -773,17 +778,15 @@ func TestWriteAsTonelessMixedKind(t *testing.T) {
 func TestWriteAsToneless(t *testing.T) {
 	log.Println("ENTER TestWriteAsToneless")
 	sses := SSEs{
-		0xE_089_236_C72_423_000, // ` Ahöñ-ndönî`
-		0xF_089_236_C72_423_000, // ` AHÖÑ-NDÖNÎ`
-		0xD_08B_455_000_000_000, // ` ândɛ`
-		0xD_0CB_089_B31_E55_415, // ` bâa-mo-tɛnɛ`
-		0xE_0D7_A6E_362_655_0D7, // ` Bɛ̂-kɔ̈mbïtɛbɛ̂`  [if any syllable is UPPER, the whole word is]
-		0x9_A6E_362_655_000_000, //    `-kɔ̈mbïtɛ`
-		0xB_0D7_A6E_362_655_000, //  `BƐ̂-KƆ̈MBÏTƐ`
-		0xD_0D7_A6E_362_655_000, // ` bɛ̂-kɔ̈mbïtɛ`
-		0xF_0D7_A6E_362_655_000, // ` BƐ̂-kɔ̈mbïtɛ`
-		0xF_0D7_A6E_362_655_000, // ` BƐ̂-KƆ̈MBÏTƐ`
-		0xD_089_236_472_423_000, // ` ahöñndönî`
+		0xA_089_236_C72_423_000, // `Ahöñndönî`
+		0xB_089_236_C72_423_000, // `AHÖÑNDÖNÎ`
+		0x9_08B_455_000_000_000, // `ândɛ`
+		0x9_0CB_089_B31_E55_415, // `bâamotɛnɛ`
+		0xB_0D7_A6E_362_655_000, // `BƐ̂KƆ̈MBÏTƐ`
+		0x9_0D7_A6E_362_655_000, // `bɛ̂kɔ̈mbïtɛ`
+		0xA_0D7_A6E_362_655_000, // `BƐ̂kɔ̈mbïtɛ`
+		0xB_0D7_A6E_362_655_000, // `BƐ̂KƆ̈MBÏTƐ`
+		0x9_089_236_472_423_000, // `ahöñndönî`
 	}
 	var s strings.Builder
 	for _, sse := range sses {
@@ -791,11 +794,10 @@ func TestWriteAsToneless(t *testing.T) {
 		sse.WriteAsTonelessTo(&s)
 	}
 	s.WriteString("|")
-	expect := `|ahonndoni|ahonndoni|ande|baamotene|bekombitebe|kombite` +
-		`|bekombite|bekombite|bekombite|bekombite|ahonndoni|`
+	expect := `|ahonndoni|ahonndoni|ande|baamotene|bekombite|bekombite|bekombite|bekombite|ahonndoni|`
 	actual := s.String()
 	if actual != expect {
-		t.Errorf("in TestWriteAsTonelessTo(\n%#v\n),\nexpect: %#v\nactual: %#v\n\n",
+		t.Errorf("in TestWriteAsToneless(\n%#v\n),\nexpect: %#v\nactual: %#v\n\n",
 			sses, expect, actual)
 	}
 	log.Println("LEAVE TestWriteAsToneless")
@@ -804,17 +806,15 @@ func TestWriteAsToneless(t *testing.T) {
 func TestWriteAsHeightless(t *testing.T) {
 	log.Println("ENTER TestWriteAsHeightless")
 	sses := SSEs{
-		0xE_089_236_C72_423_000, // ` Ahöñ-ndönî`
-		0xF_089_236_C72_423_000, // ` AHÖÑ-NDÖNÎ`
-		0xD_08B_455_000_000_000, // ` ândɛ`
-		0xD_0CB_089_B31_E55_415, // ` bâa-mo-tɛnɛ`
-		0xE_0D7_A6E_362_655_0D7, // ` Bɛ̂-kɔ̈mbïtɛbɛ̂`  [if any syllable is UPPER, the whole word is]
-		0x9_A6E_362_655_000_000, //    `-kɔ̈mbïtɛ`
-		0xB_0D7_A6E_362_655_000, //  `BƐ̂-KƆ̈MBÏTƐ`
-		0xD_0D7_A6E_362_655_000, // ` bɛ̂-kɔ̈mbïtɛ`
-		0xE_0D7_A6E_362_655_000, // ` Bɛ̂-kɔ̈mbïtɛ`
-		0xF_0D7_A6E_362_655_000, // ` BƐ̂-KƆ̈MBÏTƐ`
-		0xD_089_236_472_423_000, // ` ahöñndönî`
+		0xA_089_236_C72_423_000, // `Ahöñndönî`
+		0xB_089_236_C72_423_000, // `AHÖÑNDÖNÎ`
+		0x9_08B_455_000_000_000, // `ândɛ`
+		0x9_0CB_089_B31_E55_415, // `bâamotɛnɛ`
+		0xB_0D7_A6E_362_655_000, // `BƐ̂KƆ̈MBÏTƐ`
+		0x9_0D7_A6E_362_655_000, // `bɛ̂kɔ̈mbïtɛ`
+		0xA_0D7_A6E_362_655_000, // `BƐ̂kɔ̈mbïtɛ`
+		0xB_0D7_A6E_362_655_000, // `BƐ̂KƆ̈MBÏTƐ`
+		0x9_089_236_472_423_000, // `ahöñndönî`
 	}
 	var s strings.Builder
 	for _, sse := range sses {
@@ -822,11 +822,10 @@ func TestWriteAsHeightless(t *testing.T) {
 		sse.WriteAsHeightlessTo(&s)
 	}
 	s.WriteString("|")
-	expect := `| Ahön-ndönî| AHÖÑ-NDÖNÎ| ânde| bâa-mo-tene| Bê-kömbïtebê|-kömbïte` +
-		`|BƐ̂-KƆ̈MBÏTƐ| bê-kömbïte| Bê-kömbïte| BƐ̂-KƆ̈MBÏTƐ| ahönndönî|`
+	expect := `|Ahönndönî|AHÖNNDÖNÎ|ânde|bâamotene|BÊKÖMBÏTE|bêkömbïte|Bêkömbïte|BÊKÖMBÏTE|ahönndönî|`
 	actual := s.String()
 	if actual != expect {
-		t.Errorf("in TestWriteAsHeightlessTo(\n%#v\n),\nexpect: %#v\nactual: %#v\n\n",
+		t.Errorf("in TestWriteAsHeightless(\n%#v\n),\nexpect: %#v\nactual: %#v\n\n",
 			sses, expect, actual)
 	}
 	log.Println("LEAVE TestWriteAsHeightless")
@@ -835,17 +834,15 @@ func TestWriteAsHeightless(t *testing.T) {
 func TestWriteAsLemma(t *testing.T) {
 	log.Println("ENTER TestWriteAsLemma")
 	sses := SSEs{
-		0xE_089_236_C72_423_000, // ` Ahöñ-ndönî`
-		0xF_089_236_C72_423_000, // ` AHÖÑ-NDÖNÎ`
-		0xD_08B_455_000_000_000, // ` ândɛ`
-		0xD_0CB_089_B31_E55_415, // ` bâa-mo-tɛnɛ`
-		0xE_0D7_A6E_362_655_0D7, // ` Bɛ̂-kɔ̈mbïtɛbɛ̂`  [if any syllable is UPPER, the whole word is]
-		0x9_A6E_362_655_000_000, //    `-kɔ̈mbïtɛ`
-		0xB_0D7_A6E_362_655_000, //  `BƐ̂-KƆ̈MBÏTƐ`
-		0xD_0D7_A6E_362_655_000, // ` bɛ̂-kɔ̈mbïtɛ`
-		0xE_0D7_A6E_362_655_000, // ` Bɛ̂-kɔ̈mbïtɛ`
-		0xF_0D7_A6E_362_655_000, // ` BƐ̂-KƆ̈MBÏTƐ`
-		0xD_089_236_472_423_000, // ` ahöñndönî`
+		0xA_089_236_C72_423_000, // `Ahöñndönî`
+		0xB_089_236_C72_423_000, // `AHÖÑNDÖNÎ`
+		0x9_08B_455_000_000_000, // `ândɛ`
+		0x9_0CB_089_B31_E55_415, // `bâamotɛnɛ`
+		0xB_0D7_A6E_362_655_000, // `BƐ̂KƆ̈MBÏTƐ`
+		0x9_0D7_A6E_362_655_000, // `bɛ̂kɔ̈mbïtɛ`
+		0xA_0D7_A6E_362_655_000, // `BƐ̂kɔ̈mbïtɛ`
+		0xB_0D7_A6E_362_655_000, // `BƐ̂KƆ̈MBÏTƐ`
+		0x9_089_236_472_423_000, // `ahöñndönî`
 	}
 	var s strings.Builder
 	for _, sse := range sses {
@@ -853,77 +850,13 @@ func TestWriteAsLemma(t *testing.T) {
 		sse.WriteAsLemmaTo(&s)
 	}
 	s.WriteString("|")
-	expect := `| Ahön-ndönî| AHÖÑ-NDÖNÎ| ândɛ| bâa-mo-tɛnɛ| Bɛ̂-kɔ̈mbïtɛbɛ̂|-kɔ̈mbïtɛ` +
-		`|BƐ̂-KƆ̈MBÏTƐ| bɛ̂-kɔ̈mbïtɛ| Bɛ̂-kɔ̈mbïtɛ| BƐ̂-KƆ̈MBÏTƐ| ahönndönî|`
+	expect := `|Ahönndönî|AHÖNNDÖNÎ|ândɛ|bâamotɛnɛ|BƐ̂KƆ̈MBÏTƐ|bɛ̂kɔ̈mbïtɛ|Bɛ̂kɔ̈mbïtɛ|BƐ̂KƆ̈MBÏTƐ|ahönndönî|`
 	actual := s.String()
 	if actual != expect {
-		t.Errorf("in TestWriteAsLemmaTo(\n%#v\n),\nexpect: %#v\nactual: %#v\n\n",
+		t.Errorf("in TestWriteAsLemma(\n%#v\n),\nexpect: %#v\nactual: %#v\n\n",
 			sses, expect, actual)
 	}
 	log.Println("LEAVE TestWriteAsLemma")
-}
-
-func TestWriteAsLemmaForUnknownPitch(t *testing.T) {
-	log.Println("ENTER TestWriteAsLemmaForUnknownPitch")
-	sses := SSEs{
-		0xE_088_234_C70_420_000, // ` Ahöñ-ndönî`
-		0xF_088_234_C70_420_000, // ` AHÖÑ-NDÖNÎ`
-		0xD_088_454_000_000_000, // ` ândɛ`
-		0xD_0C8_088_B30_E54_414, // ` bâa-mo-tɛnɛ`
-		0xE_0D4_A6C_360_654_0D4, // ` Bɛ̂-kɔ̈mbïtɛbɛ̂`  [if any syllable is UPPER, the whole word is]
-		0x9_A6C_360_654_000_000, //    `-kɔ̈mbïtɛ`
-		0xB_0D4_A6C_360_654_000, //  `BƐ̂-KƆ̈MBÏTƐ`
-		0xD_0D4_A6C_360_654_000, // ` bɛ̂-kɔ̈mbïtɛ`
-		0xE_0D4_A6C_360_654_000, // ` Bɛ̂-kɔ̈mbïtɛ`
-		0xF_0D4_A6C_360_654_000, // ` BƐ̂-KƆ̈MBÏTƐ`
-		0xD_088_234_470_420_000, // ` ahöñndönî`
-	}
-	var s strings.Builder
-	for _, sse := range sses {
-		s.WriteString("|")
-		sse.WriteAsLemmaTo(&s)
-	}
-	s.WriteString("|")
-	expect := `| Ạhọn-ndọnị| ẠHỌÑ-NDỌNỊ| ạndɛ̣| bạạ-mọ-tɛ̣nɛ̣| Bɛ̣-kɔ̣mbịtɛ̣bɛ̣|-kɔ̣mbịtɛ̣` +
-		`|BƐ̣-KƆ̣MBỊTƐ̣| bɛ̣-kɔ̣mbịtɛ̣| Bɛ̣-kɔ̣mbịtɛ̣| BƐ̣-KƆ̣MBỊTƐ̣| ạhọnndọnị|`
-	actual := s.String()
-	if actual != expect {
-		t.Errorf("in TestWriteAsLemmaTo(\n%#v\n),\nexpect: %#v\nactual: %#v\n\n",
-			sses, expect, actual)
-	}
-	log.Println("LEAVE TestWriteAsLemmaForUnknownPitch")
-}
-
-func TestWriteAsCanonicalForUnknownPitch(t *testing.T) {
-	log.Println("ENTER TestWriteAsCanonicalForUnknownPitch")
-	sses := SSEs{
-		0xE_088_234_C70_420_000, // ` Ahöñ-ndönî`
-		0xF_088_234_C70_420_000, // ` AHÖÑ-NDÖNÎ`
-		0xD_088_454_000_000_000, // ` ândɛ`
-		0xD_0C8_088_B30_E54_414, // ` bâa-mo-tɛnɛ`
-		0xE_0D4_A6C_360_654_0D4, // ` Bɛ̂-kɔ̈mbïtɛbɛ̂`  [if any syllable is UPPER, the whole word is]
-		0x9_A6C_360_654_000_000, //    `-kɔ̈mbïtɛ`
-		0x0010_96E3_0000_0000,   //  `難`
-		0xB_0D4_A6C_360_654_000, //  `BƐ̂-KƆ̈MBÏTƐ`
-		0xD_0D4_A6C_360_654_000, // ` bɛ̂-kɔ̈mbïtɛ`
-		0xE_0D4_A6C_360_654_000, // ` Bɛ̂-kɔ̈mbïtɛ`
-		0xF_0D4_A6C_360_654_000, // ` BƐ̂-KƆ̈MBÏTƐ`
-		0xD_088_234_470_420_000, // ` ahöñndönî`
-	}
-	var s strings.Builder
-	for _, sse := range sses {
-		s.WriteString("|")
-		sse.WriteAsCanonicalTo(&s)
-	}
-	s.WriteString("|")
-	expect := `| ~haHO-Doni| =ha=HO-=Do=ni| haDx| baha-mo-txnx| ~bx-kcBitxbx|-kcBitx` +
-		`|U+96E3|=bx-=kc=Bi=tx| bx-kcBitx| ~bx-kcBitx| =bx-=kc=Bi=tx| haHODoni|`
-	actual := s.String()
-	if actual != expect {
-		t.Errorf("in TestWriteAsLemmaTo(\n%#v\n),\nexpect: %#v\nactual: %#v\n\n",
-			sses, expect, actual)
-	}
-	log.Println("LEAVE TestWriteAsCanonicalForUnknownPitch")
 }
 
 func TestWriteEmptyAsToneless(t *testing.T) {
@@ -936,7 +869,7 @@ func TestWriteEmptyAsToneless(t *testing.T) {
 	expect := ""
 	actual := s.String()
 	if actual != expect {
-		t.Errorf("in TestWriteEmptyAsTonelessTo(\n%#v\n),\nexpect: %#v\nactual: %#v\n\n",
+		t.Errorf("in TestWriteEmptyAsToneless(\n%#v\n),\nexpect: %#v\nactual: %#v\n\n",
 			sses, expect, actual)
 	}
 	log.Println("LEAVE TestWriteEmptyAsToneless")
@@ -952,7 +885,7 @@ func TestWriteEmptyAsHeightless(t *testing.T) {
 	expect := ""
 	actual := s.String()
 	if actual != expect {
-		t.Errorf("in TestWriteEmptyAsHeightlessTo(\n%#v\n),\nexpect: %#v\nactual: %#v\n\n",
+		t.Errorf("in TestWriteEmptyAsHeightless(\n%#v\n),\nexpect: %#v\nactual: %#v\n\n",
 			sses, expect, actual)
 	}
 	log.Println("LEAVE TestWriteEmptyAsHeightless")
@@ -968,7 +901,7 @@ func TestWriteEmptyAsLemma(t *testing.T) {
 	expect := ""
 	actual := s.String()
 	if actual != expect {
-		t.Errorf("in TestWriteEmptyAsLemmaTo(\n%#v\n),\nexpect: %#v\nactual: %#v\n\n",
+		t.Errorf("in TestWriteEmptyAsLemma(\n%#v\n),\nexpect: %#v\nactual: %#v\n\n",
 			sses, expect, actual)
 	}
 	log.Println("LEAVE TestWriteEmptyAsLemma")
@@ -984,7 +917,7 @@ func TestWriteEmptyAsUtf8(t *testing.T) {
 	expect := ""
 	actual := s.String()
 	if actual != expect {
-		t.Errorf("in TestWriteEmptyAsLemmaTo(\n%#v\n),\nexpect: %#v\nactual: %#v\n\n",
+		t.Errorf("in TestWriteEmptyAsLemma(\n%#v\n),\nexpect: %#v\nactual: %#v\n\n",
 			sses, expect, actual)
 	}
 	log.Println("LEAVE TestWriteEmptyAsUtf8")
@@ -1013,11 +946,10 @@ func TestWriteAsUtf8(t *testing.T) {
 		sse.WriteAsUtf8To(&s)
 	}
 	s.WriteString("|")
-	expect := `| Ahöñ-ndönî| AHÖÑ-NDÖNÎ| ândɛ| bâa-mo-tɛnɛ| Bɛ̂-kɔ̈mbïtɛbɛ̂|-kɔ̈mbïtɛ` +
-		`|BƐ̂-KƆ̈MBÏTƐ| bɛ̂-kɔ̈mbïtɛ| Bɛ̂-kɔ̈mbïtɛ| BƐ̂-KƆ̈MBÏTƐ| ahöñndönî|`
+	expect := `|Ahöñndönî|AHÖÑNDÖNÎ|ândɛ|bâamotɛnɛ|Bɛ̂kɔ̈mbïtɛbɛ̂|kɔ̈mbïtɛ|BƐ̂KƆ̈MBÏTƐ|bɛ̂kɔ̈mbïtɛ|Bɛ̂kɔ̈mbïtɛ|BƐ̂KƆ̈MBÏTƐ|ahöñndönî|`
 	actual := s.String()
 	if actual != expect {
-		t.Errorf("in TestWriteAsLemmaTo(\n%#v\n),\nexpect: %#v\nactual: %#v\n\n",
+		t.Errorf("in TestWriteAsLemma(\n%#v\n),\nexpect: %#v\nactual: %#v\n\n",
 			sses, expect, actual)
 	}
 	log.Println("LEAVE TestWriteAsUtf8")

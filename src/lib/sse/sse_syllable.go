@@ -2,6 +2,8 @@
 //
 // Encoding for a phonemically-valid Sango syllable.
 
+// NOTE: Prefix and infix are no longer used.
+
 package sse
 
 import (
@@ -27,8 +29,8 @@ type PitchCode uint16
 
 const (
 	IsSango_MASK        uint16        = 0b1_0_00_0_00000_0000_00 // Assumed to be Unicode rune if not set
-	PrefixCode_None     PrefixCode    = 0b0_0_00_0_00000_0000_00
-	PrefixCode_Space    PrefixCode    = 0b0_1_00_0_00000_0000_00
+	PrefixCode_Off      PrefixCode    = 0b0_0_00_0_00000_0000_00 // TODO: Think of a use for this bit
+	PrefixCode_On       PrefixCode    = 0b0_1_00_0_00000_0000_00
 	PrefixCode_MASK     uint16        = 0b0_1_00_0_00000_0000_00
 	ShiftCode_Invisible ShiftCode     = 0b0_0_00_0_00000_0000_00
 	ShiftCode_lower     ShiftCode     = 0b0_0_01_0_00000_0000_00
@@ -99,7 +101,7 @@ func getVowelCode(code uint16) VowelCode         { return VowelCode(code & Vowel
 func getPitchCode(code uint16) PitchCode         { return PitchCode(code & PitchCode_MASK) }
 
 var canonicalRE = regexp.MustCompile(
-	`U[+]([0-9A-F]{4})|([ -]?)([~=#]?)([hHbBqQdDfgGklrmnpKPstvVwyYzZ])([aAeEiIoOxcuUXC])([_:^]?)`)
+	`U[+]([0-9A-F]{4})|([ -])|([~=#]?)([hHbBqQdDfgGklrmnpKPstvVwyYzZ])([aAeEiIoOxcuUXC])([_:^]?)`)
 
 const (
 	canonicalRE_WholeBegin = iota
@@ -120,13 +122,11 @@ const (
 
 // TODO: First split into words by word boundary, then determine whether a word is Sango before converting.
 var utf8RE = regexp.MustCompile(
-	`([ -]?)((?i)b|d|f|gb|g|h|kp|k|l|mb|mp|mv|m|nd|ngb|ng|ny|nz|n|p|r|s|t|v|w|y|z|)` +
+	`((?i)b|d|f|gb|g|h|kp|k|l|mb|mp|mv|m|nd|ngb|ng|ny|nz|n|p|r|s|t|v|w|y|z|)` +
 		`((?i)(ɛ̈|ɛ̂|ɛ̣|ɛ|ɔ̈|ɔ̂|ɔ̣|ɔ|ẍ|x̂|x̣|x|c̈|ĉ|c̣|c)|((ä|â|ạ|a|ë|ê|ẹ|e|ï|î|i|ị|ö|ô|ọ|o|ü|û|ụ|u)(ñ|n|)))|((?s:.))`) //
 const (
 	utf8RE_WholeBegin = iota
 	utf8RE_WholeEnd
-	utf8RE_AffixBegin
-	utf8RE_AffixEnd
 	utf8RE_ConsonantBegin
 	utf8RE_ConsonantEnd
 	utf8RE_VowelPlusNasalBegin
@@ -239,12 +239,6 @@ func isSango(code uint16) bool {
 }
 
 func hasValidPrefix(code uint16) bool {
-	switch getPrefixCode(code) {
-	case PrefixCode_None:
-	case PrefixCode_Space:
-	default:
-		return false
-	}
 	return true
 }
 
@@ -254,16 +248,6 @@ func hasValidShift(code uint16) bool {
 	case ShiftCode_lower:
 	case ShiftCode_Title:
 	case ShiftCode_UPPER:
-	default:
-		return false
-	}
-	return true
-}
-
-func hasValidInfix(code uint16) bool {
-	switch getInfixCode(code) {
-	case InfixCode_None:
-	case InfixCode_Hyphen:
 	default:
 		return false
 	}
@@ -325,6 +309,10 @@ func hasValidVowel(code uint16) bool {
 	default:
 		return false
 	}
+	return true
+}
+
+func hasValidInfix(code uint16) bool {
 	return true
 }
 
@@ -559,16 +547,6 @@ func utf8FromSangoCodeValue(code uint16, options WriteUtf8Options) string {
 			return ""
 		}
 	}
-	if options.WithShift {
-		switch shiftCode {
-		case ShiftCode_lower:
-			s = cases.Lower(language.English).String(s)
-		case ShiftCode_Title:
-			s = cases.Title(language.English).String(s)
-		case ShiftCode_UPPER:
-			s = cases.Upper(language.English).String(s)
-		}
-	}
 	if !options.WithHeight {
 		s = strings.ReplaceAll(s, "ɛ̈", "ë")
 		s = strings.ReplaceAll(s, "ɔ̈", "ö")
@@ -590,22 +568,21 @@ func utf8FromSangoCodeValue(code uint16, options WriteUtf8Options) string {
 	if !options.WithNTilde {
 		s = strings.ReplaceAll(s, "ñ", "n")
 	}
-	if getPrefixCode(code) == PrefixCode_Space {
-		return options.ForSpaceUse + s
-	}
-	if getInfixCode(code) == InfixCode_Hyphen {
-		return options.ForHyphenUse + s
+	if options.WithShift {
+		switch shiftCode {
+		case ShiftCode_lower:
+			s = cases.Lower(language.English).String(s)
+		case ShiftCode_Title:
+			s = cases.Title(language.English).String(s)
+		case ShiftCode_UPPER:
+			s = cases.Upper(language.English).String(s)
+		}
 	}
 	return s
 }
 
 func canonicalFromSangoCodeValue(code uint16) string {
 	s := ""
-	if getPrefixCode(code) == PrefixCode_Space {
-		s += " "
-	} else if getInfixCode(code) == InfixCode_Hyphen {
-		s += "-"
-	}
 	switch getShiftCode(code) {
 	case ShiftCode_lower:
 		// No case prefix
@@ -719,18 +696,8 @@ func canonicalFromSangoCodeValue(code uint16) string {
 	return s
 }
 
-func canonicalToSangoCodeValue(affix, shift, consonant, vowel, pitch string) (uint16, error) {
+func canonicalToSangoCodeValue(shift, consonant, vowel, pitch string) (uint16, error) {
 	var code uint16 = 0x8000
-	switch affix {
-	case "":
-		// do nothing
-	case " ":
-		code |= uint16(PrefixCode_Space)
-	case "-":
-		code |= uint16(InfixCode_Hyphen)
-	default:
-		return IsSango_MASK, fmt.Errorf("bad affix %q", affix)
-	}
 	switch shift {
 	case "":
 		code |= uint16(ShiftCode_lower)
@@ -850,18 +817,8 @@ func canonicalToSangoCodeValue(affix, shift, consonant, vowel, pitch string) (ui
 	return code, nil
 }
 
-func utf8ToSangoCodeValue(affix, consonant, vowel, nasal string, options FromUtf8Options) (uint16, error) {
+func utf8ToSangoCodeValue(consonant, vowel, nasal string, options FromUtf8Options) (uint16, error) {
 	var code uint16 = 0x8000
-	switch affix {
-	case "":
-		// do nothing
-	case " ":
-		code |= uint16(PrefixCode_Space)
-	case "-":
-		code |= uint16(InfixCode_Hyphen)
-	default:
-		return IsSango_MASK, fmt.Errorf("bad affix %q", affix)
-	}
 	isNasal := false
 	switch cases.Lower(language.English).String(nasal) {
 	case "":

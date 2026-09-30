@@ -102,7 +102,7 @@ func writeUtf8To(s *strings.Builder, b uint64, options WriteUtf8Options) {
 	} else { // up to 5 Sango syllables
 		p0 := uint16(b >> 60 << 12)
 		p := p0               // all but the first syllable
-		p &= ^PrefixCode_MASK // force no space
+		p &= ^PrefixCode_MASK // clear prefix bit
 		if getShiftCode(p) == ShiftCode_Title {
 			p &= ^ShiftCode_MASK         // force no shift
 			p |= uint16(ShiftCode_lower) // set lowercase
@@ -135,10 +135,10 @@ func writeAsCanonicalTo(s *strings.Builder, b uint64) {
 		p0 := uint16(b >> 60)
 		p := p0             // all but the first syllable
 		if p&0b11 == 0b10 { // if Titlecase
-			p &= 0b1000 // force no space
+			p &= 0b1000 // clear prefix bit
 			p |= 0b0001 // force lowercase
 		} else { // else not Titlecase
-			p &= 0b1011 // force no space, preserve case
+			p &= 0b1011 // clear prefix bit, preserve case
 		}
 		p0 <<= 12
 		p <<= 12
@@ -192,7 +192,8 @@ func canonicalToCodes(s string) ([]sseCode, int) {
 			return codes, indexes[k-1][canonicalRE_WholeEnd]
 		}
 
-		if ii[canonicalRE_UnicodeHexBegin] != -1 { // Unicode code
+		if ii[canonicalRE_UnicodeHexBegin] >= 0 &&
+			ii[canonicalRE_UnicodeHexBegin] < ii[canonicalRE_UnicodeHexEnd] { // Unicode code
 			value, err := strconv.ParseUint(s[ii[canonicalRE_UnicodeHexBegin]:ii[canonicalRE_UnicodeHexEnd]], 16, 16)
 			if err != nil {
 				return codes, ii[canonicalRE_WholeBegin]
@@ -200,13 +201,21 @@ func canonicalToCodes(s string) ([]sseCode, int) {
 			if value != 0x0 && value != 0x10 {
 				codes = append(codes, sseCode{value: uint16(value), isSango: false})
 			}
+		} else if ii[canonicalRE_AffixBegin] >= 0 &&
+			ii[canonicalRE_AffixBegin] < ii[canonicalRE_AffixEnd] { // also Unicode code
+			value := []rune(s[ii[canonicalRE_AffixBegin]:ii[canonicalRE_AffixEnd]])
+			if len(value) > 0 {
+				if len(value) > 1 {
+					panic("Too many runes for space or hyphen")
+				}
+				codes = append(codes, sseCode{value: uint16(value[0]), isSango: false})
+			}
 		} else { // Sango syllable
-			affix := s[ii[canonicalRE_AffixBegin]:ii[canonicalRE_AffixEnd]]
 			shift := s[ii[canonicalRE_ShiftBegin]:ii[canonicalRE_ShiftEnd]]
 			consonant := s[ii[canonicalRE_ConsonantBegin]:ii[canonicalRE_ConsonantEnd]]
 			vowel := s[ii[canonicalRE_VowelBegin]:ii[11]]
 			pitch := s[ii[canonicalRE_PitchBegin]:ii[canonicalRE_PitchEnd]]
-			value, err := canonicalToSangoCodeValue(affix, shift, consonant, vowel, pitch)
+			value, err := canonicalToSangoCodeValue(shift, consonant, vowel, pitch)
 			if err != nil {
 				return codes, ii[canonicalRE_WholeBegin]
 			}
@@ -236,20 +245,16 @@ func utf8ToCodes(s string, options FromUtf8Options) ([]sseCode, int) {
 	for k := range n {
 		// Use pointers because we may need to move a nasal N to the following consonant.
 		iiCurr := &indexes[k]
-		if len(*iiCurr) != 18 {
+		if len(*iiCurr) != 16 {
 			panic("Bad index length")
 		}
 		w0Curr := &(*iiCurr)[utf8RE_WholeBegin]
 		w1Curr := &(*iiCurr)[utf8RE_WholeEnd]
-		u0Curr := &(*iiCurr)[utf8RE_UnicodeBegin]
-		u1Curr := &(*iiCurr)[utf8RE_UnicodeEnd]
-		a0Curr := &(*iiCurr)[utf8RE_AffixBegin]
-		a1Curr := &(*iiCurr)[utf8RE_AffixEnd]
 		c0Curr := &(*iiCurr)[utf8RE_ConsonantBegin]
 		c1Curr := &(*iiCurr)[utf8RE_ConsonantEnd]
 		v0Curr := &(*iiCurr)[utf8RE_OpenVowelBegin]
 		v1Curr := &(*iiCurr)[utf8RE_OpenVowelEnd]
-		if *v0Curr == -1 || *v1Curr == -1 {
+		if *v0Curr >= *v1Curr {
 			v0Curr = &(*iiCurr)[utf8RE_CloseVowelBegin]
 			v1Curr = &(*iiCurr)[utf8RE_CloseVowelEnd]
 		}
@@ -257,79 +262,89 @@ func utf8ToCodes(s string, options FromUtf8Options) ([]sseCode, int) {
 		e1Curr := &(*iiCurr)[utf8RE_CloseVowelPlusNasalEnd]
 		n0Curr := &(*iiCurr)[utf8RE_NasalBegin]
 		n1Curr := &(*iiCurr)[utf8RE_NasalEnd]
+		u0Curr := &(*iiCurr)[utf8RE_UnicodeBegin]
+		u1Curr := &(*iiCurr)[utf8RE_UnicodeEnd]
+		f := func(b, e *int) {
+			if *b < 0 || *e < 0 {
+				*b = 0
+				*e = 0
+			}
+		}
+		f(w0Curr, w1Curr)
+		f(c0Curr, c1Curr)
+		f(v0Curr, v1Curr)
+		f(x1Curr, e1Curr)
+		f(n0Curr, n1Curr)
+		f(u0Curr, u1Curr)
 
 		// If an n was falsely stolen from the following consonant to make a nasal, put it back.
 		if k+1 < n { // if there is a next interval...
 			iiNext := &indexes[k+1]
-			if len(*iiNext) != 18 {
+			if len(*iiNext) != 16 {
 				panic("Bad index length")
 			}
 			w0Next := &(*iiNext)[utf8RE_WholeBegin]
 			// Proceed only if the next syllable immediately abuts the current one.
 			if *w1Curr == *w0Next {
-				u0Next := &(*iiNext)[utf8RE_UnicodeBegin]
-				u1Next := &(*iiNext)[utf8RE_UnicodeEnd]
-				a0Next := &(*iiNext)[utf8RE_AffixBegin]
-				a1Next := &(*iiNext)[utf8RE_AffixEnd]
 				c0Next := &(*iiNext)[utf8RE_ConsonantBegin]
 				c1Next := &(*iiNext)[utf8RE_ConsonantEnd]
 				v0Next := &(*iiNext)[utf8RE_OpenVowelBegin]
 				v1Next := &(*iiNext)[utf8RE_OpenVowelEnd]
-				if *v0Next == -1 || *v1Next == -1 {
+				if *v0Next >= *v1Next {
 					v0Next = &(*iiNext)[utf8RE_CloseVowelBegin]
 					v1Next = &(*iiNext)[utf8RE_CloseVowelEnd]
 				}
+				u0Next := &(*iiNext)[utf8RE_UnicodeBegin]
+				u1Next := &(*iiNext)[utf8RE_UnicodeEnd]
+
 				// If the consonant ends in "n" and the next syllable has no affix
 				// and a consonant that is one of "", "d", "g", "gb", "y", "z", then move the
 				// falsely attributed nasal N to the start of the next syllable's consonant.
-				if *u0Curr == -1 && *u1Curr == -1 &&
-					*u0Next == -1 && *u1Next == -1 &&
-					*n0Curr != -1 && *n1Curr > *n0Curr {
+				if *u0Curr >= *u1Curr &&
+					*u0Next >= *u1Next &&
+					*n0Curr < *n1Curr {
 					nasalCurr := s[*n0Curr:*n1Curr]
 					switch nasalCurr {
 					case "N":
 						fallthrough
 					case "n":
-						affixNext := s[*a0Next:*a1Next]
 						consonantNext := s[*c0Next:*c1Next]
-						if affixNext == "" {
-							if *n1Curr != *c0Next {
-								panic("n1Curr != c0Next")
-							}
-							switch consonantNext {
-							case "":
-								fallthrough
-							case "D":
-								fallthrough
-							case "G":
-								fallthrough
-							case "GB":
-								fallthrough
-							case "Gb":
-								fallthrough
-							case "Y":
-								fallthrough
-							case "Z":
-								fallthrough
-							case "d":
-								fallthrough
-							case "g":
-								fallthrough
-							case "gB":
-								fallthrough
-							case "gb":
-								fallthrough
-							case "y":
-								fallthrough
-							case "z":
-								// Move nasal to start of next syllable
-								*w1Curr -= 1
-								*x1Curr -= 1
-								*e1Curr -= 1
-								*n1Curr -= 1
-								*w0Next -= 1
-								*c0Next -= 1
-							}
+						if *n1Curr != *c0Next {
+							panic("n1Curr != c0Next")
+						}
+						switch consonantNext {
+						case "":
+							fallthrough
+						case "D":
+							fallthrough
+						case "G":
+							fallthrough
+						case "GB":
+							fallthrough
+						case "Gb":
+							fallthrough
+						case "Y":
+							fallthrough
+						case "Z":
+							fallthrough
+						case "d":
+							fallthrough
+						case "g":
+							fallthrough
+						case "gB":
+							fallthrough
+						case "gb":
+							fallthrough
+						case "y":
+							fallthrough
+						case "z":
+							// Move nasal to start of next syllable
+							*w1Curr -= 1
+							*x1Curr -= 1
+							*e1Curr -= 1
+							*n1Curr -= 1
+							*w0Next -= 1
+							*c0Next -= 1
 						}
 					}
 				}
@@ -338,7 +353,7 @@ func utf8ToCodes(s string, options FromUtf8Options) ([]sseCode, int) {
 
 		// Convert to a code.
 		switch {
-		case *u0Curr != -1 && *u1Curr != -1:
+		case *u0Curr < *u1Curr:
 			v := []rune(s[*u0Curr:*u1Curr])
 			switch len(v) {
 			case 1:
@@ -352,15 +367,14 @@ func utf8ToCodes(s string, options FromUtf8Options) ([]sseCode, int) {
 			default:
 				panic("Multi-rune unicode") // should not have passed the regexp!
 			}
-		case *u0Curr == -1 && *u1Curr == -1:
-			affix := s[*a0Curr:*a1Curr]
+		case *v0Curr < *v1Curr:
 			consonant := s[*c0Curr:*c1Curr]
 			vowel := s[*v0Curr:*v1Curr]
 			nasalCurr := ""
-			if *n0Curr != -1 && *n1Curr != -1 {
+			if *n0Curr < *n1Curr {
 				nasalCurr = s[*n0Curr:*n1Curr]
 			}
-			value, err := utf8ToSangoCodeValue(affix, consonant, vowel, nasalCurr, options)
+			value, err := utf8ToSangoCodeValue(consonant, vowel, nasalCurr, options)
 			if err != nil {
 				return codes, *w0Curr
 			}
@@ -369,7 +383,7 @@ func utf8ToCodes(s string, options FromUtf8Options) ([]sseCode, int) {
 			}
 			codes = append(codes, sseCode{value: value, isSango: true})
 		default:
-			panic("Bad kind")
+			return codes, *w0Curr
 		}
 	}
 	return codes, len(s)
@@ -377,10 +391,10 @@ func utf8ToCodes(s string, options FromUtf8Options) ([]sseCode, int) {
 
 func codesToSSEs(codes []sseCode) SSEs {
 	const (
-		msb4Mask  uint64 = 0xF000_0000_0000_0000
-		sangoMask uint64 = 0x8000_0000_0000_0000
-		spaceMask uint64 = 0x4000_0000_0000_0000
-		shiftMask uint64 = 0x3000_0000_0000_0000
+		msb4Mask   uint64 = 0xF000_0000_0000_0000
+		sangoMask  uint64 = 0x8000_0000_0000_0000
+		prefixMask uint64 = 0x4000_0000_0000_0000
+		shiftMask  uint64 = 0x3000_0000_0000_0000
 	)
 	var sses SSEs
 	var sse uint64
@@ -407,23 +421,10 @@ func codesToSSEs(codes []sseCode) SSEs {
 		// This loop packs 4 Unicode or 5 Sango syllables per SSE.
 		// If the SSE is already full, flush it and start a new one.
 		// Also we can't mix Unicode and sango nor two Sango words in one SSE.
-		// Finally, a space or hyphen triggers a new word.
 		if code.isSango && numCodesSaved == 5 ||
 			!code.isSango && numCodesSaved == 4 ||
-			code.isSango != prevIsSango && numCodesSaved != 0 ||
-			code.isSango && numCodesSaved != 0 && getPrefixCode(code.value) == PrefixCode_Space {
+			code.isSango != prevIsSango && numCodesSaved != 0 {
 			flush()
-		} else if code.isSango && numCodesSaved != 0 && getInfixCode(code.value) == InfixCode_Hyphen {
-			if msb4&shiftMask == shiftMask {
-				code.value |= 0x3000 // set case to UPPER
-			}
-			code.value &= 0xF7FF // clear hyphen
-			flush()              // write out word
-			prevIsSango = false  // load new sse with a unicode hyphen
-			sse = uint64(0x2D)
-			numCodesSaved = 1
-			flush()            // write out hyphen in its own word
-			prevIsSango = true // continue with the current Sango code
 		}
 
 		prevIsSango = code.isSango

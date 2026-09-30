@@ -42,22 +42,11 @@ less than U+8000, otherwise set it to zero and continue with the next byte.
 
 ### Kind 1: Sango words
 
-For a Sango word, the rest of the bits encode a single Sango word of up to
-5 syllables (there are no Sango words of more than 5 syllables).
-Words are implicitly and by default separated by spaces, but a compound
-word may be connected by hyphens by specifying a hyphen word separator.
+For a Sango word, the first 4 bits are global to the word.
+The rest of the bits encode a single Sango word of up to
+5 syllables (there are no Sango words of more than 5 syllables), 12 bits per syllable.
 
-The 64-bit encoding divides up into 4 global bits (1 hex digit) and up to
-five groups of 12 bits (3 hex digits) followed by all ONES in unused LSB.
-
-The first 4 bits **1PCC** are global to the word encode the `P`refix and `C`ase:
-
-#### Word separator
-
-| B62 | Prefix |
-| :-: | ------ |
-|  0  | None   |
-|  1  | Space  |
+> NOTE: B11, B23, B35, B47, B59, and B62 are not currently used.
 
 #### Shift
 
@@ -71,8 +60,8 @@ prepended to canonical format. In both cases, invisible shift is unrendered.
 
 #### Sango syllable(s)
 
-The next 60 bits comprise 5 groups (one per syllable) of 12 bits **CCCCCVVVVPP**
-(where b0 = LSB), with unused syllables indicated by setting all ONES.
+The next 60 bits comprise 5 groups (one per syllable) of 12 bits **xCCCCCVVVVPP**
+(where b0 = LSB), with unused syllables indicated by setting all zeroes.
 No two Sango words are placed in one **uint64**.
 
 Each Sango syllable is phonemically strictly CVP (one consonant cluster +
@@ -86,17 +75,7 @@ and there is no well accepted convention on when to write or omit
 initial unaspirated **h**. When semantically important, aspirated **H**
 (almost exclusively, word initial) is written herein in uppercase.
 
-##### Syllable separator
-
-Hyphens internal to a word are often (but not always) used in compound
-words and this usage is not entirely standardized in the lexicon.
-Where important, a compound word can be specify a hyphen syllable infix
-to separate word constituents.
-
-| b11 | Infix  |
-| :-: | ------ |
-|  0  | None   |
-|  1  | Hyphen |
+> NOTE: b11 is not currently used.
 
 ##### Consonant cluster
 
@@ -195,14 +174,14 @@ and use in code.
 | Format    | Value                   |
 | --------- | ----------------------- |
 | SSE       | 0x9_0D7_A6E_362_655_000 |
-| Canonical | "bx^-kc:Bi:tx_"         |
-| UTF8      | "bɛ̂-kɔ̈mbïtɛ"            |
+| Canonical | "bx^kc:Bi:tx_"          |
+| UTF8      | "bɛ̂kɔ̈mbïtɛ"             |
 
 
-##### UPPERCASE with space prefix
+##### UPPERCASE
 
 | Format    | Value                   |
 | --------- | ----------------------- |
 | SSEs      | 0xF_0D7_A6E_362_655_000 |
-| Canonical | " =bx^-=kc:=Bi:=tx_"    |
-| UTF8      | " BƐ̂-KƆ̈MBÏTƐ"           |
+| Canonical | " =bx^=kc:=Bi:=tx_"     |
+| UTF8      | " BƐ̂KƆ̈MBÏTƐ"            |
