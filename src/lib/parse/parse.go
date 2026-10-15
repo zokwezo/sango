@@ -16,7 +16,8 @@ type ParseTree struct {
 type ParseMatcher int
 
 const (
-	SentenceFinal ParseMatcher = iota
+	Literal ParseMatcher = iota
+	Sentence
 	SangoWord
 	SangoSyllable
 	CanonicalWord
@@ -31,8 +32,8 @@ func (pm ParseMatcher) String() string {
 // Creates a top-down left-to-right parse tree.
 // The inputParseTree defines the substring of interest, e.g.
 // inputParseTree = ParseTree{Begin: 0, End: len(s)}
-func Parse(parseMatchers []ParseMatcher, s string, inputParseTree ParseTree) ParseTree {
-	return parse(parseMatchers, s, inputParseTree)
+func Parse(parseMatcherForGroupName map[string]ParseMatcher, s string, inputParseTree ParseTree) ParseTree {
+	return parse(parseMatcherForGroupName, s, inputParseTree)
 }
 
 // Creates a human-readable version of a parse tree.

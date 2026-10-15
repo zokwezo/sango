@@ -4,7 +4,6 @@ package parse
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 
 	"github.com/dlclark/regexp2/v2"
@@ -14,14 +13,14 @@ import (
 
 var parseMatcherREs = func() [NumParseMatchers]*regexp2.Regexp {
 	const (
-		canonicalSyllablePattern = `(?<syllable>(?<shift>[~=#]?)(?<consonant>[hHbBqQdDfgGklrmnpKPstvVwyYzZ])(?<vowelNasal>[aAeEiIoOxcuUXC])(?<pitch>[_:^]?))`
-		sangoSyllablePattern     = `(?<syllable>(?i)(?<consonant>(?i)b|d|f|gb|g|h|kp|k|l|mb|mp|mv|m|nd|ngb|ng|ny|nz|n|p|r|s|t|v|w|y|z|)(?<vowelNasal>(?<openVowel>ɛ̈|ɛ̂|ɛ̣|ɛ|ɔ̈|ɔ̂|ɔ̣|ɔ|ẍ|x̂|x̣|x|c̈|ĉ|c̣|c)|(?<closeVowelNasal>(?<closeVowel>ä|â|ạ|a|ë|ê|ẹ|e|ï|î|i|ị|ö|ô|ọ|o|ü|û|ụ|u)(?<nasal>(?:ñ|n)(?!(?i)(?:d|g|gb|y|z)?(?:ɛ̈|ɛ̂|ɛ̣|ɛ|ɔ̈|ɔ̂|ɔ̣|ɔ|ẍ|x̂|x̣|x|c̈|ĉ|c̣|c|ä|â|ạ|a|ë|ê|ẹ|e|ï|î|i|ị|ö|ô|ọ|o|ü|û|ụ|u))|))))`
-		canonicalWordPattern     = `(?<word>(?<![\p{L}\p{M}_:^~])(?:(?:(?:[~=#]?)(?:[hHbBqQdDfgGklrmnpKPstvVwyYzZ])(?:[aAeEiIoOxcuUXC])(?:[_:^]?)))+(?![\p{L}\p{M}_:^~]))`
-		sangoWordPattern         = `(?<word>(?<![\p{L}\p{M}])(?:(?:(?i)(?:(?i)b|d|f|gb|g|h|kp|k|l|mb|mp|mv|m|nd|ngb|ng|ny|nz|n|p|r|s|t|v|w|y|z|)(?:(?:ɛ̈|ɛ̂|ɛ̣|ɛ|ɔ̈|ɔ̂|ɔ̣|ɔ|ẍ|x̂|x̣|x|c̈|ĉ|c̣|c)|(?:(?:ä|â|ạ|a|ë|ê|ẹ|e|ï|î|i|ị|ö|ô|ọ|o|ü|û|ụ|u)(?:ñ|n|)))))+(?![\p{L}\p{M}]))`
+		canonicalSyllablePattern = `(?<syllable>(?<consonant>[hHbBqQdDfgGklrmnpKPstvVwyYzZ])(?<vowelNasal>[aAeEiIoOxcuUXC])(?<pitch>[%_:^]?))`
+		sangoSyllablePattern     = `(?i)(?<syllable>(?<consonant>b|d|f|gb|g|h|kp|k|l|mb|mp|mv|m|nd|ngb|ng|ny|nz|n|p|r|s|t|v|w|y|z|)(?<vowelNasal>(?<openVowel>ɛ̈|ɛ̂|ɛ̣|ɛ|ɔ̈|ɔ̂|ɔ̣|ɔ|ẍ|x̂|x̣|x|c̈|ĉ|c̣|c)|(?<closeVowelNasal>(?<closeVowel>ä|â|ạ|a|ë|ê|ẹ|e|ï|î|i|ị|ö|ô|ọ|o|ü|û|ụ|u)(?<nasal>(?:ñ|n)(?!(?:d|g|gb|y|z)?(?:ɛ̈|ɛ̂|ɛ̣|ɛ|ɔ̈|ɔ̂|ɔ̣|ɔ|ẍ|x̂|x̣|x|c̈|ĉ|c̣|c|ä|â|ạ|a|ë|ê|ẹ|e|ï|î|i|ị|ö|ô|ọ|o|ü|û|ụ|u))|))))`
+		canonicalWordPattern     = `(?<word>(?<shift>[@~=#])(?<syllables>(?:[hHbBqQdDfgGklrmnpKPstvVwyYzZ][aAeEiIoOxcuUXC][%_:^])+))`
+		sangoWordPattern         = `(?i)(?<![\p{L}\p{M}])(?<word>(?<syllables>(?:(?:b|d|f|gb|g|h|kp|k|l|mb|mp|mv|m|nd|ngb|ng|ny|nz|n|p|r|s|t|v|w|y|z|)(?:(?:ɛ̈|ɛ̂|ɛ̣|ɛ|ɔ̈|ɔ̂|ɔ̣|ɔ|ẍ|x̂|x̣|x|c̈|ĉ|c̣|c)|(?:(?:ä|â|ạ|a|ë|ê|ẹ|e|ï|î|i|ị|ö|ô|ọ|o|ü|û|ụ|u)(?:ñ|n|))))+))(?![\p{L}\p{M}])`
 		sentencePattern          = `(?<sentence>.*?(?:[.!?](?:’|”|›|»)*[ \n]+|\n\n+|$))`
 	)
-
 	return [NumParseMatchers]*regexp2.Regexp{
+		nil,
 		regexp2.MustCompile(sentencePattern, regexp2.RE2, regexp2.OptionMaintainCaptureOrder()),
 		regexp2.MustCompile(sangoWordPattern, regexp2.RE2, regexp2.OptionMaintainCaptureOrder()),
 		regexp2.MustCompile(sangoSyllablePattern, regexp2.RE2, regexp2.OptionMaintainCaptureOrder()),
@@ -30,74 +29,70 @@ var parseMatcherREs = func() [NumParseMatchers]*regexp2.Regexp {
 	}
 }()
 
-func parse(parseMatchers []ParseMatcher, s string, inputParseTree ParseTree) ParseTree {
-	if inputParseTree.Begin < 0 || inputParseTree.Begin > inputParseTree.End || inputParseTree.End > len(s) {
-		panic("Bad inputParseTree")
+func parse(parseMatcherForGroupName map[string]ParseMatcher, s string, parseTree ParseTree) ParseTree {
+	if parseTree.Begin < 0 || parseTree.Begin > parseTree.End || parseTree.End > len(s) {
+		panic("Bad parseTree")
 	}
-	if inputParseTree.Begin == inputParseTree.End {
-		return inputParseTree
+	g := parseTree.Name
+	parseMatcher, found := parseMatcherForGroupName[g]
+	if !found {
+		return ParseTree{}
 	}
-	if len(parseMatchers) == 0 {
-		return inputParseTree
+	if parseMatcher == Literal {
+		return parseTree
 	}
-	re := parseMatcherREs[parseMatchers[0]]
-	type IndexFor struct {
-		Name  string
-		Index int
+	re := parseMatcherREs[parseMatcher]
+	if re == nil {
+		return parseTree
 	}
-	indexFor := []IndexFor{}
-	for _, name := range re.GetGroupNames() {
-		// Annoyingly, regexp2.Regexp.GetGroupNames names unnamed capture groups
-		// as strconv.Itoa(i) for the ith capture group. Filter these out.
-		if i := re.GroupNumberFromName(name); i >= 0 {
-			if number := strconv.Itoa(i); name != number {
-				indexFor = append(indexFor, IndexFor{Name: name, Index: i})
-			}
-		}
-	}
-	b := inputParseTree.Begin
-	e := inputParseTree.End
-	inputParseTree.Subtrees = [][]ParseTree{}
+	parseTree.Subtrees = [][]ParseTree{}
+	b := parseTree.Begin
+	e := parseTree.End
 	indexes := compat.Wrap(re).FindAllStringSubmatchIndex(s[b:e], -1)
 	for i, index := range indexes {
 		for j := range index {
 			indexes[i][j] += b
 		}
 	}
+	unmatched := g + "Unmatched"
 	for _, index := range indexes {
 		c := index[0]
-		if parseMatchers[0] == SentenceFinal {
+		if parseMatcher == Sentence {
 			// Move sentence start back to the end of the previous sentence.
 			delta := c - b
-			for _, i := range indexFor {
-				j := i.Index
+			for j := range len(index) / 2 {
 				index[2*j] -= delta
 			}
 			c = b
 		}
 		if c > b {
-			parseSubtrees := []ParseTree{ParseTree{Begin: b, End: c, Name: "unmatched"}}
-			inputParseTree.Subtrees = append(inputParseTree.Subtrees, parseSubtrees)
+			if p, found := parseMatcherForGroupName[unmatched]; found && p == Literal {
+				parseSubtrees := []ParseTree{ParseTree{Begin: b, End: c, Name: unmatched}}
+				parseTree.Subtrees = append(parseTree.Subtrees, parseSubtrees)
+			}
 		}
 		d := index[1]
 		if d > c {
 			parseSubtrees := []ParseTree{}
-			for _, i := range indexFor {
-				name, j := i.Name, i.Index
-				if x, y := index[2*j], index[2*j+1]; x >= 0 && y >= 0 {
-					childParseTree := ParseTree{Begin: x, End: y, Name: name}
-					parseSubtrees = append(parseSubtrees, parse(parseMatchers[1:], s, childParseTree))
+			numMatches := len(index) / 2
+			for k := range numMatches {
+				if n := re.GroupNameFromNumber(k); n != "" {
+					if x, y := index[2*k], index[2*k+1]; x >= 0 && y >= 0 {
+						parseSubtrees = append(parseSubtrees, parse(parseMatcherForGroupName, s, ParseTree{Begin: x, End: y, Name: n}))
+					}
 				}
 			}
-			inputParseTree.Subtrees = append(inputParseTree.Subtrees, parseSubtrees)
+			parseTree.Subtrees = append(parseTree.Subtrees, parseSubtrees)
 		}
 		b = d
 	}
 	if e > b {
-		parseSubtrees := []ParseTree{ParseTree{Begin: b, End: e, Name: "unmatched"}}
-		inputParseTree.Subtrees = append(inputParseTree.Subtrees, parseSubtrees)
+		if p, found := parseMatcherForGroupName[unmatched]; found && p == Literal {
+			parseSubtrees := []ParseTree{ParseTree{Begin: b, End: e, Name: unmatched}}
+			parseTree.Subtrees = append(parseTree.Subtrees, parseSubtrees)
+		}
 	}
-	return inputParseTree
+	return parseTree
 }
 
 // getStringWidth calculates how many terminal columns a string occupies.
@@ -130,7 +125,7 @@ func annotate(parseTree ParseTree, s string, alignSubstrings bool, namesToShow m
 					o.WriteString(fmt.Sprintf("%-20v [%3v:%3v] = %v%v\n", n, c.Begin, c.End,
 						strings.Repeat(" ", getStringWidth(s[0:c.Begin])), s[c.Begin:c.End]))
 				} else {
-					o.WriteString(fmt.Sprintf("%-20v [%3v:%3v] = %v\n", n, c.Begin, c.End, s[c.Begin:c.End]))
+					o.WriteString(fmt.Sprintf("%-20v [%3v:%3v] = %q\n", n, c.Begin, c.End, s[c.Begin:c.End]))
 				}
 			}
 			for _, parseSubtree := range c.Subtrees {
