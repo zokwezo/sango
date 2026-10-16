@@ -15,9 +15,9 @@ var parseMatcherREs = func() [NumParseMatchers]*regexp2.Regexp {
 	const (
 		canonicalSyllablePattern = `(?<syllable>(?<consonant>[hHbBqQdDfgGklrmnpKPstvVwyYzZ])(?<vowelNasal>[aAeEiIoOxcuUXC])(?<pitch>[%_:^]?))`
 		sangoSyllablePattern     = `(?i)(?<syllable>(?<consonant>b|d|f|gb|g|h|kp|k|l|mb|mp|mv|m|nd|ngb|ng|ny|nz|n|p|r|s|t|v|w|y|z|)(?<vowelNasal>(?<openVowel>ɛ̈|ɛ̂|ɛ̣|ɛ|ɔ̈|ɔ̂|ɔ̣|ɔ|ẍ|x̂|x̣|x|c̈|ĉ|c̣|c)|(?<closeVowelNasal>(?<closeVowel>ä|â|ạ|a|ë|ê|ẹ|e|ï|î|i|ị|ö|ô|ọ|o|ü|û|ụ|u)(?<nasal>(?:ñ|n)(?!(?:d|g|gb|y|z)?(?:ɛ̈|ɛ̂|ɛ̣|ɛ|ɔ̈|ɔ̂|ɔ̣|ɔ|ẍ|x̂|x̣|x|c̈|ĉ|c̣|c|ä|â|ạ|a|ë|ê|ẹ|e|ï|î|i|ị|ö|ô|ọ|o|ü|û|ụ|u))|))))`
-		canonicalWordPattern     = `(?<word>(?<shift>[@~=#])(?<syllables>(?:[hHbBqQdDfgGklrmnpKPstvVwyYzZ][aAeEiIoOxcuUXC][%_:^])+))`
+		canonicalWordPattern     = `(?<word>(?<shift>[~=#@])(?<syllables>(?:[hHbBqQdDfgGklrmnpKPstvVwyYzZ][aAeEiIoOxcuUXC][%_:^])+))|(?<unicode>(U[+](?<hexcode>[0-9A-F]{4}))|(?<symbol>.))`
 		sangoWordPattern         = `(?i)(?<![\p{L}\p{M}])(?<word>(?<syllables>(?:(?:b|d|f|gb|g|h|kp|k|l|mb|mp|mv|m|nd|ngb|ng|ny|nz|n|p|r|s|t|v|w|y|z|)(?:(?:ɛ̈|ɛ̂|ɛ̣|ɛ|ɔ̈|ɔ̂|ɔ̣|ɔ|ẍ|x̂|x̣|x|c̈|ĉ|c̣|c)|(?:(?:ä|â|ạ|a|ë|ê|ẹ|e|ï|î|i|ị|ö|ô|ọ|o|ü|û|ụ|u)(?:ñ|n|))))+))(?![\p{L}\p{M}])`
-		sentencePattern          = `(?<sentence>.*?(?:[.!?](?:’|”|›|»)*[ \n]+|\n\n+|$))`
+		sentencePattern          = `(?<sentence>.*?(?:(?:[.!?]|U[+]00(?:2E|21|3F))(?:’|”|›|»|U[+](?:20(?:19|1D|3A)|00BB))*(?:[ \n]|U[+]00(?:20|0A))+|(?:\n|U[+]000A){2,}|$))`
 	)
 	return [NumParseMatchers]*regexp2.Regexp{
 		nil,
@@ -78,7 +78,10 @@ func parse(parseMatcherForGroupName map[string]ParseMatcher, s string, parseTree
 			for k := range numMatches {
 				if n := re.GroupNameFromNumber(k); n != "" {
 					if x, y := index[2*k], index[2*k+1]; x >= 0 && y >= 0 {
-						parseSubtrees = append(parseSubtrees, parse(parseMatcherForGroupName, s, ParseTree{Begin: x, End: y, Name: n}))
+						parseSubtree := parse(parseMatcherForGroupName, s, ParseTree{Begin: x, End: y, Name: n})
+						if parseSubtree.Name != "" {
+							parseSubtrees = append(parseSubtrees, parseSubtree)
+						}
 					}
 				}
 			}

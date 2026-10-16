@@ -5,16 +5,18 @@ import (
 	"testing"
 )
 
-func TestParseCanonical(t *testing.T) {
-	s := ` § ~ha_HO:Do:ni^. 日本語は難しい!`
+func TestParseShortCanonical(t *testing.T) {
+	s := ` § ~ha_HO:Do:ni^U+003F 日本語はU+96E3しい,`
 	parseMatcherForGroupName := map[string]ParseMatcher{
 		"consonant":         Literal,
+		"hexcode":           Literal,
 		"pitch":             Literal,
 		"sentence":          CanonicalWord,
 		"sentenceUnmatched": Literal,
 		"shift":             Literal,
 		"syllable":          Literal,
 		"syllables":         CanonicalSyllable,
+		"symbol":            Literal,
 		"vowelNasal":        Literal,
 		"whole":             Sentence,
 		"word":              Literal,
@@ -24,6 +26,7 @@ func TestParseCanonical(t *testing.T) {
 		"closeVowel":        true,
 		"closeVowelNasal":   true,
 		"consonant":         true,
+		"hexcode":           true,
 		"nasal":             true,
 		"openVowel":         true,
 		"pitch":             true,
@@ -32,16 +35,18 @@ func TestParseCanonical(t *testing.T) {
 		"shift":             true,
 		"syllable":          true,
 		"syllables":         true,
-		"unmatched":         true,
+		"symbol":            true,
 		"vowelNasal":        true,
 		"whole":             true,
 		"word":              true,
 	})
 	actualStr := actualBuilder.String()
 	expectStr := `
-whole                [  0: 41] =  § ~ha_HO:Do:ni^. 日本語は難しい!
-sentence             [  0: 19] =  § ~ha_HO:Do:ni^. 
-sentenceUnmatched    [  0:  4] =  § 
+whole                [  0: 49] =  § ~ha_HO:Do:ni^U+003F 日本語はU+96E3しい,
+sentence             [  0: 24] =  § ~ha_HO:Do:ni^U+003F 
+symbol               [  0:  1] =  
+symbol               [  1:  3] =  §
+symbol               [  3:  4] =    
 word                 [  4: 17] =    ~ha_HO:Do:ni^
 shift                [  4:  5] =    ~
 syllables            [  5: 17] =     ha_HO:Do:ni^
@@ -61,9 +66,260 @@ syllable             [ 14: 17] =              ni^
 consonant            [ 14: 15] =              n
 vowelNasal           [ 15: 16] =               i
 pitch                [ 16: 17] =                ^
-sentenceUnmatched    [ 17: 19] =                 . 
-sentence             [ 19: 41] =                   日本語は難しい!
-sentenceUnmatched    [ 19: 41] =                   日本語は難しい!
+hexcode              [ 19: 23] =                   003F
+symbol               [ 23: 24] =                        
+sentence             [ 24: 49] =                        日本語はU+96E3しい,
+symbol               [ 24: 27] =                        日
+symbol               [ 27: 30] =                          本
+symbol               [ 30: 33] =                            語
+symbol               [ 33: 36] =                              は
+hexcode              [ 38: 42] =                                  96E3
+symbol               [ 42: 45] =                                      し
+symbol               [ 45: 48] =                                        い
+symbol               [ 48: 49] =                                          ,
+`
+	if actualStr != expectStr {
+		t.Errorf("bad Parse:\nfound %v but expected %v\n", actualStr, expectStr)
+	}
+}
+
+func TestParseLongCanonical(t *testing.T) {
+	s := `U+65E5U+672CU+8A9EU+306FU+96E3U+3057U+3044U+0021U+0020U+00A7U+0020~ha_HO:U+002D~Do:ni^U+0020=ha_HO:U+002D=Do:ni^U+0020~ha^Dx_U+0020~ba^ha_U+002D~mo_U+002D~tx_nx_U+0020~bx^U+002D~kc:Bi:tx_bx^U+002D~kc:Bi:tx_U+96E3=bx^U+002D=kc:=Bi:=tx_U+0020~bx^U+002D#kc:Bi:tx_U+0020~bx^U+002D@kc:Bi:tx_U+0020=bx^U+002D=kc:=Bi:=tx_U+0020#ha_HO:Do:ni^`
+	parseMatcherForGroupName := map[string]ParseMatcher{
+		"consonant":  Literal,
+		"hexcode":    Literal,
+		"pitch":      Literal,
+		"sentence":   CanonicalWord,
+		"shift":      Literal,
+		"syllables":  CanonicalSyllable,
+		"symbol":     Literal,
+		"vowelNasal": Literal,
+		"whole":      Sentence,
+	}
+	actual := Parse(parseMatcherForGroupName, s, ParseTree{Begin: 0, End: len(s), Name: "whole"})
+	var actualBuilder strings.Builder = actual.Annotate(s, false, map[string]bool{
+		"consonant":  true,
+		"hexcode":    true,
+		"pitch":      true,
+		"sentence":   true,
+		"shift":      true,
+		"syllables":  true,
+		"symbol":     true,
+		"vowelNasal": true,
+		"whole":      true,
+	})
+	actualStr := actualBuilder.String()
+	expectStr := `
+whole                [  0:333] = "U+65E5U+672CU+8A9EU+306FU+96E3U+3057U+3044U+0021U+0020U+00A7U+0020~ha_HO:U+002D~Do:ni^U+0020=ha_HO:U+002D=Do:ni^U+0020~ha^Dx_U+0020~ba^ha_U+002D~mo_U+002D~tx_nx_U+0020~bx^U+002D~kc:Bi:tx_bx^U+002D~kc:Bi:tx_U+96E3=bx^U+002D=kc:=Bi:=tx_U+0020~bx^U+002D#kc:Bi:tx_U+0020~bx^U+002D@kc:Bi:tx_U+0020=bx^U+002D=kc:=Bi:=tx_U+0020#ha_HO:Do:ni^"
+sentence             [  0: 54] = "U+65E5U+672CU+8A9EU+306FU+96E3U+3057U+3044U+0021U+0020"
+hexcode              [  2:  6] = "65E5"
+hexcode              [  8: 12] = "672C"
+hexcode              [ 14: 18] = "8A9E"
+hexcode              [ 20: 24] = "306F"
+hexcode              [ 26: 30] = "96E3"
+hexcode              [ 32: 36] = "3057"
+hexcode              [ 38: 42] = "3044"
+hexcode              [ 44: 48] = "0021"
+hexcode              [ 50: 54] = "0020"
+sentence             [ 54:333] = "U+00A7U+0020~ha_HO:U+002D~Do:ni^U+0020=ha_HO:U+002D=Do:ni^U+0020~ha^Dx_U+0020~ba^ha_U+002D~mo_U+002D~tx_nx_U+0020~bx^U+002D~kc:Bi:tx_bx^U+002D~kc:Bi:tx_U+96E3=bx^U+002D=kc:=Bi:=tx_U+0020~bx^U+002D#kc:Bi:tx_U+0020~bx^U+002D@kc:Bi:tx_U+0020=bx^U+002D=kc:=Bi:=tx_U+0020#ha_HO:Do:ni^"
+hexcode              [ 56: 60] = "00A7"
+hexcode              [ 62: 66] = "0020"
+shift                [ 66: 67] = "~"
+syllables            [ 67: 73] = "ha_HO:"
+consonant            [ 67: 68] = "h"
+vowelNasal           [ 68: 69] = "a"
+pitch                [ 69: 70] = "_"
+consonant            [ 70: 71] = "H"
+vowelNasal           [ 71: 72] = "O"
+pitch                [ 72: 73] = ":"
+hexcode              [ 75: 79] = "002D"
+shift                [ 79: 80] = "~"
+syllables            [ 80: 86] = "Do:ni^"
+consonant            [ 80: 81] = "D"
+vowelNasal           [ 81: 82] = "o"
+pitch                [ 82: 83] = ":"
+consonant            [ 83: 84] = "n"
+vowelNasal           [ 84: 85] = "i"
+pitch                [ 85: 86] = "^"
+hexcode              [ 88: 92] = "0020"
+shift                [ 92: 93] = "="
+syllables            [ 93: 99] = "ha_HO:"
+consonant            [ 93: 94] = "h"
+vowelNasal           [ 94: 95] = "a"
+pitch                [ 95: 96] = "_"
+consonant            [ 96: 97] = "H"
+vowelNasal           [ 97: 98] = "O"
+pitch                [ 98: 99] = ":"
+hexcode              [101:105] = "002D"
+shift                [105:106] = "="
+syllables            [106:112] = "Do:ni^"
+consonant            [106:107] = "D"
+vowelNasal           [107:108] = "o"
+pitch                [108:109] = ":"
+consonant            [109:110] = "n"
+vowelNasal           [110:111] = "i"
+pitch                [111:112] = "^"
+hexcode              [114:118] = "0020"
+shift                [118:119] = "~"
+syllables            [119:125] = "ha^Dx_"
+consonant            [119:120] = "h"
+vowelNasal           [120:121] = "a"
+pitch                [121:122] = "^"
+consonant            [122:123] = "D"
+vowelNasal           [123:124] = "x"
+pitch                [124:125] = "_"
+hexcode              [127:131] = "0020"
+shift                [131:132] = "~"
+syllables            [132:138] = "ba^ha_"
+consonant            [132:133] = "b"
+vowelNasal           [133:134] = "a"
+pitch                [134:135] = "^"
+consonant            [135:136] = "h"
+vowelNasal           [136:137] = "a"
+pitch                [137:138] = "_"
+hexcode              [140:144] = "002D"
+shift                [144:145] = "~"
+syllables            [145:148] = "mo_"
+consonant            [145:146] = "m"
+vowelNasal           [146:147] = "o"
+pitch                [147:148] = "_"
+hexcode              [150:154] = "002D"
+shift                [154:155] = "~"
+syllables            [155:161] = "tx_nx_"
+consonant            [155:156] = "t"
+vowelNasal           [156:157] = "x"
+pitch                [157:158] = "_"
+consonant            [158:159] = "n"
+vowelNasal           [159:160] = "x"
+pitch                [160:161] = "_"
+hexcode              [163:167] = "0020"
+shift                [167:168] = "~"
+syllables            [168:171] = "bx^"
+consonant            [168:169] = "b"
+vowelNasal           [169:170] = "x"
+pitch                [170:171] = "^"
+hexcode              [173:177] = "002D"
+shift                [177:178] = "~"
+syllables            [178:190] = "kc:Bi:tx_bx^"
+consonant            [178:179] = "k"
+vowelNasal           [179:180] = "c"
+pitch                [180:181] = ":"
+consonant            [181:182] = "B"
+vowelNasal           [182:183] = "i"
+pitch                [183:184] = ":"
+consonant            [184:185] = "t"
+vowelNasal           [185:186] = "x"
+pitch                [186:187] = "_"
+consonant            [187:188] = "b"
+vowelNasal           [188:189] = "x"
+pitch                [189:190] = "^"
+hexcode              [192:196] = "002D"
+shift                [196:197] = "~"
+syllables            [197:206] = "kc:Bi:tx_"
+consonant            [197:198] = "k"
+vowelNasal           [198:199] = "c"
+pitch                [199:200] = ":"
+consonant            [200:201] = "B"
+vowelNasal           [201:202] = "i"
+pitch                [202:203] = ":"
+consonant            [203:204] = "t"
+vowelNasal           [204:205] = "x"
+pitch                [205:206] = "_"
+hexcode              [208:212] = "96E3"
+shift                [212:213] = "="
+syllables            [213:216] = "bx^"
+consonant            [213:214] = "b"
+vowelNasal           [214:215] = "x"
+pitch                [215:216] = "^"
+hexcode              [218:222] = "002D"
+shift                [222:223] = "="
+syllables            [223:226] = "kc:"
+consonant            [223:224] = "k"
+vowelNasal           [224:225] = "c"
+pitch                [225:226] = ":"
+shift                [226:227] = "="
+syllables            [227:230] = "Bi:"
+consonant            [227:228] = "B"
+vowelNasal           [228:229] = "i"
+pitch                [229:230] = ":"
+shift                [230:231] = "="
+syllables            [231:234] = "tx_"
+consonant            [231:232] = "t"
+vowelNasal           [232:233] = "x"
+pitch                [233:234] = "_"
+hexcode              [236:240] = "0020"
+shift                [240:241] = "~"
+syllables            [241:244] = "bx^"
+consonant            [241:242] = "b"
+vowelNasal           [242:243] = "x"
+pitch                [243:244] = "^"
+hexcode              [246:250] = "002D"
+shift                [250:251] = "#"
+syllables            [251:260] = "kc:Bi:tx_"
+consonant            [251:252] = "k"
+vowelNasal           [252:253] = "c"
+pitch                [253:254] = ":"
+consonant            [254:255] = "B"
+vowelNasal           [255:256] = "i"
+pitch                [256:257] = ":"
+consonant            [257:258] = "t"
+vowelNasal           [258:259] = "x"
+pitch                [259:260] = "_"
+hexcode              [262:266] = "0020"
+shift                [266:267] = "~"
+syllables            [267:270] = "bx^"
+consonant            [267:268] = "b"
+vowelNasal           [268:269] = "x"
+pitch                [269:270] = "^"
+hexcode              [272:276] = "002D"
+shift                [276:277] = "@"
+syllables            [277:286] = "kc:Bi:tx_"
+consonant            [277:278] = "k"
+vowelNasal           [278:279] = "c"
+pitch                [279:280] = ":"
+consonant            [280:281] = "B"
+vowelNasal           [281:282] = "i"
+pitch                [282:283] = ":"
+consonant            [283:284] = "t"
+vowelNasal           [284:285] = "x"
+pitch                [285:286] = "_"
+hexcode              [288:292] = "0020"
+shift                [292:293] = "="
+syllables            [293:296] = "bx^"
+consonant            [293:294] = "b"
+vowelNasal           [294:295] = "x"
+pitch                [295:296] = "^"
+hexcode              [298:302] = "002D"
+shift                [302:303] = "="
+syllables            [303:306] = "kc:"
+consonant            [303:304] = "k"
+vowelNasal           [304:305] = "c"
+pitch                [305:306] = ":"
+shift                [306:307] = "="
+syllables            [307:310] = "Bi:"
+consonant            [307:308] = "B"
+vowelNasal           [308:309] = "i"
+pitch                [309:310] = ":"
+shift                [310:311] = "="
+syllables            [311:314] = "tx_"
+consonant            [311:312] = "t"
+vowelNasal           [312:313] = "x"
+pitch                [313:314] = "_"
+hexcode              [316:320] = "0020"
+shift                [320:321] = "#"
+syllables            [321:333] = "ha_HO:Do:ni^"
+consonant            [321:322] = "h"
+vowelNasal           [322:323] = "a"
+pitch                [323:324] = "_"
+consonant            [324:325] = "H"
+vowelNasal           [325:326] = "O"
+pitch                [326:327] = ":"
+consonant            [327:328] = "D"
+vowelNasal           [328:329] = "o"
+pitch                [329:330] = ":"
+consonant            [330:331] = "n"
+vowelNasal           [331:332] = "i"
+pitch                [332:333] = "^"
 `
 	if actualStr != expectStr {
 		t.Errorf("bad Parse:\nfound %v but expected %v\n", actualStr, expectStr)
