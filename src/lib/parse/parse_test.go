@@ -1,44 +1,80 @@
 package parse
 
 import (
+	// "io"
+	"log"
+	"os"
 	"strings"
 	"testing"
 )
 
+func TestMain(m *testing.M) {
+	// Set global flags for all tests in this package
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
+	// log.SetOutput(io.Discard)
+
+	// Run the test suite
+	os.Exit(m.Run())
+}
+
 func TestParseShortCanonical(t *testing.T) {
 	s := ` § ~ha_HO:Do:ni^U+003F 日本語はU+96E3しい,`
 	parseMatcherForGroupName := map[string]ParseMatcher{
-		"consonant":         Literal,
-		"hexcode":           Literal,
-		"pitch":             Literal,
-		"sentence":          CanonicalWord,
-		"sentenceUnmatched": Literal,
-		"shift":             Literal,
-		"syllable":          Literal,
-		"syllables":         CanonicalSyllable,
-		"symbol":            Literal,
-		"vowelNasal":        Literal,
-		"whole":             Sentence,
-		"word":              Literal,
+		"consonant":     Literal,
+		"hexcode":       Literal,
+		"pitch":         Literal,
+		"sentence":      CanonicalWord,
+		"shift":         Literal,
+		"syllable":      Literal,
+		"syllables":     CanonicalSyllable,
+		"symbol":        Literal,
+		"vowelNasal":    Literal,
+		"whole":         Sentence,
+		"word":          Literal,
+		"NONconsonant":  Literal,
+		"NONhexcode":    Literal,
+		"NONpitch":      Literal,
+		"NONsentence":   CanonicalWord,
+		"NONshift":      Literal,
+		"NONsyllable":   Literal,
+		"NONsyllables":  CanonicalSyllable,
+		"NONsymbol":     Literal,
+		"NONvowelNasal": Literal,
+		"NONwhole":      Sentence,
+		"NONword":       Literal,
 	}
 	actual := Parse(parseMatcherForGroupName, s, ParseTree{Begin: 0, End: len(s), Name: "whole"})
 	var actualBuilder strings.Builder = actual.Annotate(s, true, map[string]bool{
-		"closeVowel":        true,
-		"closeVowelNasal":   true,
-		"consonant":         true,
-		"hexcode":           true,
-		"nasal":             true,
-		"openVowel":         true,
-		"pitch":             true,
-		"sentence":          true,
-		"sentenceUnmatched": true,
-		"shift":             true,
-		"syllable":          true,
-		"syllables":         true,
-		"symbol":            true,
-		"vowelNasal":        true,
-		"whole":             true,
-		"word":              true,
+		"closeVowel":         true,
+		"closeVowelNasal":    true,
+		"consonant":          true,
+		"hexcode":            true,
+		"nasal":              true,
+		"openVowel":          true,
+		"pitch":              true,
+		"sentence":           true,
+		"shift":              true,
+		"syllable":           true,
+		"syllables":          true,
+		"symbol":             true,
+		"vowelNasal":         true,
+		"whole":              true,
+		"word":               true,
+		"NONcloseVowel":      true,
+		"NONcloseVowelNasal": true,
+		"NONconsonant":       true,
+		"NONhexcode":         true,
+		"NONnasal":           true,
+		"NONopenVowel":       true,
+		"NONpitch":           true,
+		"NONsentence":        true,
+		"NONshift":           true,
+		"NONsyllable":        true,
+		"NONsyllables":       true,
+		"NONsymbol":          true,
+		"NONvowelNasal":      true,
+		"NONwhole":           true,
+		"NONword":            true,
 	})
 	actualStr := actualBuilder.String()
 	expectStr := `
@@ -86,32 +122,50 @@ symbol               [ 48: 49] =                                          ,
 func TestParseLongCanonical(t *testing.T) {
 	s := `U+65E5U+672CU+8A9EU+306FU+96E3U+3057U+3044U+0021U+0020U+00A7U+0020~ha_HO:U+002D~Do:ni^U+0020=ha_HO:U+002D=Do:ni^U+0020~ha^Dx_U+0020~ba^ha_U+002D~mo_U+002D~tx_nx_U+0020~bx^U+002D~kc:Bi:tx_bx^U+002D~kc:Bi:tx_U+96E3=bx^U+002D=kc:=Bi:=tx_U+0020~bx^U+002D#kc:Bi:tx_U+0020~bx^U+002D@kc:Bi:tx_U+0020=bx^U+002D=kc:=Bi:=tx_U+0020#ha_HO:Do:ni^`
 	parseMatcherForGroupName := map[string]ParseMatcher{
-		"consonant":  Literal,
-		"hexcode":    Literal,
-		"pitch":      Literal,
-		"sentence":   CanonicalWord,
-		"shift":      Literal,
-		"syllables":  CanonicalSyllable,
-		"symbol":     Literal,
-		"vowelNasal": Literal,
-		"whole":      Sentence,
+		"consonant":     Literal,
+		"hexcode":       Literal,
+		"pitch":         Literal,
+		"sentence":      CanonicalWord,
+		"shift":         Literal,
+		"syllables":     CanonicalSyllable,
+		"symbol":        Literal,
+		"vowelNasal":    Literal,
+		"whole":         Sentence,
+		"NONconsonant":  Literal,
+		"NONhexcode":    Literal,
+		"NONpitch":      Literal,
+		"NONsentence":   CanonicalWord,
+		"NONshift":      Literal,
+		"NONsyllables":  CanonicalSyllable,
+		"NONsymbol":     Literal,
+		"NONvowelNasal": Literal,
+		"NONwhole":      Sentence,
 	}
 	actual := Parse(parseMatcherForGroupName, s, ParseTree{Begin: 0, End: len(s), Name: "whole"})
 	var actualBuilder strings.Builder = actual.Annotate(s, false, map[string]bool{
-		"consonant":  true,
-		"hexcode":    true,
-		"pitch":      true,
-		"sentence":   true,
-		"shift":      true,
-		"syllables":  true,
-		"symbol":     true,
-		"vowelNasal": true,
-		"whole":      true,
+		"consonant":     true,
+		"hexcode":       true,
+		"pitch":         true,
+		"sentence":      true,
+		"shift":         true,
+		"syllables":     true,
+		"symbol":        true,
+		"vowelNasal":    true,
+		"whole":         true,
+		"NONconsonant":  true,
+		"NONhexcode":    true,
+		"NONpitch":      true,
+		"NONsentence":   true,
+		"NONshift":      true,
+		"NONsyllables":  true,
+		"NONsymbol":     true,
+		"NONvowelNasal": true,
+		"NONwhole":      true,
 	})
 	actualStr := actualBuilder.String()
 	expectStr := `
 whole                [  0:333] = "U+65E5U+672CU+8A9EU+306FU+96E3U+3057U+3044U+0021U+0020U+00A7U+0020~ha_HO:U+002D~Do:ni^U+0020=ha_HO:U+002D=Do:ni^U+0020~ha^Dx_U+0020~ba^ha_U+002D~mo_U+002D~tx_nx_U+0020~bx^U+002D~kc:Bi:tx_bx^U+002D~kc:Bi:tx_U+96E3=bx^U+002D=kc:=Bi:=tx_U+0020~bx^U+002D#kc:Bi:tx_U+0020~bx^U+002D@kc:Bi:tx_U+0020=bx^U+002D=kc:=Bi:=tx_U+0020#ha_HO:Do:ni^"
-sentence             [  0: 54] = "U+65E5U+672CU+8A9EU+306FU+96E3U+3057U+3044U+0021U+0020"
+sentence             [  0: 48] = "U+65E5U+672CU+8A9EU+306FU+96E3U+3057U+3044U+0021"
 hexcode              [  2:  6] = "65E5"
 hexcode              [  8: 12] = "672C"
 hexcode              [ 14: 18] = "8A9E"
@@ -120,8 +174,8 @@ hexcode              [ 26: 30] = "96E3"
 hexcode              [ 32: 36] = "3057"
 hexcode              [ 38: 42] = "3044"
 hexcode              [ 44: 48] = "0021"
+sentence             [ 48:333] = "U+0020U+00A7U+0020~ha_HO:U+002D~Do:ni^U+0020=ha_HO:U+002D=Do:ni^U+0020~ha^Dx_U+0020~ba^ha_U+002D~mo_U+002D~tx_nx_U+0020~bx^U+002D~kc:Bi:tx_bx^U+002D~kc:Bi:tx_U+96E3=bx^U+002D=kc:=Bi:=tx_U+0020~bx^U+002D#kc:Bi:tx_U+0020~bx^U+002D@kc:Bi:tx_U+0020=bx^U+002D=kc:=Bi:=tx_U+0020#ha_HO:Do:ni^"
 hexcode              [ 50: 54] = "0020"
-sentence             [ 54:333] = "U+00A7U+0020~ha_HO:U+002D~Do:ni^U+0020=ha_HO:U+002D=Do:ni^U+0020~ha^Dx_U+0020~ba^ha_U+002D~mo_U+002D~tx_nx_U+0020~bx^U+002D~kc:Bi:tx_bx^U+002D~kc:Bi:tx_U+96E3=bx^U+002D=kc:=Bi:=tx_U+0020~bx^U+002D#kc:Bi:tx_U+0020~bx^U+002D@kc:Bi:tx_U+0020=bx^U+002D=kc:=Bi:=tx_U+0020#ha_HO:Do:ni^"
 hexcode              [ 56: 60] = "00A7"
 hexcode              [ 62: 66] = "0020"
 shift                [ 66: 67] = "~"
@@ -329,51 +383,67 @@ pitch                [332:333] = "^"
 func TestParseSango(t *testing.T) {
 	s := `Ahöñ-ndönî AHÖÑ-NDÖNÎ, ândɛ bâa-mo-tɛnɛ? BƐ̂-kɔ̈mbïtɛbɛ̂-kɔ̈mbïtɛ難BƐ̂-KƆ̈MBÏTƐ!`
 	parseMatcherForGroupName := map[string]ParseMatcher{
-		"closeVowel":                 Literal,
-		"closeVowelNasal":            Literal,
-		"closeVowelNasalUnmatched":   Literal,
-		"closeVowelUnmatched":        Literal,
-		"consonant":                  Literal,
-		"consonantUnmatched":         Literal,
-		"nasal":                      Literal,
-		"nasalUnmatched":             Literal,
-		"openVowel":                  Literal,
-		"openVowelUnmatched":         Literal,
-		"pitch":                      Literal,
-		"pitchUnmatched":             Literal,
-		"sentence":                   SangoWord,
-		"sentenceUnmatched":          Literal,
-		"sentenceUnmatchedUnmatched": Literal,
-		"shift":                      Literal,
-		"shiftUnmatched":             Literal,
-		"syllable":                   Literal,
-		"syllableUnmatched":          Literal,
-		"syllables":                  SangoSyllable,
-		"syllablesUnmatched":         Literal,
-		"vowelNasal":                 Literal,
-		"vowelNasalUnmatched":        Literal,
-		"whole":                      Sentence,
-		"wholeUnmatched":             Literal,
-		"word":                       Literal,
-		"wordUnmatched":              Literal,
+		"closeVowel":         Literal,
+		"closeVowelNasal":    Literal,
+		"consonant":          Literal,
+		"nasal":              Literal,
+		"openVowel":          Literal,
+		"pitch":              Literal,
+		"sentence":           SangoWord,
+		"shift":              Literal,
+		"syllable":           Literal,
+		"syllables":          SangoSyllable,
+		"symbol":             Literal,
+		"vowelNasal":         Literal,
+		"whole":              Sentence,
+		"word":               Literal,
+		"NONcloseVowel":      Literal,
+		"NONcloseVowelNasal": Literal,
+		"NONconsonant":       Literal,
+		"NONnasal":           Literal,
+		"NONopenVowel":       Literal,
+		"NONpitch":           Literal,
+		"NONsentence":        SangoWord,
+		"NONshift":           Literal,
+		"NONsyllable":        Literal,
+		"NONsyllables":       SangoSyllable,
+		"NONsymbol":          Literal,
+		"NONvowelNasal":      Literal,
+		"NONwhole":           Sentence,
+		"NONword":            Literal,
 	}
 	actual := Parse(parseMatcherForGroupName, s, ParseTree{Begin: 0, End: len(s), Name: "whole"})
 	var actualBuilder strings.Builder = actual.Annotate(s, true, map[string]bool{
-		"closeVowel":        true,
-		"closeVowelNasal":   true,
-		"consonant":         true,
-		"nasal":             true,
-		"openVowel":         true,
-		"pitch":             true,
-		"sentence":          true,
-		"sentenceUnmatched": true,
-		"shift":             true,
-		"syllable":          true,
-		"syllables":         true,
-		"unmatched":         true,
-		"vowelNasal":        true,
-		"whole":             true,
-		"word":              true,
+		"closeVowel":         true,
+		"closeVowelNasal":    true,
+		"consonant":          true,
+		"nasal":              true,
+		"openVowel":          true,
+		"pitch":              true,
+		"sentence":           true,
+		"shift":              true,
+		"syllable":           true,
+		"syllables":          true,
+		"symbol":             true,
+		"unmatched":          true,
+		"vowelNasal":         true,
+		"whole":              true,
+		"word":               true,
+		"NONcloseVowel":      true,
+		"NONcloseVowelNasal": true,
+		"NONconsonant":       true,
+		"NONnasal":           true,
+		"NONopenVowel":       true,
+		"NONpitch":           true,
+		"NONsentence":        true,
+		"NONshift":           true,
+		"NONsyllable":        true,
+		"NONsyllables":       true,
+		"NONsymbol":          true,
+		"NONunmatched":       true,
+		"NONvowelNasal":      true,
+		"NONwhole":           true,
+		"NONword":            true,
 	})
 	actualStr := actualBuilder.String()
 	expectStr := `
@@ -391,7 +461,7 @@ vowelNasal           [  2:  6] =   öñ
 closeVowelNasal      [  2:  6] =   öñ
 closeVowel           [  2:  4] =   ö
 nasal                [  4:  6] =    ñ
-sentenceUnmatched    [  6:  7] =     -
+symbol               [  6:  7] =     -
 word                 [  7: 14] =      ndönî
 syllables            [  7: 14] =      ndönî
 syllable             [  7: 11] =      ndö
@@ -404,7 +474,7 @@ consonant            [ 11: 12] =         n
 vowelNasal           [ 12: 14] =          î
 closeVowelNasal      [ 12: 14] =          î
 closeVowel           [ 12: 14] =          î
-sentenceUnmatched    [ 14: 15] =            
+symbol               [ 14: 15] =            
 word                 [ 15: 21] =            AHÖÑ
 syllables            [ 15: 21] =            AHÖÑ
 syllable             [ 15: 16] =            A
@@ -417,7 +487,7 @@ vowelNasal           [ 17: 21] =              ÖÑ
 closeVowelNasal      [ 17: 21] =              ÖÑ
 closeVowel           [ 17: 19] =              Ö
 nasal                [ 19: 21] =               Ñ
-sentenceUnmatched    [ 21: 22] =                -
+symbol               [ 21: 22] =                -
 word                 [ 22: 29] =                 NDÖNÎ
 syllables            [ 22: 29] =                 NDÖNÎ
 syllable             [ 22: 26] =                 NDÖ
@@ -430,7 +500,8 @@ consonant            [ 26: 27] =                    N
 vowelNasal           [ 27: 29] =                     Î
 closeVowelNasal      [ 27: 29] =                     Î
 closeVowel           [ 27: 29] =                     Î
-sentenceUnmatched    [ 29: 31] =                      , 
+symbol               [ 29: 30] =                      ,
+symbol               [ 30: 31] =                        
 word                 [ 31: 37] =                        ândɛ
 syllables            [ 31: 37] =                        ândɛ
 syllable             [ 31: 33] =                        â
@@ -441,7 +512,7 @@ syllable             [ 33: 37] =                         ndɛ
 consonant            [ 33: 35] =                         nd
 vowelNasal           [ 35: 37] =                           ɛ
 openVowel            [ 35: 37] =                           ɛ
-sentenceUnmatched    [ 37: 38] =                             
+symbol               [ 37: 38] =                             
 word                 [ 38: 42] =                             bâa
 syllables            [ 38: 42] =                             bâa
 syllable             [ 38: 41] =                             bâ
@@ -453,7 +524,7 @@ syllable             [ 41: 42] =                               a
 vowelNasal           [ 41: 42] =                               a
 closeVowelNasal      [ 41: 42] =                               a
 closeVowel           [ 41: 42] =                               a
-sentenceUnmatched    [ 42: 43] =                                -
+symbol               [ 42: 43] =                                -
 word                 [ 43: 45] =                                 mo
 syllables            [ 43: 45] =                                 mo
 syllable             [ 43: 45] =                                 mo
@@ -461,7 +532,7 @@ consonant            [ 43: 44] =                                 m
 vowelNasal           [ 44: 45] =                                  o
 closeVowelNasal      [ 44: 45] =                                  o
 closeVowel           [ 44: 45] =                                  o
-sentenceUnmatched    [ 45: 46] =                                   -
+symbol               [ 45: 46] =                                   -
 word                 [ 46: 52] =                                    tɛnɛ
 syllables            [ 46: 52] =                                    tɛnɛ
 syllable             [ 46: 49] =                                    tɛ
@@ -472,7 +543,8 @@ syllable             [ 49: 52] =                                      nɛ
 consonant            [ 49: 50] =                                      n
 vowelNasal           [ 50: 52] =                                       ɛ
 openVowel            [ 50: 52] =                                       ɛ
-sentenceUnmatched    [ 52: 54] =                                        ? 
+symbol               [ 52: 53] =                                        ?
+symbol               [ 53: 54] =                                          
 sentence             [ 54:112] =                                          BƐ̂-kɔ̈mbïtɛbɛ̂-kɔ̈mbïtɛ難BƐ̂-KƆ̈MBÏTƐ!
 word                 [ 54: 59] =                                          BƐ̂
 syllables            [ 54: 59] =                                          BƐ̂
@@ -480,7 +552,7 @@ syllable             [ 54: 59] =                                          BƐ̂
 consonant            [ 54: 55] =                                          B
 vowelNasal           [ 55: 59] =                                           Ɛ̂
 openVowel            [ 55: 59] =                                           Ɛ̂
-sentenceUnmatched    [ 59: 60] =                                             -
+symbol               [ 59: 60] =                                             -
 word                 [ 60: 77] =                                              kɔ̈mbïtɛbɛ̂
 syllables            [ 60: 77] =                                              kɔ̈mbïtɛbɛ̂
 syllable             [ 60: 65] =                                              kɔ̈
@@ -500,7 +572,30 @@ syllable             [ 72: 77] =                                                
 consonant            [ 72: 73] =                                                      b
 vowelNasal           [ 73: 77] =                                                       ɛ̂
 openVowel            [ 73: 77] =                                                       ɛ̂
-sentenceUnmatched    [ 77: 99] =                                                         -kɔ̈mbïtɛ難BƐ̂-
+symbol               [ 77: 78] =                                                         -
+word                 [ 78: 90] =                                                          kɔ̈mbïtɛ
+syllables            [ 78: 90] =                                                          kɔ̈mbïtɛ
+syllable             [ 78: 83] =                                                          kɔ̈
+consonant            [ 78: 79] =                                                          k
+vowelNasal           [ 79: 83] =                                                           ɔ̈
+openVowel            [ 79: 83] =                                                           ɔ̈
+syllable             [ 83: 87] =                                                             mbï
+consonant            [ 83: 85] =                                                             mb
+vowelNasal           [ 85: 87] =                                                               ï
+closeVowelNasal      [ 85: 87] =                                                               ï
+closeVowel           [ 85: 87] =                                                               ï
+syllable             [ 87: 90] =                                                                tɛ
+consonant            [ 87: 88] =                                                                t
+vowelNasal           [ 88: 90] =                                                                 ɛ
+openVowel            [ 88: 90] =                                                                 ɛ
+symbol               [ 90: 93] =                                                                  難
+word                 [ 93: 98] =                                                                    BƐ̂
+syllables            [ 93: 98] =                                                                    BƐ̂
+syllable             [ 93: 98] =                                                                    BƐ̂
+consonant            [ 93: 94] =                                                                    B
+vowelNasal           [ 94: 98] =                                                                     Ɛ̂
+openVowel            [ 94: 98] =                                                                     Ɛ̂
+symbol               [ 98: 99] =                                                                       -
 word                 [ 99:111] =                                                                        KƆ̈MBÏTƐ
 syllables            [ 99:111] =                                                                        KƆ̈MBÏTƐ
 syllable             [ 99:104] =                                                                        KƆ̈
@@ -516,7 +611,7 @@ syllable             [108:111] =                                                
 consonant            [108:109] =                                                                              T
 vowelNasal           [109:111] =                                                                               Ɛ
 openVowel            [109:111] =                                                                               Ɛ
-sentenceUnmatched    [111:112] =                                                                                !
+symbol               [111:112] =                                                                                !
 `
 	if actualStr != expectStr {
 		t.Errorf("bad Parse:\nfound %v but expected %v\n", actualStr, expectStr)
@@ -534,69 +629,70 @@ Tîtene mbï dutï nzönî, mbï pûsu lo kêtê…»
 
 `
 	parseMatcherForGroupName := map[string]ParseMatcher{
-		"closeVowel":                 Literal,
-		"closeVowelNasal":            Literal,
-		"closeVowelNasalUnmatched":   Literal,
-		"closeVowelUnmatched":        Literal,
-		"consonant":                  Literal,
-		"consonantUnmatched":         Literal,
-		"nasal":                      Literal,
-		"nasalUnmatched":             Literal,
-		"openVowel":                  Literal,
-		"openVowelUnmatched":         Literal,
-		"pitch":                      Literal,
-		"pitchUnmatched":             Literal,
-		"sentence":                   SangoWord,
-		"sentenceUnmatched":          Literal,
-		"sentenceUnmatchedUnmatched": Literal,
-		"shift":                      Literal,
-		"shiftUnmatched":             Literal,
-		"syllable":                   Literal,
-		"syllableUnmatched":          Literal,
-		"syllables":                  SangoSyllable,
-		"syllablesUnmatched":         Literal,
-		"vowelNasal":                 Literal,
-		"vowelNasalUnmatched":        Literal,
-		"whole":                      Sentence,
-		"wholeUnmatched":             Literal,
-		"word":                       Literal,
-		"wordUnmatched":              Literal,
+		"closeVowel":         Literal,
+		"closeVowelNasal":    Literal,
+		"consonant":          Literal,
+		"nasal":              Literal,
+		"openVowel":          Literal,
+		"pitch":              Literal,
+		"sentence":           SangoWord,
+		"shift":              Literal,
+		"syllable":           Literal,
+		"syllables":          SangoSyllable,
+		"symbol":             Literal,
+		"vowelNasal":         Literal,
+		"whole":              Sentence,
+		"word":               Literal,
+		"NONcloseVowel":      Literal,
+		"NONcloseVowelNasal": Literal,
+		"NONconsonant":       Literal,
+		"NONnasal":           Literal,
+		"NONopenVowel":       Literal,
+		"NONpitch":           Literal,
+		"NONsentence":        SangoWord,
+		"NONshift":           Literal,
+		"NONsyllable":        Literal,
+		"NONsyllables":       SangoSyllable,
+		"NONsymbol":          Literal,
+		"NONvowelNasal":      Literal,
+		"NONwhole":           Sentence,
+		"NONword":            Literal,
 	}
 	actual := Parse(parseMatcherForGroupName, s, ParseTree{Begin: 0, End: len(s), Name: "whole"})
 	var actualBuilder strings.Builder = actual.Annotate(s, false, map[string]bool{
-		"closeVowel":                 true,
-		"closeVowelNasal":            true,
-		"closeVowelNasalUnmatched":   true,
-		"closeVowelUnmatched":        true,
-		"consonant":                  true,
-		"consonantUnmatched":         true,
-		"nasal":                      true,
-		"nasalUnmatched":             true,
-		"openVowel":                  true,
-		"openVowelUnmatched":         true,
-		"pitch":                      true,
-		"pitchUnmatched":             true,
-		"sentence":                   true,
-		"sentenceUnmatched":          true,
-		"sentenceUnmatchedUnmatched": true,
-		"shift":                      true,
-		"shiftUnmatched":             true,
-		"syllable":                   true,
-		"syllableUnmatched":          true,
-		"syllables":                  true,
-		"syllablesUnmatched":         true,
-		"vowelNasal":                 true,
-		"vowelNasalUnmatched":        true,
-		"whole":                      true,
-		"wholeUnmatched":             true,
-		"word":                       true,
-		"wordUnmatched":              true,
+		"closeVowel":         true,
+		"closeVowelNasal":    true,
+		"consonant":          true,
+		"nasal":              true,
+		"openVowel":          true,
+		"pitch":              true,
+		"sentence":           true,
+		"shift":              true,
+		"syllable":           true,
+		"syllables":          true,
+		"symbol":             true,
+		"vowelNasal":         true,
+		"whole":              true,
+		"word":               true,
+		"NONcloseVowel":      true,
+		"NONcloseVowelNasal": true,
+		"NONconsonant":       true,
+		"NONnasal":           true,
+		"NONopenVowel":       true,
+		"NONpitch":           true,
+		"NONsentence":        true,
+		"NONshift":           true,
+		"NONsyllable":        true,
+		"NONsyllables":       true,
+		"NONsymbol":          true,
+		"NONvowelNasal":      true,
+		"NONwhole":           true,
+		"NONword":            true,
 	})
 	actualStr := actualBuilder.String()
 	expectStr := `
 whole                [  0:208] = "\nNa yâ tî takisï na Bangî\n\nBenoît Kongbo\n\n«… na pöpö tî âzo otâ sô na pêko tî takisï nî sô mbênî wâlï akono gï töngana bâgara.\nTîtene mbï dutï nzönî, mbï pûsu lo kêtê…»\n\n"
 sentence             [  0: 31] = "\nNa yâ tî takisï na Bangî\n\n"
-sentenceUnmatched    [  0:  1] = "\n"
 word                 [  1:  3] = "Na"
 syllables            [  1:  3] = "Na"
 syllable             [  1:  3] = "Na"
@@ -604,7 +700,7 @@ consonant            [  1:  2] = "N"
 vowelNasal           [  2:  3] = "a"
 closeVowelNasal      [  2:  3] = "a"
 closeVowel           [  2:  3] = "a"
-sentenceUnmatched    [  3:  4] = " "
+symbol               [  3:  4] = " "
 word                 [  4:  7] = "yâ"
 syllables            [  4:  7] = "yâ"
 syllable             [  4:  7] = "yâ"
@@ -612,7 +708,7 @@ consonant            [  4:  5] = "y"
 vowelNasal           [  5:  7] = "â"
 closeVowelNasal      [  5:  7] = "â"
 closeVowel           [  5:  7] = "â"
-sentenceUnmatched    [  7:  8] = " "
+symbol               [  7:  8] = " "
 word                 [  8: 11] = "tî"
 syllables            [  8: 11] = "tî"
 syllable             [  8: 11] = "tî"
@@ -620,7 +716,7 @@ consonant            [  8:  9] = "t"
 vowelNasal           [  9: 11] = "î"
 closeVowelNasal      [  9: 11] = "î"
 closeVowel           [  9: 11] = "î"
-sentenceUnmatched    [ 11: 12] = " "
+symbol               [ 11: 12] = " "
 word                 [ 12: 19] = "takisï"
 syllables            [ 12: 19] = "takisï"
 syllable             [ 12: 14] = "ta"
@@ -638,7 +734,7 @@ consonant            [ 16: 17] = "s"
 vowelNasal           [ 17: 19] = "ï"
 closeVowelNasal      [ 17: 19] = "ï"
 closeVowel           [ 17: 19] = "ï"
-sentenceUnmatched    [ 19: 20] = " "
+symbol               [ 19: 20] = " "
 word                 [ 20: 22] = "na"
 syllables            [ 20: 22] = "na"
 syllable             [ 20: 22] = "na"
@@ -646,7 +742,7 @@ consonant            [ 20: 21] = "n"
 vowelNasal           [ 21: 22] = "a"
 closeVowelNasal      [ 21: 22] = "a"
 closeVowel           [ 21: 22] = "a"
-sentenceUnmatched    [ 22: 23] = " "
+symbol               [ 22: 23] = " "
 word                 [ 23: 29] = "Bangî"
 syllables            [ 23: 29] = "Bangî"
 syllable             [ 23: 25] = "Ba"
@@ -659,9 +755,14 @@ consonant            [ 25: 27] = "ng"
 vowelNasal           [ 27: 29] = "î"
 closeVowelNasal      [ 27: 29] = "î"
 closeVowel           [ 27: 29] = "î"
-sentenceUnmatched    [ 29: 31] = "\n\n"
 sentence             [ 31: 47] = "Benoît Kongbo\n\n"
-sentenceUnmatched    [ 31: 39] = "Benoît "
+symbol               [ 31: 32] = "B"
+symbol               [ 32: 33] = "e"
+symbol               [ 33: 34] = "n"
+symbol               [ 34: 35] = "o"
+symbol               [ 35: 37] = "î"
+symbol               [ 37: 38] = "t"
+symbol               [ 38: 39] = " "
 word                 [ 39: 45] = "Kongbo"
 syllables            [ 39: 45] = "Kongbo"
 syllable             [ 39: 41] = "Ko"
@@ -674,9 +775,10 @@ consonant            [ 41: 44] = "ngb"
 vowelNasal           [ 44: 45] = "o"
 closeVowelNasal      [ 44: 45] = "o"
 closeVowel           [ 44: 45] = "o"
-sentenceUnmatched    [ 45: 47] = "\n\n"
 sentence             [ 47:153] = "«… na pöpö tî âzo otâ sô na pêko tî takisï nî sô mbênî wâlï akono gï töngana bâgara.\n"
-sentenceUnmatched    [ 47: 53] = "«… "
+symbol               [ 47: 49] = "«"
+symbol               [ 49: 52] = "…"
+symbol               [ 52: 53] = " "
 word                 [ 53: 55] = "na"
 syllables            [ 53: 55] = "na"
 syllable             [ 53: 55] = "na"
@@ -684,7 +786,7 @@ consonant            [ 53: 54] = "n"
 vowelNasal           [ 54: 55] = "a"
 closeVowelNasal      [ 54: 55] = "a"
 closeVowel           [ 54: 55] = "a"
-sentenceUnmatched    [ 55: 56] = " "
+symbol               [ 55: 56] = " "
 word                 [ 56: 62] = "pöpö"
 syllables            [ 56: 62] = "pöpö"
 syllable             [ 56: 59] = "pö"
@@ -697,7 +799,7 @@ consonant            [ 59: 60] = "p"
 vowelNasal           [ 60: 62] = "ö"
 closeVowelNasal      [ 60: 62] = "ö"
 closeVowel           [ 60: 62] = "ö"
-sentenceUnmatched    [ 62: 63] = " "
+symbol               [ 62: 63] = " "
 word                 [ 63: 66] = "tî"
 syllables            [ 63: 66] = "tî"
 syllable             [ 63: 66] = "tî"
@@ -705,7 +807,7 @@ consonant            [ 63: 64] = "t"
 vowelNasal           [ 64: 66] = "î"
 closeVowelNasal      [ 64: 66] = "î"
 closeVowel           [ 64: 66] = "î"
-sentenceUnmatched    [ 66: 67] = " "
+symbol               [ 66: 67] = " "
 word                 [ 67: 71] = "âzo"
 syllables            [ 67: 71] = "âzo"
 syllable             [ 67: 69] = "â"
@@ -717,7 +819,7 @@ consonant            [ 69: 70] = "z"
 vowelNasal           [ 70: 71] = "o"
 closeVowelNasal      [ 70: 71] = "o"
 closeVowel           [ 70: 71] = "o"
-sentenceUnmatched    [ 71: 72] = " "
+symbol               [ 71: 72] = " "
 word                 [ 72: 76] = "otâ"
 syllables            [ 72: 76] = "otâ"
 syllable             [ 72: 73] = "o"
@@ -729,7 +831,7 @@ consonant            [ 73: 74] = "t"
 vowelNasal           [ 74: 76] = "â"
 closeVowelNasal      [ 74: 76] = "â"
 closeVowel           [ 74: 76] = "â"
-sentenceUnmatched    [ 76: 77] = " "
+symbol               [ 76: 77] = " "
 word                 [ 77: 80] = "sô"
 syllables            [ 77: 80] = "sô"
 syllable             [ 77: 80] = "sô"
@@ -737,7 +839,7 @@ consonant            [ 77: 78] = "s"
 vowelNasal           [ 78: 80] = "ô"
 closeVowelNasal      [ 78: 80] = "ô"
 closeVowel           [ 78: 80] = "ô"
-sentenceUnmatched    [ 80: 81] = " "
+symbol               [ 80: 81] = " "
 word                 [ 81: 83] = "na"
 syllables            [ 81: 83] = "na"
 syllable             [ 81: 83] = "na"
@@ -745,7 +847,7 @@ consonant            [ 81: 82] = "n"
 vowelNasal           [ 82: 83] = "a"
 closeVowelNasal      [ 82: 83] = "a"
 closeVowel           [ 82: 83] = "a"
-sentenceUnmatched    [ 83: 84] = " "
+symbol               [ 83: 84] = " "
 word                 [ 84: 89] = "pêko"
 syllables            [ 84: 89] = "pêko"
 syllable             [ 84: 87] = "pê"
@@ -758,7 +860,7 @@ consonant            [ 87: 88] = "k"
 vowelNasal           [ 88: 89] = "o"
 closeVowelNasal      [ 88: 89] = "o"
 closeVowel           [ 88: 89] = "o"
-sentenceUnmatched    [ 89: 90] = " "
+symbol               [ 89: 90] = " "
 word                 [ 90: 93] = "tî"
 syllables            [ 90: 93] = "tî"
 syllable             [ 90: 93] = "tî"
@@ -766,7 +868,7 @@ consonant            [ 90: 91] = "t"
 vowelNasal           [ 91: 93] = "î"
 closeVowelNasal      [ 91: 93] = "î"
 closeVowel           [ 91: 93] = "î"
-sentenceUnmatched    [ 93: 94] = " "
+symbol               [ 93: 94] = " "
 word                 [ 94:101] = "takisï"
 syllables            [ 94:101] = "takisï"
 syllable             [ 94: 96] = "ta"
@@ -784,7 +886,7 @@ consonant            [ 98: 99] = "s"
 vowelNasal           [ 99:101] = "ï"
 closeVowelNasal      [ 99:101] = "ï"
 closeVowel           [ 99:101] = "ï"
-sentenceUnmatched    [101:102] = " "
+symbol               [101:102] = " "
 word                 [102:105] = "nî"
 syllables            [102:105] = "nî"
 syllable             [102:105] = "nî"
@@ -792,7 +894,7 @@ consonant            [102:103] = "n"
 vowelNasal           [103:105] = "î"
 closeVowelNasal      [103:105] = "î"
 closeVowel           [103:105] = "î"
-sentenceUnmatched    [105:106] = " "
+symbol               [105:106] = " "
 word                 [106:109] = "sô"
 syllables            [106:109] = "sô"
 syllable             [106:109] = "sô"
@@ -800,7 +902,7 @@ consonant            [106:107] = "s"
 vowelNasal           [107:109] = "ô"
 closeVowelNasal      [107:109] = "ô"
 closeVowel           [107:109] = "ô"
-sentenceUnmatched    [109:110] = " "
+symbol               [109:110] = " "
 word                 [110:117] = "mbênî"
 syllables            [110:117] = "mbênî"
 syllable             [110:114] = "mbê"
@@ -813,7 +915,7 @@ consonant            [114:115] = "n"
 vowelNasal           [115:117] = "î"
 closeVowelNasal      [115:117] = "î"
 closeVowel           [115:117] = "î"
-sentenceUnmatched    [117:118] = " "
+symbol               [117:118] = " "
 word                 [118:124] = "wâlï"
 syllables            [118:124] = "wâlï"
 syllable             [118:121] = "wâ"
@@ -826,7 +928,7 @@ consonant            [121:122] = "l"
 vowelNasal           [122:124] = "ï"
 closeVowelNasal      [122:124] = "ï"
 closeVowel           [122:124] = "ï"
-sentenceUnmatched    [124:125] = " "
+symbol               [124:125] = " "
 word                 [125:130] = "akono"
 syllables            [125:130] = "akono"
 syllable             [125:126] = "a"
@@ -843,7 +945,7 @@ consonant            [128:129] = "n"
 vowelNasal           [129:130] = "o"
 closeVowelNasal      [129:130] = "o"
 closeVowel           [129:130] = "o"
-sentenceUnmatched    [130:131] = " "
+symbol               [130:131] = " "
 word                 [131:134] = "gï"
 syllables            [131:134] = "gï"
 syllable             [131:134] = "gï"
@@ -851,7 +953,7 @@ consonant            [131:132] = "g"
 vowelNasal           [132:134] = "ï"
 closeVowelNasal      [132:134] = "ï"
 closeVowel           [132:134] = "ï"
-sentenceUnmatched    [134:135] = " "
+symbol               [134:135] = " "
 word                 [135:143] = "töngana"
 syllables            [135:143] = "töngana"
 syllable             [135:138] = "tö"
@@ -869,7 +971,7 @@ consonant            [141:142] = "n"
 vowelNasal           [142:143] = "a"
 closeVowelNasal      [142:143] = "a"
 closeVowel           [142:143] = "a"
-sentenceUnmatched    [143:144] = " "
+symbol               [143:144] = " "
 word                 [144:151] = "bâgara"
 syllables            [144:151] = "bâgara"
 syllable             [144:147] = "bâ"
@@ -887,7 +989,7 @@ consonant            [149:150] = "r"
 vowelNasal           [150:151] = "a"
 closeVowelNasal      [150:151] = "a"
 closeVowel           [150:151] = "a"
-sentenceUnmatched    [151:153] = ".\n"
+symbol               [151:152] = "."
 sentence             [153:208] = "Tîtene mbï dutï nzönî, mbï pûsu lo kêtê…»\n\n"
 word                 [153:160] = "Tîtene"
 syllables            [153:160] = "Tîtene"
@@ -906,7 +1008,7 @@ consonant            [158:159] = "n"
 vowelNasal           [159:160] = "e"
 closeVowelNasal      [159:160] = "e"
 closeVowel           [159:160] = "e"
-sentenceUnmatched    [160:161] = " "
+symbol               [160:161] = " "
 word                 [161:165] = "mbï"
 syllables            [161:165] = "mbï"
 syllable             [161:165] = "mbï"
@@ -914,7 +1016,7 @@ consonant            [161:163] = "mb"
 vowelNasal           [163:165] = "ï"
 closeVowelNasal      [163:165] = "ï"
 closeVowel           [163:165] = "ï"
-sentenceUnmatched    [165:166] = " "
+symbol               [165:166] = " "
 word                 [166:171] = "dutï"
 syllables            [166:171] = "dutï"
 syllable             [166:168] = "du"
@@ -927,7 +1029,7 @@ consonant            [168:169] = "t"
 vowelNasal           [169:171] = "ï"
 closeVowelNasal      [169:171] = "ï"
 closeVowel           [169:171] = "ï"
-sentenceUnmatched    [171:172] = " "
+symbol               [171:172] = " "
 word                 [172:179] = "nzönî"
 syllables            [172:179] = "nzönî"
 syllable             [172:176] = "nzö"
@@ -940,7 +1042,8 @@ consonant            [176:177] = "n"
 vowelNasal           [177:179] = "î"
 closeVowelNasal      [177:179] = "î"
 closeVowel           [177:179] = "î"
-sentenceUnmatched    [179:181] = ", "
+symbol               [179:180] = ","
+symbol               [180:181] = " "
 word                 [181:185] = "mbï"
 syllables            [181:185] = "mbï"
 syllable             [181:185] = "mbï"
@@ -948,7 +1051,7 @@ consonant            [181:183] = "mb"
 vowelNasal           [183:185] = "ï"
 closeVowelNasal      [183:185] = "ï"
 closeVowel           [183:185] = "ï"
-sentenceUnmatched    [185:186] = " "
+symbol               [185:186] = " "
 word                 [186:191] = "pûsu"
 syllables            [186:191] = "pûsu"
 syllable             [186:189] = "pû"
@@ -961,7 +1064,7 @@ consonant            [189:190] = "s"
 vowelNasal           [190:191] = "u"
 closeVowelNasal      [190:191] = "u"
 closeVowel           [190:191] = "u"
-sentenceUnmatched    [191:192] = " "
+symbol               [191:192] = " "
 word                 [192:194] = "lo"
 syllables            [192:194] = "lo"
 syllable             [192:194] = "lo"
@@ -969,7 +1072,7 @@ consonant            [192:193] = "l"
 vowelNasal           [193:194] = "o"
 closeVowelNasal      [193:194] = "o"
 closeVowel           [193:194] = "o"
-sentenceUnmatched    [194:195] = " "
+symbol               [194:195] = " "
 word                 [195:201] = "kêtê"
 syllables            [195:201] = "kêtê"
 syllable             [195:198] = "kê"
@@ -982,7 +1085,8 @@ consonant            [198:199] = "t"
 vowelNasal           [199:201] = "ê"
 closeVowelNasal      [199:201] = "ê"
 closeVowel           [199:201] = "ê"
-sentenceUnmatched    [201:208] = "…»\n\n"
+symbol               [201:204] = "…"
+symbol               [204:206] = "»"
 `
 	if actualStr != expectStr {
 		t.Errorf("bad Parse:\nfound %v but expected %v\n", actualStr, expectStr)
@@ -995,13 +1099,12 @@ Na yâ tî takisï na Bangî
 
 Benoît Kongbo
 
-«… na pöpö tî âzo otâ sô na pêko tî takisï nî sô mbênî wâlï akono gï töngana bâgara.
-Tîtene mbï dutï nzönî, mbï pûsu lo kêtê…»
+«… na pöpö tî âzo otâ sô na pêko tî takisï nî sô mbênî wâlï akono gï töngana bâgara. Tîtene mbï dutï nzönî, mbï pûsu lo kêtê…»
 
-Mbï löndö tî sïgî na pekô tî büngbïngö-terê na wayïndä tî Alliance française, na lo sô ayeke wayïndä tî Espace langue et formation, na kötä wasüngö-mbëtï Pierre Sammy sô mbï yeke gue na ndo tî lo ândö mîngi, na Gabriel, mbênî wasüngö-mbëtï ngâ na âmbâ tî mbï maseka-kôlï sô ayê kua tî süngö-mbëtï.
+Mbï löndö tî sïgî
+na pekô tî büngbïngö-terê na wayïndä tî Alliance française, na lo sô ayeke wayïndä tî Espace langue et formation, na kötä wasüngö-mbëtï Pierre Sammy sô mbï yeke gue na ndo tî lo ândö mîngi, na Gabriel, mbênî wasüngö-mbëtï ngâ na âmbâ tî mbï maseka-kôlï sô ayê kua tî süngö-mbëtï.
 
-Mbï yeke tambûla tî gue na balabâla tî Dipandäa, ndo sô kâ mbï yeke mû takisï daä tî gue na yângâda.
-Mbï yeke gbû li tî mbï na ndö tî kua sô amû na ë.
+Mbï yeke tambûla tî gue na balabâla tî Dipandäa, ndo sô kâ mbï yeke mû takisï daä tî gue na yângâda. Mbï yeke gbû li tî mbï na ndö tî kua sô amû na ë.
 Lo hûnda na ë tî sû mbênî mbëtï sô ë lîngbi tî mû na lo na yâ tî yenga ûse.
 
 Lo tene fadë na ë:
@@ -1225,6 +1328,7 @@ Mo yeke na ndo wa?
 
 — Mbï lîngbi tî kü gï töngana mo yê daä tî sâra tënë tî mbï na yâ tî mbëtï tî mo nî sï.
 
+
 Mbï tene na lo na ngîâ na yângâ tî mbï.
 `
 	parseMatcherForGroupName := map[string]ParseMatcher{
@@ -1239,10 +1343,10 @@ Mbï tene na lo na ngîâ na yângâ tî mbï.
 	expectStr := `
 sentence             [  0: 31] = "\nNa yâ tî takisï na Bangî\n\n"
 sentence             [ 31: 47] = "Benoît Kongbo\n\n"
-sentence             [ 47:153] = "«… na pöpö tî âzo otâ sô na pêko tî takisï nî sô mbênî wâlï akono gï töngana bâgara.\n"
+sentence             [ 47:153] = "«… na pöpö tî âzo otâ sô na pêko tî takisï nî sô mbênî wâlï akono gï töngana bâgara. "
 sentence             [153:208] = "Tîtene mbï dutï nzönî, mbï pûsu lo kêtê…»\n\n"
-sentence             [208:559] = "Mbï löndö tî sïgî na pekô tî büngbïngö-terê na wayïndä tî Alliance française, na lo sô ayeke wayïndä tî Espace langue et formation, na kötä wasüngö-mbëtï Pierre Sammy sô mbï yeke gue na ndo tî lo ândö mîngi, na Gabriel, mbênî wasüngö-mbëtï ngâ na âmbâ tî mbï maseka-kôlï sô ayê kua tî süngö-mbëtï.\n\n"
-sentence             [559:675] = "Mbï yeke tambûla tî gue na balabâla tî Dipandäa, ndo sô kâ mbï yeke mû takisï daä tî gue na yângâda.\n"
+sentence             [208:559] = "Mbï löndö tî sïgî\nna pekô tî büngbïngö-terê na wayïndä tî Alliance française, na lo sô ayeke wayïndä tî Espace langue et formation, na kötä wasüngö-mbëtï Pierre Sammy sô mbï yeke gue na ndo tî lo ândö mîngi, na Gabriel, mbênî wasüngö-mbëtï ngâ na âmbâ tî mbï maseka-kôlï sô ayê kua tî süngö-mbëtï.\n\n"
+sentence             [559:675] = "Mbï yeke tambûla tî gue na balabâla tî Dipandäa, ndo sô kâ mbï yeke mû takisï daä tî gue na yângâda. "
 sentence             [675:734] = "Mbï yeke gbû li tî mbï na ndö tî kua sô amû na ë.\n"
 sentence             [734:827] = "Lo hûnda na ë tî sû mbênî mbëtï sô ë lîngbi tî mû na lo na yâ tî yenga ûse.\n\n"
 sentence             [827:849] = "Lo tene fadë na ë:\n\n"
@@ -1384,8 +1488,8 @@ sentence             [11409:11477] = "— Mo pêe tî gä hîo na ndo sô ë ike
 sentence             [11477:11598] = "— Mbï pêe, me na yâ tî ngbonga ôko ngbanga tî sô mbï yê tî sû mbênî mbëtï na farânzi ngâ na sängö.\n\n"
 sentence             [11598:11637] = "— Alîngbi tî kü kêkerêke äpe?\n\n"
 sentence             [11637:11741] = "— Mbï yê tî tö ndâ nî gï fafadësô, töngasô äpe sô, mbï lîngbi tî sû nî ânde äpe.\n\n"
-sentence             [11741:11853] = "— Mbï lîngbi tî kü gï töngana mo yê daä tî sâra tënë tî mbï na yâ tî mbëtï tî mo nî sï.\n\n"
-sentence             [11853:11900] = "Mbï tene na lo na ngîâ na yângâ tî mbï.\n"
+sentence             [11741:11854] = "— Mbï lîngbi tî kü gï töngana mo yê daä tî sâra tënë tî mbï na yâ tî mbëtï tî mo nî sï.\n\n\n"
+sentence             [11854:11901] = "Mbï tene na lo na ngîâ na yângâ tî mbï.\n"
 `
 	if actualStr != expectStr {
 		t.Errorf("bad Parse:\nfound %v but expected %v\n", actualStr, expectStr)
