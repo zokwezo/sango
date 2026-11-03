@@ -165,7 +165,7 @@ func TestParseLongCanonical(t *testing.T) {
 	actualStr := actualBuilder.String()
 	expectStr := `
 whole                [  0:333] = "U+65E5U+672CU+8A9EU+306FU+96E3U+3057U+3044U+0021U+0020U+00A7U+0020~ha_HO:U+002D~Do:ni^U+0020=ha_HO:U+002D=Do:ni^U+0020~ha^Dx_U+0020~ba^ha_U+002D~mo_U+002D~tx_nx_U+0020~bx^U+002D~kc:Bi:tx_bx^U+002D~kc:Bi:tx_U+96E3=bx^U+002D=kc:=Bi:=tx_U+0020~bx^U+002D#kc:Bi:tx_U+0020~bx^U+002D@kc:Bi:tx_U+0020=bx^U+002D=kc:=Bi:=tx_U+0020#ha_HO:Do:ni^"
-sentence             [  0: 48] = "U+65E5U+672CU+8A9EU+306FU+96E3U+3057U+3044U+0021"
+sentence             [  0: 54] = "U+65E5U+672CU+8A9EU+306FU+96E3U+3057U+3044U+0021U+0020"
 hexcode              [  2:  6] = "65E5"
 hexcode              [  8: 12] = "672C"
 hexcode              [ 14: 18] = "8A9E"
@@ -174,8 +174,8 @@ hexcode              [ 26: 30] = "96E3"
 hexcode              [ 32: 36] = "3057"
 hexcode              [ 38: 42] = "3044"
 hexcode              [ 44: 48] = "0021"
-sentence             [ 48:333] = "U+0020U+00A7U+0020~ha_HO:U+002D~Do:ni^U+0020=ha_HO:U+002D=Do:ni^U+0020~ha^Dx_U+0020~ba^ha_U+002D~mo_U+002D~tx_nx_U+0020~bx^U+002D~kc:Bi:tx_bx^U+002D~kc:Bi:tx_U+96E3=bx^U+002D=kc:=Bi:=tx_U+0020~bx^U+002D#kc:Bi:tx_U+0020~bx^U+002D@kc:Bi:tx_U+0020=bx^U+002D=kc:=Bi:=tx_U+0020#ha_HO:Do:ni^"
 hexcode              [ 50: 54] = "0020"
+sentence             [ 54:333] = "U+00A7U+0020~ha_HO:U+002D~Do:ni^U+0020=ha_HO:U+002D=Do:ni^U+0020~ha^Dx_U+0020~ba^ha_U+002D~mo_U+002D~tx_nx_U+0020~bx^U+002D~kc:Bi:tx_bx^U+002D~kc:Bi:tx_U+96E3=bx^U+002D=kc:=Bi:=tx_U+0020~bx^U+002D#kc:Bi:tx_U+0020~bx^U+002D@kc:Bi:tx_U+0020=bx^U+002D=kc:=Bi:=tx_U+0020#ha_HO:Do:ni^"
 hexcode              [ 56: 60] = "00A7"
 hexcode              [ 62: 66] = "0020"
 shift                [ 66: 67] = "~"
